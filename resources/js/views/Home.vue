@@ -1,10 +1,40 @@
 <template>
-  <div>Home page</div>
+  <b-container class="page">
+    <h2>Últimos Sorteios</h2>
+    <b-row>
+      <b-col md="4" lg="3">
+        <contest-card />
+      </b-col>
+      <b-col md="4" lg="3">
+        <contest-card />
+      </b-col>
+      <b-col md="4" lg="3">
+        <contest-card />
+      </b-col>
+      <b-col md="4" lg="3">
+        <contest-card />
+      </b-col>
+    </b-row>
+
+    <h2>Últimos Ganhadores</h2>
+    <b-row class="mb-4">
+      <b-col md="6" lg="4"><winner-card /></b-col>
+      <b-col md="6" lg="4"><winner-card /></b-col>
+      <b-col md="6" lg="4"><winner-card /></b-col>
+    </b-row>
+  </b-container>
 </template>
 
 <script>
+import ContestCardVue from "../components/Contests/ContestCard.vue";
+import WinnerCardVue from "../components/Winners/WinnerCard.vue";
+
 export default {
   name: "Home",
+  components: {
+    "contest-card": ContestCardVue,
+    "winner-card": WinnerCardVue,
+  },
 };
 </script>
 

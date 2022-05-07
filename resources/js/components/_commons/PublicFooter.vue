@@ -1,6 +1,6 @@
 <template>
   <footer class="public-footer">
-    <b-container fluid>
+    <b-container>
       <b-row>
         <b-col md="6" lg="3">
           <h3>Mapa do site</h3>
@@ -37,7 +37,7 @@
       </b-row>
     </b-container>
     <p class="copyright bg-dark text-white text-right p-3">
-      2022 - Todos os direitos reservados
+      <b-container> 2022 - Todos os direitos reservados </b-container>
     </p>
   </footer>
 </template>
