@@ -6,6 +6,8 @@ Vue.use(VueRouter);
 import Home from "../views/Home";
 import ContestList from "../views/ContestList";
 import Profile from "../views/Profile";
+import Login from "../views/Login";
+import Register from "../views/Register";
 
 const routes = [
     {
@@ -22,6 +24,16 @@ const routes = [
         name: "profile",
         path: "/minha-conta",
         component: Profile,
+    },
+    {
+        name: "login",
+        path: "/login",
+        component: Login,
+    },
+    {
+        name: "register",
+        path: "/cadastre-se",
+        component: Register,
     },
 ];
 
