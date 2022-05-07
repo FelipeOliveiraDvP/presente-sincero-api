@@ -5,6 +5,7 @@ Vue.use(VueRouter);
 
 import Home from "../views/Home";
 import ContestList from "../views/ContestList";
+import ContestDetail from "../views/ContestDetail";
 import Profile from "../views/Profile";
 import Login from "../views/Login";
 import Register from "../views/Register";
@@ -19,6 +20,11 @@ const routes = [
         name: "contests",
         path: "/sorteios",
         component: ContestList,
+    },
+    {
+        name: "contestDetail",
+        path: "/sorteios/:slug",
+        component: ContestDetail,
     },
     {
         name: "profile",
