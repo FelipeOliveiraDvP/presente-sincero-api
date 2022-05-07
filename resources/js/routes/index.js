@@ -5,6 +5,7 @@ Vue.use(VueRouter);
 
 import Home from "../views/Home";
 import ContestList from "../views/ContestList";
+import Profile from "../views/Profile";
 
 const routes = [
     {
@@ -16,6 +17,11 @@ const routes = [
         name: "contests",
         path: "/sorteios",
         component: ContestList,
+    },
+    {
+        name: "profile",
+        path: "/minha-conta",
+        component: Profile,
     },
 ];
 

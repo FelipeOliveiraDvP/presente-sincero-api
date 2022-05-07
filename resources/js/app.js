@@ -6,6 +6,7 @@ import VueTheMask from "vue-the-mask";
 
 import App from "./App.vue";
 import router from "./routes";
+import store from "./store";
 
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import "bootstrap-vue/dist/bootstrap-vue-icons.min.css";
@@ -22,5 +23,6 @@ Vue.use(VueTheMask);
 const app = new Vue({
     el: "#app",
     router: router,
+    store: store,
     render: (h) => h(App),
 });
