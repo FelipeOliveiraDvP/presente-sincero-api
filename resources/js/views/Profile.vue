@@ -1,12 +1,10 @@
 <template>
-  <div>
-    <router-view />
-  </div>
+  <div>Minha conta</div>
 </template>
 
 <script>
 export default {
-  name: "App",
+  name: "Profile",
 };
 </script>
 

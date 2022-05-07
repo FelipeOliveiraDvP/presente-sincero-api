@@ -1,12 +1,10 @@
 <template>
-  <div>
-    <router-view />
-  </div>
+  <div>Cadastre-se</div>
 </template>
 
 <script>
 export default {
-  name: "App",
+  name: "Register",
 };
 </script>
 

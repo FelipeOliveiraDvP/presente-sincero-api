@@ -1,12 +1,10 @@
 <template>
-  <div>
-    <router-view />
-  </div>
+  <div>Tabela de clientes</div>
 </template>
 
 <script>
 export default {
-  name: "App",
+  name: "AdminCustomerList",
 };
 </script>
 

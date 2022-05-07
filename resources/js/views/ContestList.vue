@@ -1,12 +1,10 @@
 <template>
-  <div>
-    <router-view />
-  </div>
+  <div>Sorteios</div>
 </template>
 
 <script>
 export default {
-  name: "App",
+  name: "ContestList",
 };
 </script>
 

@@ -1,12 +1,10 @@
 <template>
-  <div>
-    <router-view />
-  </div>
+  <div>Novo sorteio</div>
 </template>
 
 <script>
 export default {
-  name: "App",
+  name: "AdminContestCreate",
 };
 </script>
 

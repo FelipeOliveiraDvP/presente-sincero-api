@@ -1,12 +1,10 @@
 <template>
-  <div>
-    <router-view />
-  </div>
+  <div>Finalizar compra</div>
 </template>
 
 <script>
 export default {
-  name: "App",
+  name: "Checkout",
 };
 </script>
 
