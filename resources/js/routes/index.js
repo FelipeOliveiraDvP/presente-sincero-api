@@ -10,6 +10,7 @@ import Checkout from "../views/Checkout";
 import Profile from "../views/Profile";
 import Login from "../views/Login";
 import Register from "../views/Register";
+import Recovery from "../views/Recovery";
 
 const routes = [
     {
@@ -46,6 +47,11 @@ const routes = [
         name: "register",
         path: "/cadastre-se",
         component: Register,
+    },
+    {
+        name: "recovery",
+        path: "/recuperar-senha",
+        component: Recovery,
     },
 ];
 
