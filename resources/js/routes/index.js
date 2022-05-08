@@ -34,11 +34,6 @@ const routes = [
         component: Checkout,
     },
     {
-        name: "profile",
-        path: "/minha-conta",
-        component: Profile,
-    },
-    {
         name: "login",
         path: "/login",
         component: Login,
@@ -52,6 +47,11 @@ const routes = [
         name: "recovery",
         path: "/recuperar-senha",
         component: Recovery,
+    },
+    {
+        name: "profile",
+        path: "/minha-conta",
+        component: Profile,
     },
 ];
 
