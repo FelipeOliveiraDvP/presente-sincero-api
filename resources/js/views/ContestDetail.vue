@@ -89,7 +89,11 @@
         </b-col>
         <b-col md="6" lg="4">
           <div class="d-flex justify-content-center align-items-center h-100">
-            <b-button variant="secondary" size="lg"> COMPRAR NÚMEROS </b-button>
+            <router-link to="/finalizar-compra">
+              <b-button variant="secondary" size="lg">
+                COMPRAR NÚMEROS
+              </b-button>
+            </router-link>
           </div>
         </b-col>
       </b-row>
