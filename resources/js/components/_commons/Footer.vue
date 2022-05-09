@@ -1,5 +1,5 @@
 <template>
-  <footer class="public-footer">
+  <footer class="footer">
     <b-container>
       <b-row>
         <b-col md="6" lg="3">
@@ -43,7 +43,9 @@
 </template>
 
 <script>
-export default {};
+export default {
+  name: "Footer",
+};
 </script>
 
 <style>

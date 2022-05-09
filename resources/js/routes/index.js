@@ -3,6 +3,7 @@ import VueRouter from "vue-router";
 
 Vue.use(VueRouter);
 
+// Public
 import Home from "../views/Home";
 import ContestList from "../views/ContestList";
 import ContestDetail from "../views/ContestDetail";
@@ -11,8 +12,15 @@ import Profile from "../views/Profile";
 import Login from "../views/Login";
 import Register from "../views/Register";
 import Recovery from "../views/Recovery";
+// Admin
+import AdminContestList from "../views/admin/ContestList";
+import AdminContestCreate from "../views/admin/ContestCreate";
+import AdminContestDetail from "../views/admin/ContestDetail";
+import AdminCustomerList from "../views/admin/CustomerList";
+import AdminCustomerDetail from "../views/admin/CustomerDetail";
 
 const routes = [
+    // Public
     {
         name: "home",
         path: "/",
@@ -52,6 +60,32 @@ const routes = [
         name: "profile",
         path: "/minha-conta",
         component: Profile,
+    },
+    // Admin
+    {
+        name: "adminContestList",
+        path: "/admin/sorteios",
+        component: AdminContestList,
+    },
+    {
+        name: "adminContestCreate",
+        path: "/admin/sorteios/novo-sorteio",
+        component: AdminContestCreate,
+    },
+    {
+        name: "adminContestDetail",
+        path: "/admin/sorteios/:id",
+        component: AdminContestDetail,
+    },
+    {
+        name: "adminCustomerList",
+        path: "/admin/clientes",
+        component: AdminCustomerList,
+    },
+    {
+        name: "adminCustomerDetail",
+        path: "/admin/clientes/:id",
+        component: AdminCustomerDetail,
     },
 ];
 
