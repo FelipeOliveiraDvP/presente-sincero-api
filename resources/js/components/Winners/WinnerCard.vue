@@ -5,7 +5,7 @@
         <b-avatar
           size="6rem"
           variant="success"
-          src="https://picsum.photos/600/300/"
+          src="http://lorempixel.com.br/600/600"
         ></b-avatar>
       </b-col>
       <b-col md="8">

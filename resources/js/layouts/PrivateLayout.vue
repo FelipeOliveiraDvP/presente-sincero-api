@@ -1,56 +1,74 @@
 <template>
-  <div class="private-layout">
-    <header class="private-header">
-      <div class="logo">LOGO</div>
-
-      <div class="user-info">
-        <span>
-          <b-avatar
-            src="https://picsum.photos/600/300/"
-            size="2.5rem"
-          ></b-avatar>
-          <span>Usuário</span>
-        </span>
-        <b-button variant="outline-danger"
-          ><i class="fas fa-sign-out-alt"></i> Sair</b-button
+  <div>
+    <bootstrap-sidebar
+      :initial-show="initialShow"
+      :links="links"
+      :header="header"
+      :fa="true"
+    >
+      <template v-slot:navbar>
+        <b-navbar
+          id="mainNavbar"
+          toggleable="lg"
+          type="light"
+          variant="light"
+          fixed="top"
         >
-      </div>
-    </header>
-    <div class="private-wrapper">
-      <aside class="menu">
-        <nav>
-          <ul>
-            <li>
-              <i class="fas fa-trophy"></i> Sorteios
-              <ul>
-                <li>
-                  <router-link to="/admin/sorteios"> Ver todos </router-link>
-                </li>
-                <li>
-                  <router-link to="/admin/sorteios/novo-sorteio">
-                    Novo sorteio
-                  </router-link>
-                </li>
-              </ul>
-            </li>
-            <li>
-              <router-link to="/admin/clientes">
-                <i class="fas fa-users"></i> Clientes
-              </router-link>
-            </li>
-          </ul>
-        </nav>
-      </aside>
-      <main class="content">
-        <slot></slot>
-      </main>
-    </div>
+          <header
+            class="w-100 p-2 d-flex justify-content-between align-items-center"
+          >
+            <h1>LOGO</h1>
+            <b-button variant="outline-danger">Sair</b-button>
+          </header>
+        </b-navbar>
+      </template>
+
+      <template v-slot:content>
+        <b-container style="margin-top: 56px">
+          <router-view />
+        </b-container>
+      </template>
+    </bootstrap-sidebar>
   </div>
 </template>
 
 <script>
+import BootstrapSidebar from "vue-bootstrap-sidebar";
+
 export default {
   name: "PrivateLayout",
+  components: {
+    "bootstrap-sidebar": BootstrapSidebar,
+  },
+  data() {
+    return {
+      initialShow: true,
+      header: "<h3>LOGO</h3>",
+      links: [
+        {
+          name: "Sorteios",
+          faIcon: ["fas", "fa-trophy"],
+          children: [
+            {
+              name: "Todos os sorteios",
+              href: {
+                name: "adminContestList",
+              },
+            },
+            {
+              name: "Novo sorteio",
+              href: { name: "adminContestCreate" },
+            },
+          ],
+        },
+        {
+          name: "Clientes",
+          href: { name: "adminCustomerList" },
+          faIcon: ["fas", "fa-users"],
+        },
+      ],
+    };
+  },
 };
 </script>
 

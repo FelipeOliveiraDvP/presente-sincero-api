@@ -3,6 +3,7 @@ import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueFormulate from "@braid/vue-formulate";
 import Toasted from "vue-toasted";
 import VueTheMask from "vue-the-mask";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 import App from "./App.vue";
 import router from "./routes";
@@ -19,6 +20,8 @@ Vue.use(IconsPlugin);
 Vue.use(VueFormulate);
 Vue.use(Toasted, Option);
 Vue.use(VueTheMask);
+
+Vue.component("font-awesome-icon", FontAwesomeIcon);
 
 const app = new Vue({
     el: "#app",

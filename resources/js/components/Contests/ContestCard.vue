@@ -1,7 +1,7 @@
 <template>
   <b-card
     title="Super sorteio iPhone 13"
-    img-src="https://picsum.photos/600/300/"
+    img-src="http://lorempixel.com.br/600/600"
     img-alt="Image"
     img-top
     tag="article"

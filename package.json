@@ -25,11 +25,17 @@
         "vue-template-compiler": "^2.6.12"
     },
     "dependencies": {
-        "@braid/vue-formulate": "^2.5.2",
+        "@braid/vue-formulate": "^2.5.3",
+        "@fortawesome/fontawesome-svg-core": "^6.1.1",
+        "@fortawesome/free-regular-svg-icons": "^6.1.1",
+        "@fortawesome/free-solid-svg-icons": "^6.1.1",
+        "@fortawesome/vue-fontawesome": "^2.0.6",
         "animate.css": "^4.1.1",
+        "autoprefixer": "10.4.5",
         "bootstrap-vue": "^2.21.2",
         "moment": "^2.29.1",
         "popper.js": "^1.16.1",
+        "vue-bootstrap-sidebar": "^1.0.9",
         "vue-carousel": "^0.18.0",
         "vue-mq": "^1.0.1",
         "vue-router": "^3.5.3",
