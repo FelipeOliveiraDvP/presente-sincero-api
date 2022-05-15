@@ -21,6 +21,8 @@ class User extends Authenticatable
         'whatsapp',
         'email',
         'password',
+        'avatar',
+        'role_id',
     ];
 
     /**
@@ -31,5 +33,13 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'role_id',
+        'created_at',
+        'updated_at',
     ];
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'role_id', 'id');
+    }
 }
