@@ -20,7 +20,7 @@ class CreateNumbersTable extends Migration
             $table->integer('start')->unsigned()->default(0);
             $table->integer('quantity')->unsigned()->default(1);
             $table->integer('per_customer')->unsigned()->default(1);
-            $table->json('numbers'); // { number: "00000", status: FREE | RESERVED | PAID, customer_id: 123 | null }
+            $table->json('numbers');
             $table->timestamps();
         });
     }

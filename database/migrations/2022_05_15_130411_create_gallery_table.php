@@ -16,6 +16,8 @@ class CreateGalleryTable extends Migration
         Schema::create('gallery', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('contest_id')->unsigned();
+            $table->string('image_path');
+            $table->boolean('thumbnail')->default(false);
             $table->timestamps();
         });
     }

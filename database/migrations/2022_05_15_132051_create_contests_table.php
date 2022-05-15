@@ -17,7 +17,7 @@ class CreateContestsTable extends Migration
             $table->id();
             $table->string('title');
             $table->string('short_description');
-            $table->string('full_description');
+            $table->text('full_description');
             $table->date('start_date');
             $table->integer('days_to_end')->unsigned()->default(30);
             $table->date('contest_date');
