@@ -1,18 +1,17 @@
 <template>
   <b-card
-    title="Super sorteio iPhone 13"
-    img-src="http://lorempixel.com.br/600/600"
-    img-alt="Image"
+    :title="title"
+    :img-src="thumbnail"
+    :img-alt="title"
     img-top
     tag="article"
     class="mb-3"
   >
     <b-card-text>
-      Some quick example text to build on the card title and make up the bulk of
-      the card's content.
+      {{ description }}
     </b-card-text>
 
-    <router-link to="sorteios/sorteio-iphone">
+    <router-link :to="`sorteios/${slug}`">
       <b-button variant="success">PARTICIPAR</b-button>
     </router-link>
   </b-card>
@@ -20,7 +19,20 @@
 
 <script>
 export default {
+  props: {
+    title: String,
+    description: String,
+    slug: String,
+    gallery: Array,
+  },
   name: "ContestCard",
+  computed: {
+    thumbnail() {
+      const thumb = this.gallery.find((img) => img.thumbnail === true);
+
+      return thumb.image_path;
+    },
+  },
 };
 </script>
 

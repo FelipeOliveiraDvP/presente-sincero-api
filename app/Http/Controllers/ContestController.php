@@ -17,8 +17,9 @@ class ContestController extends Controller
     public function index(Request $request)
     {
         $title = $request->query('title');
+        $limit = $request->query('limit') ?? 10;
 
-        $contests = Contest::with('gallery')->where('title', 'LIKE', "%{$title}%")->paginate(10, [
+        $contests = Contest::with('gallery')->where('title', 'LIKE', "%{$title}%")->paginate($limit, [
             'id',
             'title',
             'slug',
