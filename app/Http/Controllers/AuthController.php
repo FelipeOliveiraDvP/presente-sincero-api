@@ -9,6 +9,13 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+    /**
+     * Valida o usuário e a senha e retorna um token de acesso.
+     * 
+     * @param Request $request Corpo da requisição.
+     * 
+     * @return JsonResponse JSON com o usuário e token de acesso.
+     */
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -47,6 +54,13 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Realiza o cadastro de um novo usuário e retorna um token de acesso
+     * 
+     * @param Request $request Corpo da requisição.
+     * 
+     * @return JsonResponse JSON com o usuário e token de acesso.
+     */
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
