@@ -30,7 +30,7 @@ class NumbersSeeder extends Seeder
                 $number = json_encode([
                     'number'     => str_pad($j, $number_length, '0', STR_PAD_LEFT),
                     'status'     => NumberStatus::FREE,
-                    'custome_id' => null
+                    'customer_id' => null
                 ]);
 
                 $numbers[] = $number;

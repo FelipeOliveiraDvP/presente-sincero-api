@@ -30,7 +30,7 @@ export default {
     thumbnail() {
       const thumb = this.gallery.find((img) => img.thumbnail === true);
 
-      return thumb.image_path;
+      return thumb ? thumb.image_path : this.gallery[0].image_path;
     },
   },
 };

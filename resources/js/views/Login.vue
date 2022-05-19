@@ -17,32 +17,43 @@
         <p class="text-muted">
           Informe seus dados de acesso para acessar sua área exclusiva
         </p>
-        <b-form @submit="onSubmit">
-          <div class="form-floating mb-3">
-            <input
-              v-model="form.identifier"
-              type="text"
-              class="form-control"
-              id="identifier"
-              placeholder="name@example.com"
-              required
-            />
-            <label for="identifier">E-mail ou WhatsApp</label>
-          </div>
-          <div class="form-floating mb-3">
-            <input
-              v-model="form.password"
-              type="password"
-              class="form-control"
-              id="password"
-              placeholder="********"
-              required
-            />
-            <label for="password">Informe sua senha</label>
-          </div>
+        <b-form @submit.stop.prevent="onSubmit">
+          <b-form-group label="WhatsApp ou E-mail" label-for="user">
+            <b-form-input
+              id="user"
+              name="user"
+              v-model="$v.form.user.$model"
+              :state="validateState('user')"
+            ></b-form-input>
 
+            <b-form-invalid-feedback v-if="!$v.form.user.required"
+              >Campo obrigatório</b-form-invalid-feedback
+            >
+          </b-form-group>
+
+          <b-form-group label="Senha" label-for="password">
+            <b-form-input
+              id="password"
+              name="password"
+              type="password"
+              v-model="$v.form.password.$model"
+              :state="validateState('password')"
+            ></b-form-input>
+
+            <b-form-invalid-feedback v-if="!$v.form.password.required"
+              >Campo obrigatório</b-form-invalid-feedback
+            >
+            <b-form-invalid-feedback v-if="!$v.form.password.minLength"
+              >Senha deve ter 8 caracteres</b-form-invalid-feedback
+            >
+          </b-form-group>
           <div>
-            <b-button type="submit" block variant="primary" class="w-100"
+            <b-button
+              type="submit"
+              block
+              variant="primary"
+              class="w-100"
+              :disabled="loading"
               >Entrar</b-button
             >
           </div>
@@ -61,22 +72,60 @@
 </template>
 
 <script>
+import { validationMixin } from "vuelidate";
+import { required, minLength } from "vuelidate/lib/validators";
+import { mapActions } from "vuex";
+import { login } from "../services/auth";
+
 export default {
   name: "Login",
+  mixins: [validationMixin],
   data() {
     return {
+      loading: false,
       form: {
-        identifier: "",
+        user: "",
         password: "",
       },
-      validate: false,
     };
   },
+  validations: {
+    form: {
+      user: { required },
+      password: { required, minLength: minLength(8) },
+    },
+  },
   methods: {
-    onSubmit(e) {
-      e.preventDefault();
+    ...mapActions({
+      signIn: "auth/login",
+    }),
+    validateState(user) {
+      const { $dirty, $error } = this.$v.form[user];
 
-      console.log(this.form);
+      return $dirty ? !$error : null;
+    },
+    async onSubmit() {
+      try {
+        this.loading = true;
+        this.$v.form.$touch();
+
+        if (this.$v.form.$anyError) {
+          return;
+        }
+
+        const result = await login(this.form);
+
+        this.signIn(result);
+      } catch (error) {
+        this.$toasted.show(error.message, {
+          type: "error",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
+      } finally {
+        this.loading = false;
+      }
     },
   },
 };

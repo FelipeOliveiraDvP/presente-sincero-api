@@ -13,7 +13,7 @@
     <b-row>
       <b-col md="6">
         <img
-          src="http://lorempixel.com.br/600/600"
+          src="https://picsum.photos/600/600?random=1"
           alt="Sorteio"
           class="img-fluid"
         />

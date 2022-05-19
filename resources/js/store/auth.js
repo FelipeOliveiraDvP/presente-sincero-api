@@ -1,4 +1,5 @@
 import router from "../routes";
+import { Roles } from "../services/auth/enums";
 
 const emptyUser = {
     role: null,
@@ -12,11 +13,15 @@ export default {
     state: {
         user: emptyUser,
         authenticated: false,
+        admin: false,
         token: null,
     },
     getters: {
         user(state) {
             return state.user;
+        },
+        admin(state) {
+            return state.admin;
         },
         authenticated(state) {
             return state.authenticated;
@@ -31,6 +36,9 @@ export default {
         },
         SET_AUTHENTICATED(state, value) {
             state.authenticated = value;
+        },
+        SET_ADMIN(state, value) {
+            state.admin = value;
         },
         SET_TOKEN(state, value) {
             state.token = value;
@@ -47,12 +55,21 @@ export default {
             commit("SET_AUTHENTICATED", true);
             commit("SET_TOKEN", token);
 
-            router.push({ name: "profile" });
+            const { role_id } = user.role;
+
+            if (role_id === Roles.Admin) {
+                commit("SET_ADMIN", true);
+                router.push({ name: "adminContestList" });
+            } else {
+                commit("SET_ADMIN", false);
+                router.push({ name: "profile" });
+            }
         },
         logout({ commit }) {
             commit("SET_USER", emptyUser);
             commit("SET_AUTHENTICATED", false);
             commit("SET_TOKEN", null);
+            commit("SET_ADMIN", false);
 
             router.push({ name: "login" });
         },

@@ -15,6 +15,12 @@ mix.webpackConfig({
     stats: {
         children: true,
     },
+    resolve: {
+        extensions: [".js", ".vue"],
+        alias: {
+            "@": __dirname + "/resources",
+        },
+    },
 })
     .js("resources/js/app.js", "public/js")
     .vue()

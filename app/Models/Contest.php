@@ -24,6 +24,8 @@ class Contest extends Model
         'contest_date'
     ];
 
+    protected $timestatmps = true;
+
     /**
      * The attributes that should be hidden for serialization.
      *

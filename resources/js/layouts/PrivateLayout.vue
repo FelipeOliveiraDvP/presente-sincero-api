@@ -18,7 +18,7 @@
             class="w-100 p-2 d-flex justify-content-between align-items-center"
           >
             <h1>LOGO</h1>
-            <b-button variant="outline-danger">Sair</b-button>
+            <b-button variant="outline-danger" @click="logout">Sair</b-button>
           </header>
         </b-navbar>
       </template>
@@ -34,6 +34,7 @@
 
 <script>
 import BootstrapSidebar from "vue-bootstrap-sidebar";
+import { mapActions } from "vuex";
 
 export default {
   name: "PrivateLayout",
@@ -68,6 +69,14 @@ export default {
         },
       ],
     };
+  },
+  methods: {
+    ...mapActions({
+      signOut: "auth/logout",
+    }),
+    logout() {
+      this.signOut();
+    },
   },
 };
 </script>
