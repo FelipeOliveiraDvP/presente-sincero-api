@@ -1,19 +1,24 @@
 <template>
-  <div>
-    <h3>Imagens</h3>
-
-    <div class="my-2">
-      <font-awesome-icon icon="fa-solid fa-upload" /> Carregar imagem
-      <b-form-file
-        v-model="file"
-        class="mt-3"
-        plain
-        @change="upload"
-        ref="file"
-      ></b-form-file>
-    </div>
+  <div class="contest-gallery">
+    <h3 class="mt-2">Imagens</h3>
 
     <b-row>
+      <b-col md="6" lg="4" xl="3">
+        <div class="image-upload">
+          <label for="upload">
+            <font-awesome-icon icon="fa-solid fa-upload" />
+            <p>Carregar imagem</p>
+          </label>
+          <b-form-file
+            id="upload"
+            v-model="file"
+            class="mt-3"
+            plain
+            @change="upload"
+            ref="file"
+          ></b-form-file>
+        </div>
+      </b-col>
       <b-col
         v-for="(image, index) in contest.gallery"
         :key="`image-${index}`"
@@ -21,11 +26,19 @@
         lg="4"
         xl="3"
       >
-        <img
-          :src="image.image_path"
-          class="img-fluid"
-          :class="{ thumbnail: image.thumbnail }"
-        />
+        <div class="img-wrapper">
+          <img
+            :src="image.image_path"
+            class="img-fluid"
+            :class="{ thumbnail: image.thumbnail }"
+          />
+          <button
+            class="remove-btn bg-danger text-white"
+            @click="removeImage(index)"
+          >
+            <font-awesome-icon icon="fa-solid fa-trash" />
+          </button>
+        </div>
       </b-col>
     </b-row>
   </div>
@@ -38,6 +51,7 @@ export default {
   props: {
     contest: Object,
     addImage: Function,
+    removeImage: Function,
   },
   name: "GalleryForm",
   data() {

@@ -1,22 +1,12 @@
 <template>
   <b-container class="page my-4">
     <div
-      class="
-        bg-white
-        p-4
-        my-4
-        border
-        d-flex
-        justify-content-center
-        align-items-center
-        h-100
-      "
+      class="p-4 my-4 d-flex justify-content-center align-items-center h-100"
     >
-      <div class="p-3 border" style="width: 400px">
+      <div class="p-3 border rounded" style="width: 400px">
         <h3>Acessar minha conta</h3>
-        <p class="text-muted">
-          Informe seus dados de acesso para acessar sua área exclusiva
-        </p>
+        <p>Informe seus dados de acesso para acessar sua área exclusiva</p>
+
         <b-form @submit.stop.prevent="onSubmit">
           <b-form-group label="WhatsApp ou E-mail" label-for="user">
             <b-form-input
@@ -52,7 +42,7 @@
               type="submit"
               block
               variant="primary"
-              class="w-100"
+              class="w-100 mt-4"
               :disabled="loading"
               >Entrar</b-button
             >

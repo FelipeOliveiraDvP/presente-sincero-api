@@ -1,19 +1,27 @@
 <template>
-  <b-card
-    :title="title"
-    :img-src="thumbnail"
-    :img-alt="title"
-    img-top
-    tag="article"
-    class="mb-3"
-  >
-    <b-card-text>
+  <b-card no-body class="contest-card overflow-hidden mb-3">
+    <b-row no-gutters>
+      <b-col md="6">
+        <b-card-img :src="thumbnail" :alt="title" />
+      </b-col>
+      <b-col md="6">
+        <b-card-body :title="title">
+          <b-card-text>
+            {{ description }}
+          </b-card-text>
+          <router-link :to="`sorteios/${slug}`">
+            <b-button variant="primary">PARTICIPAR</b-button>
+          </router-link>
+        </b-card-body>
+      </b-col>
+    </b-row>
+    <!-- <b-card-text>
       {{ description }}
     </b-card-text>
 
     <router-link :to="`sorteios/${slug}`">
-      <b-button variant="success">PARTICIPAR</b-button>
-    </router-link>
+      <b-button variant="primary">PARTICIPAR</b-button>
+    </router-link> -->
   </b-card>
 </template>
 

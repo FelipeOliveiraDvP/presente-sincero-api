@@ -65,7 +65,9 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name'      => 'required',
-            'whatsapp'  => 'required|alpha_num|numeric|unique:users,whatsapp'
+            'email'     => 'email',
+            'whatsapp'  => 'required|alpha_num|numeric|unique:users,whatsapp',
+            'password'  => 'confirmed'
         ]);
 
         if ($validator->fails()) {

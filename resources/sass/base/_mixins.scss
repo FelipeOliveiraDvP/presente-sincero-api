@@ -1,0 +1,9 @@
+@mixin custom-input {
+    background-color: transparent !important;
+    height: 40px;
+    padding: 0 15px;
+    border: 1px solid $primary !important;
+    color: $primary !important;
+    border-radius: 6px;
+    outline: none !important;
+}

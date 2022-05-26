@@ -1,8 +1,9 @@
 <template>
   <b-container class="page">
     <h2>Últimos Sorteios</h2>
-    <b-row>
-      <b-col v-for="contest in contests" :key="contest.id" md="4" lg="3">
+    <my-loader v-if="loading" />
+    <b-row v-else>
+      <b-col v-for="contest in contests" :key="contest.id" md="6">
         <contest-card
           :title="contest.title"
           :description="contest.short_description"
@@ -22,6 +23,7 @@
 <script>
 import ContestCardVue from "../components/Contests/ContestCard.vue";
 import WinnerCardVue from "../components/Winners/WinnerCard.vue";
+import LoaderVue from "../components/_commons/Loader.vue";
 
 import { listContests } from "../services/contests";
 
@@ -30,6 +32,7 @@ export default {
   components: {
     "contest-card": ContestCardVue,
     "winner-card": WinnerCardVue,
+    "my-loader": LoaderVue,
   },
   data() {
     return {

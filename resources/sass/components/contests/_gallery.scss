@@ -1,0 +1,27 @@
+.contest-gallery {
+    margin-top: 1rem;
+    .image-upload {
+        border: 1px dashed #fff;
+        min-height: 220px;
+        height: 100%;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 18px;
+        & label {
+            cursor: pointer;
+        }
+        & input[type="file"] {
+            display: none;
+        }
+    }
+    .img-wrapper {
+        position: relative;
+        & .remove-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+    }
+}

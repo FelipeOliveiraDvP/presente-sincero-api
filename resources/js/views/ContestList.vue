@@ -1,17 +1,22 @@
 <template>
   <b-container class="page">
     <div class="my-4 d-flex flex-column flex-md-row justify-content-between">
-      <b-button-group>
+      <b-button-group class="mb-3">
         <b-button variant="success">Em andamento</b-button>
         <b-button variant="warning">Próximos</b-button>
         <b-button variant="danger">Encerrados</b-button>
       </b-button-group>
 
-      <b-form-select v-model="order" :options="options"></b-form-select>
+      <b-form-select
+        class="custom-form-select"
+        v-model="order"
+        :options="options"
+      ></b-form-select>
     </div>
 
-    <b-row>
-      <b-col v-for="contest in contests" :key="contest.id" md="4" lg="3">
+    <my-loader v-if="loading" />
+    <b-row v-else>
+      <b-col v-for="contest in contests" :key="contest.id" md="6">
         <contest-card
           :title="contest.title"
           :description="contest.short_description"
@@ -29,10 +34,15 @@
 
 <script>
 import ContestCardVue from "../components/Contests/ContestCard.vue";
+import LoaderVue from "../components/_commons/Loader.vue";
 import { listContests } from "../services/contests";
 
 export default {
   name: "ContestList",
+  components: {
+    "contest-card": ContestCardVue,
+    "my-loader": LoaderVue,
+  },
   data() {
     return {
       order: null,
@@ -60,9 +70,6 @@ export default {
       this.contests = result.data;
       this.loading = false;
     },
-  },
-  components: {
-    "contest-card": ContestCardVue,
   },
 };
 </script>

@@ -8,10 +8,9 @@
     >
       <template v-slot:navbar>
         <b-navbar
+          class="private-sidebar"
           id="mainNavbar"
           toggleable="lg"
-          type="light"
-          variant="light"
           fixed="top"
         >
           <header
@@ -24,7 +23,7 @@
       </template>
 
       <template v-slot:content>
-        <b-container style="margin-top: 56px">
+        <b-container fluid style="margin-top: 90px">
           <router-view />
         </b-container>
       </template>

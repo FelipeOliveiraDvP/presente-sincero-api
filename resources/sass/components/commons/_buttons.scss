@@ -1,0 +1,21 @@
+.btn-primary {
+    background-color: $primary;
+    border-color: $primary;
+    transition: $transition;
+
+    &:hover {
+        background-color: transparent;
+        color: $primary;
+        border-color: $primary;
+    }
+}
+
+.btn-link {
+    padding: 0;
+    color: $primary;
+    text-decoration: none;
+    &:hover {
+        color: $primary;
+        text-decoration: underline;
+    }
+}

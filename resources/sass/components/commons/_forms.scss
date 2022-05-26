@@ -1,0 +1,21 @@
+.custom-form {
+    &-select {
+        @include custom-input();
+        cursor: pointer;
+    }
+}
+
+.b-form-spinbutton {
+    @include custom-input();
+    // width: 50%;
+    // @media (max-width: 414px) {
+    //     width: 100%;
+    // }
+    & svg {
+        color: $primary;
+    }
+    &.focus {
+        @include custom-input();
+        padding: 0;
+    }
+}

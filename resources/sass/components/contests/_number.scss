@@ -1,0 +1,18 @@
+.contest-number {
+    display: inline-block;
+    width: 100%;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 6px;
+    text-align: center;
+    position: relative;
+
+    & .remove-btn {
+        border: none;
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        border-radius: 100%;
+        border: 1px solid #fff;
+    }
+}

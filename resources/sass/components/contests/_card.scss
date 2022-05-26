@@ -1,0 +1,11 @@
+.contest-card {
+  background-color: transparent;
+  border: $border;   
+  & img {    
+    height: 100%;
+    object-fit: cover;
+  }
+  @media (min-width: 768px) {
+    max-height: 250px; 
+  }  
+}

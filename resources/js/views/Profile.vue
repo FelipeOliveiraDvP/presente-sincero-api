@@ -1,6 +1,6 @@
 <template>
   <b-container class="page my-4">
-    <div class="bg-white p-4 my-4 border">
+    <div class="p-4 my-4 border">
       <h2>Minha conta</h2>
       <b-row>
         <b-col md="6" lg="4" class="text-center mb-4">
