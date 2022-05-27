@@ -16,19 +16,21 @@
 
     <b-table
       id="customer-list"
-      striped
-      hover
+      class="text-white"
       :fields="fields"
       :items="items"
       :per-page="params.perPage"
       :current-page="params.currentPage"
+      :busy.sync="loading"
     ></b-table>
 
     <b-pagination
-      v-model="params.currentPage"
-      :total-rows="params.total"
-      :per-page="params.perPage"
-      aria-controls="customer-list"
+      :v-model="params.page"
+      :per-page="pager.per_page"
+      :total-rows="pager.total"
+      pills
+      align="end"
+      @change="handlePaginate"
     ></b-pagination>
   </div>
 </template>
@@ -38,53 +40,47 @@ export default {
   name: "AdminCustomerList",
   data() {
     return {
+      loading: false,
       params: {
-        name: "",
+        title: "",
+        limit: 10,
+        page: 1,
+      },
+      pager: {
+        current_page: 1,
+        first_page: 1,
+        last_page: 1,
+        per_page: 10,
+        from: 1,
+        to: 10,
         total: 10,
-        currentPage: 1,
-        perPage: 5,
       },
       fields: [
         {
-          key: "title",
+          key: "name",
           sortable: true,
-          label: "Nome",
+          label: "Cliente",
         },
         {
-          key: "start_date",
-          sortable: true,
-          label: "Data de início",
+          key: "whatsapp",
+          sortable: false,
+          label: "WhatsApp",
         },
         {
-          key: "days_to_end",
+          key: "contests_participated",
           sortable: true,
-          label: "Dias para terminar",
+          label: "Participou",
         },
         {
-          key: "contest_date",
+          key: "contest_won",
           sortable: true,
-          label: "Data do sorteio",
+          label: "Ganhou",
         },
-        // {
-        //   key: "whatsapp",
-        //   sortable: false,
-        //   label: "WhatsApp",
-        // },
-        // {
-        //   key: "contests_participated",
-        //   sortable: true,
-        //   label: "Participou",
-        // },
-        // {
-        //   key: "contest_won",
-        //   sortable: true,
-        //   label: "Ganhou",
-        // },
-        // {
-        //   key: "value_bet",
-        //   sortable: true,
-        //   label: "Valor investido",
-        // },
+        {
+          key: "value_bet",
+          sortable: true,
+          label: "Valor investido",
+        },
         {
           key: "actions",
           sortable: false,
@@ -93,6 +89,9 @@ export default {
       ],
       items: [],
     };
+  },
+  methods: {
+    async handlePaginate(page) {},
   },
 };
 </script>

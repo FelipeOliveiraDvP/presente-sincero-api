@@ -1,7 +1,7 @@
 <template>
   <span
     class="contest-number"
-    :title="number.customer.name"
+    :title="number.customer ? number.customer.name : ''"
     :class="isSelected ? 'bg-secondary' : numberClass(number.status)"
     @click="$emit('select', number)"
     v-b-tooltip.hover.bottom

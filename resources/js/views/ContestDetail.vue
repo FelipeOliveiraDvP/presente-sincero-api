@@ -90,7 +90,11 @@
           lg="1"
           class="p-2 text-center"
         >
-          <contest-number :number="number" @select="handleSelectNumber" />
+          <contest-number
+            :number="number"
+            :isSelected="isSelected(number)"
+            @select="handleSelectNumber"
+          />
         </b-col>
       </b-row>
     </div>
@@ -223,18 +227,19 @@ export default {
       selectedNumbers: [],
       filteredNumbers: [],
       magicNumbers: 0,
+      // TODO: Retornar as promoções ordenada pela quantity DESC
       sales: [
         {
-          quantity: 2,
-          price: 7,
+          quantity: 50,
+          price: 2,
         },
         {
-          quantity: 4,
-          price: 17,
+          quantity: 15,
+          price: 2.5,
         },
         {
-          quantity: 8,
-          price: 35,
+          quantity: 10,
+          price: 3.5,
         },
       ],
       currentSale: {
@@ -263,7 +268,7 @@ export default {
     },
     hasSale() {
       return this.sales.find(
-        (sale) => sale.quantity === this.selectedNumbers.length
+        (sale) => this.selectedNumbers.length >= sale.quantity
       );
     },
   },
@@ -279,7 +284,7 @@ export default {
         n.push({
           number: i,
           status: STATUS[Math.floor(Math.random() * 3)],
-          customer_id: null,
+          customer: null,
         });
       }
 
@@ -367,24 +372,32 @@ export default {
       return this.numbers.find((n) => n.status === "FREE");
     },
     calcSaleDiscount() {
-      if (this.selectedNumbers.length === 0) {
+      const { length } = this.selectedNumbers;
+
+      if (length === 0) {
         this.cart.totals = 0;
         return;
       }
 
       let partial = 0;
-      for (let i = 0; i < this.selectedNumbers.length; i++) {
-        const sale = this.sales.find((s) => s.quantity === i + 1);
 
+      const sale = this.sales.find((s) => length >= s.quantity);
+
+      for (let i = 0; i < length; i++) {
+        // const sale = this.sales.find((s) => s.quantity === i + 1);
         if (sale !== undefined) {
-          partial = sale.price;
+          partial += sale.price;
           this.currentSale = { ...sale };
         } else {
+          // partial += this.price;
           partial += this.price;
         }
       }
 
       this.cart.totals = partial;
+    },
+    isSelected(number) {
+      return !!this.selectedNumbers.find((n) => n.number === number.number);
     },
   },
 };
