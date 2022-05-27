@@ -1,8 +1,10 @@
 <template>
   <span
     class="contest-number"
-    :class="numberClass(number.status)"
+    :title="number.customer.name"
+    :class="isSelected ? 'bg-secondary' : numberClass(number.status)"
     @click="$emit('select', number)"
+    v-b-tooltip.hover.bottom
   >
     {{ number.number }}
     <button
@@ -21,6 +23,7 @@ export default {
   props: {
     number: Object,
     allowRemove: Boolean,
+    isSelected: Boolean,
   },
   methods: {
     numberClass(status) {

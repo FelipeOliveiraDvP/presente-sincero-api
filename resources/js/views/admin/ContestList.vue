@@ -49,11 +49,6 @@
             <font-awesome-icon :icon="['fas', 'gear']" class="icon alt" />
           </b-button>
         </router-link>
-        <router-link :to="`/admin/sorteios/${data.item.id}/premios`">
-          <b-button variant="primary">
-            <font-awesome-icon :icon="['fas', 'trophy']" class="icon alt" />
-          </b-button>
-        </router-link>
       </template>
     </b-table>
 

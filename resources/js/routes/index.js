@@ -23,6 +23,7 @@ import Recovery from "../views/Recovery";
 import AdminContestList from "../views/admin/ContestList";
 import AdminContestCreate from "../views/admin/ContestCreate";
 import AdminContestDetail from "../views/admin/ContestDetail";
+import AdminContestManage from "../views/admin/ContestManage";
 import AdminCustomerList from "../views/admin/CustomerList";
 import AdminCustomerDetail from "../views/admin/CustomerDetail";
 import AdminBankAccountList from "../views/admin/BankAccountList";
@@ -117,6 +118,14 @@ const routes = [
                 name: "adminContestDetail",
                 path: "/admin/sorteios/:id",
                 component: AdminContestDetail,
+                meta: {
+                    adminRoute: true,
+                },
+            },
+            {
+                name: "adminContestManage",
+                path: "/admin/sorteios/:id/gerenciar",
+                component: AdminContestManage,
                 meta: {
                     adminRoute: true,
                 },
