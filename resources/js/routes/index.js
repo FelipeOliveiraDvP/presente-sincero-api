@@ -25,6 +25,7 @@ import AdminContestCreate from "../views/admin/ContestCreate";
 import AdminContestDetail from "../views/admin/ContestDetail";
 import AdminCustomerList from "../views/admin/CustomerList";
 import AdminCustomerDetail from "../views/admin/CustomerDetail";
+import AdminBankAccountList from "../views/admin/BankAccountList";
 
 const routes = [
     // Public
@@ -132,6 +133,14 @@ const routes = [
                 name: "adminCustomerDetail",
                 path: "/admin/clientes/:id",
                 component: AdminCustomerDetail,
+                meta: {
+                    adminRoute: true,
+                },
+            },
+            {
+                name: "adminBankAccountList",
+                path: "/admin/contas",
+                component: AdminBankAccountList,
                 meta: {
                     adminRoute: true,
                 },

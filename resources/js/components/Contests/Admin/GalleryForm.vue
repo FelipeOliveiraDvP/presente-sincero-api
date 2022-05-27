@@ -32,12 +32,13 @@
             class="img-fluid"
             :class="{ thumbnail: image.thumbnail }"
           />
-          <button
-            class="remove-btn bg-danger text-white"
+          <b-button
+            class="remove-btn"
+            variant="danger"
             @click="removeImage(index)"
           >
             <font-awesome-icon icon="fa-solid fa-trash" />
-          </button>
+          </b-button>
         </div>
       </b-col>
     </b-row>

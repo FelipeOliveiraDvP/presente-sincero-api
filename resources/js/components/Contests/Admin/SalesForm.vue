@@ -21,7 +21,7 @@
           ></b-form-input>
         </b-form-group>
       </b-col>
-      <b-col v-if="index > 0" md="2" class="d-flex align-items-end">
+      <b-col md="2" class="d-flex align-items-end">
         <b-button variant="danger" @click="removeSale(index)">
           <font-awesome-icon icon="fa-solid fa-trash" />
         </b-button>

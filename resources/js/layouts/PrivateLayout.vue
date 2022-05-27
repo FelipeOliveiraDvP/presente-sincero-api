@@ -66,6 +66,11 @@ export default {
           href: { name: "adminCustomerList" },
           faIcon: ["fas", "fa-users"],
         },
+        {
+          name: "Contas bancárias",
+          href: { name: "adminBankAccountList" },
+          faIcon: ["fas", "fa-building-columns"],
+        },
       ],
     };
   },
