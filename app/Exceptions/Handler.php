@@ -2,7 +2,10 @@
 
 namespace App\Exceptions;
 
+use BadMethodCallException;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -34,8 +37,25 @@ class Handler extends ExceptionHandler
      */
     public function register()
     {
-        $this->reportable(function (Throwable $e) {
-            //
+        $this->renderable(function (BindingResolutionException $e, $request) {
+            return response()->json([
+                'message' => 'Recurso não encontrado!',
+                'error' => $e->getMessage()
+            ], 404);
+        });
+
+        $this->renderable(function (MethodNotAllowedHttpException $e, $request) {
+            return response()->json([
+                'message' => 'Método http não permitido para esse recurso!',
+                'error' => $e->getMessage()
+            ], 405);
+        });
+
+        $this->renderable(function (BadMethodCallException $e, $request) {
+            return response()->json([
+                'message' => 'O método chamado não existe',
+                'error' => $e->getMessage()
+            ], 500);
         });
     }
 }

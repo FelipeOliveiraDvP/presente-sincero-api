@@ -46,7 +46,18 @@ class AuthController extends Controller
         }
 
         $user = User::with('role')->where('id', '=', $exists->id)->first();
-        $token = $user->createToken('auth_token', [])->plainTextToken;
+
+        if ($user->role->id === 1) {
+            $abilities = [
+                'manage:contests',
+                'view:contests',
+                'manage:bank_accounts',
+                'view:bank_accounts',
+                'manage:upload',
+            ];
+        }
+
+        $token = $user->createToken('auth_token', $abilities ?? [])->plainTextToken;
 
         return response()->json([
             'user'  => $user,
