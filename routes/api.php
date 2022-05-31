@@ -24,36 +24,36 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('forgot', [AuthController::class, 'forgot']);
     Route::get('verify/{code}', [AuthController::class, 'verify']);
     Route::put('reset', [AuthController::class, 'reset']);
-    Route::get('profile', [AuthController::class, 'getProfile'])->middleware(['has_token']);
-    Route::put('profile', [AuthController::class, 'editProfile'])->middleware(['has_token']);
+    Route::get('profile', [AuthController::class, 'getProfile'])->middleware(['auth.token']);
+    Route::put('profile', [AuthController::class, 'editProfile'])->middleware(['auth.token']);
 });
 
 // Contests
 Route::group(['prefix' => 'contests'], function () {
     Route::get('/', [ContestController::class, 'index']);
-    Route::post('/', [ContestController::class, 'create'])->middleware(['has_token']);
+    Route::post('/', [ContestController::class, 'create'])->middleware(['auth.token', 'auth.admin']);
     Route::get('/{id}', [ContestController::class, 'details']);
     Route::get('/{slug}', [ContestController::class, 'getContestBySlug']);
-    Route::put('/{id}', [ContestController::class, 'edit'])->middleware(['has_token']);
-    Route::put('/{id}/finished', [ContestController::class, 'finishContest'])->middleware(['has_token']);
+    Route::put('/{id}', [ContestController::class, 'edit'])->middleware(['auth.token', 'auth.admin']);
+    Route::put('/{id}/finished', [ContestController::class, 'finishContest'])->middleware(['auth.token', 'auth.admin']);
 });
 
 // Numbers
 Route::group(['prefix' => 'numbers'], function () {
-    Route::put('free', [NumberController::class, 'free'])->middleware(['has_token']);
-    Route::put('reserved', [NumberController::class, 'reserved'])->middleware(['has_token']);
-    Route::put('paid', [NumberController::class, 'paid'])->middleware(['has_token']);
+    Route::put('free', [NumberController::class, 'free'])->middleware(['auth.token']);
+    Route::put('reserved', [NumberController::class, 'reserved'])->middleware(['auth.token']);
+    Route::put('paid', [NumberController::class, 'paid'])->middleware(['auth.token']);
 });
 
 // Bank Accounts
 Route::group(['prefix' => 'bank-accounts'], function () {
-    Route::get('/', [ContestController::class, 'index'])->middleware(['has_token']);
-    Route::post('/', [ContestController::class, 'create'])->middleware(['has_token']);
-    Route::put('/{id}', [ContestController::class, 'edit'])->middleware(['has_token']);
-    Route::delete('/{id}', [ContestController::class, 'remove'])->middleware(['has_token']);
+    Route::get('/', [ContestController::class, 'index'])->middleware(['auth.token', 'auth.admin']);
+    Route::post('/', [ContestController::class, 'create'])->middleware(['auth.token', 'auth.admin']);
+    Route::put('/{id}', [ContestController::class, 'edit'])->middleware(['auth.token', 'auth.admin']);
+    Route::delete('/{id}', [ContestController::class, 'remove'])->middleware(['auth.token', 'auth.admin']);
 });
 
 // Upload
 Route::group(['prefix' => 'upload'], function () {
-    Route::post('image', [UploadController::class, 'uploadImage'])->middleware(['has_token']);
+    Route::post('image', [UploadController::class, 'uploadImage'])->middleware(['auth.token', 'auth.admin']);
 });
