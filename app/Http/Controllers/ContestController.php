@@ -44,17 +44,6 @@ class ContestController extends Controller
     }
 
     /**
-     * Exibe os detalhes do sorteio.
-     * 
-     * @param any $id
-     * 
-     * @return JsonResponse
-     */
-    public function details($id)
-    {
-    }
-
-    /**
      * Cria um novo sorteio
      * 
      * @param Request $request
@@ -140,6 +129,54 @@ class ContestController extends Controller
             'contest' => $contest_created,
             'numbers' => $numbers_created,
         ], 201);
+    }
+
+    /**
+     * Exibe os detalhes do sorteio pelo id.
+     * 
+     * @param int $id
+     * 
+     * @return JsonResponse
+     */
+    public function details(int $id)
+    {
+        return response()->json(['message' => 'Ok'], 200);
+    }
+
+    /**
+     * Exibe os detalhes do sorteio pelo slug.
+     * 
+     * @param string $slug
+     * 
+     * @return JsonResponse
+     */
+    public function getContestBySlug(string $slug)
+    {
+        return response()->json(['message' => 'Ok'], 200);
+    }
+
+    /**
+     * Editar as informações do sorteio
+     * 
+     * @param Request $request Corpo da requisição.
+     * 
+     * @return JsonResponse
+     */
+    public function edit(Request $request)
+    {
+        return response()->json(['message' => 'Ok'], 200);
+    }
+
+    /**
+     * Editar as informações do sorteio
+     * 
+     * @param int $id.
+     * 
+     * @return JsonResponse
+     */
+    public function finishContest(int $id)
+    {
+        return response()->json(['message' => 'Ok'], 200);
     }
 
     /**

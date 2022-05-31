@@ -14,7 +14,7 @@ class AuthController extends Controller
      * 
      * @param Request $request Corpo da requisição.
      * 
-     * @return JsonResponse JSON com o usuário e token de acesso.
+     * @return JsonResponse
      */
     public function login(Request $request)
     {
@@ -59,14 +59,14 @@ class AuthController extends Controller
      * 
      * @param Request $request Corpo da requisição.
      * 
-     * @return JsonResponse JSON com o usuário e token de acesso.
+     * @return JsonResponse
      */
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name'      => 'required',
-            'email'     => 'email',
             'whatsapp'  => 'required|alpha_num|numeric|unique:users,whatsapp',
+            'email'     => 'email',
             'password'  => 'confirmed'
         ]);
 
@@ -93,7 +93,63 @@ class AuthController extends Controller
         ]);
     }
 
-    // TODO: Enviar e-mail de recuperação de senha
-    // TODO: Formulário de alteração de senha
-    // TODO: Alterar dados pessoais
+    /**
+     * Envia o código de recuperação para o WhatsApp do usuário
+     * 
+     * @param Request $request Corpo da requisição.
+     * 
+     * @return JsonResponse
+     */
+    public function forgot(Request $request)
+    {
+        return response()->json(['message' => 'Ok'], 200);
+    }
+
+    /**
+     * Verifica o código enviado para o usuário na recuperação de senha
+     * 
+     * @param string $code Código de verificação.
+     * 
+     * @return JsonResponse
+     */
+    public function verify(string $code)
+    {
+        return response()->json(['message' => 'Ok'], 200);
+    }
+
+    /**
+     * Resetar a senha do usuário informando o código de verificação
+     * 
+     * @param Request $request Corpo da requisição.
+     * 
+     * @return JsonResponse
+     */
+    public function reset(Request $request)
+    {
+        return response()->json(['message' => 'Ok'], 200);
+    }
+
+    /**
+     * Retorna as informações do usuário atual
+     * 
+     * @param Request $request Corpo da requisição.
+     * 
+     * @return JsonResponse
+     */
+    public function getProfile(Request $request)
+    {
+        return response()->json(['message' => 'Ok'], 200);
+    }
+
+    /**
+     * Editar as informações do usuário atual
+     * 
+     * @param Request $request Corpo da requisição.
+     * 
+     * @return JsonResponse
+     */
+    public function editProfile(Request $request)
+    {
+        return response()->json(['message' => 'Ok'], 200);
+    }
 }

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Validator;
 
 class UploadController extends Controller
 {
-    public function index(Request $request)
+    public function uploadImage(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'image' => 'required|mimes:jpeg,png,jpg|max:4096'
