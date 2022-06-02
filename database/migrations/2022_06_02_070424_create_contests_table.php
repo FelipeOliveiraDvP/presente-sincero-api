@@ -15,8 +15,8 @@ class CreateContestsTable extends Migration
     {
         Schema::create('contests', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('user_id');
-            $table->bigInteger('winner_id');
+            $table->bigInteger('user_id')->unsigned();
+            $table->bigInteger('winner_id')->unsigned();
             $table->string('title');
             $table->date('start_date');
             $table->date('contest_date')->nullable();

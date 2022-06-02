@@ -15,7 +15,7 @@ class CreateGalleryTable extends Migration
     {
         Schema::create('gallery', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('contest_id');
+            $table->bigInteger('contest_id')->unsigned();
             $table->string('path');
         });
     }

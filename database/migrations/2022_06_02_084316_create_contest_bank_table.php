@@ -15,8 +15,8 @@ class CreateContestBankTable extends Migration
     {
         Schema::create('contest_bank', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('bank_id');
-            $table->bigInteger('contest_id');
+            $table->bigInteger('bank_id')->unsigned();
+            $table->bigInteger('contest_id')->unsigned();
         });
     }
 

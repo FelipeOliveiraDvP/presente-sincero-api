@@ -15,7 +15,7 @@ class CreateSalesTable extends Migration
     {
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('contest_id');
+            $table->bigInteger('contest_id')->unsigned();
             $table->integer('quantity')->unsigned();
             $table->decimal('price', 5, 2)->unsigned();
         });
