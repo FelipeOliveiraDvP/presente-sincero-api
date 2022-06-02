@@ -4,10 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Contest extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+
+    /**
+     * The soft delete date column.
+     * 
+     * @var array
+     */
+    protected $dates = ['deleted_at'];
+
+    /**
+     * Enable timestamps.
+     * 
+     * @var boolean
+     */
+    protected $timestatmps = true;
 
     /**
      * The attributes that are mass assignable.
@@ -15,16 +30,20 @@ class Contest extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
+        'winner_id',
         'title',
-        'slug',
+        'start_date',
+        'contest_date',
+        'price',
+        'quantity',
         'short_description',
         'full_description',
-        'start_date',
-        'days_to_end',
-        'contest_date'
+        'whatsapp_number',
+        'whatsapp_group',
+        'numbers',
+        'status',
     ];
-
-    protected $timestatmps = true;
 
     /**
      * The attributes that should be hidden for serialization.
@@ -32,9 +51,4 @@ class Contest extends Model
      * @var array<int, string>
      */
     protected $hidden = [];
-
-    public function gallery()
-    {
-        return $this->hasMany(Gallery::class, 'contest_id', 'id');
-    }
 }

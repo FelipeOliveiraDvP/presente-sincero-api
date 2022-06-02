@@ -18,4 +18,11 @@ class ResetPassword extends Model
         'user_id',
         'code'
     ];
+
+    /**
+     * Enable timestamps.
+     * 
+     * @var boolean
+     */
+    protected $timestatmps = true;
 }

@@ -5,24 +5,25 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Gallery extends Model
+class Sale extends Model
 {
     use HasFactory;
 
     /**
-     * The database table.
+     * Disable the timestamps.
      * 
-     * @var string
+     * @var boolean
      */
-    protected $table = 'gallery';
+    public $timestamps = false;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var string[]
      */
     protected $fillable = [
         'contest_id',
-        'path',
+        'quantity',
+        'price',
     ];
 }

@@ -20,6 +20,13 @@ class User extends Authenticatable
     protected $dates = ['deleted_at'];
 
     /**
+     * Enable timestamps.
+     * 
+     * @var boolean
+     */
+    protected $timestatmps = true;
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
