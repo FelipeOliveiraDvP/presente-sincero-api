@@ -16,6 +16,7 @@ class Role extends Model
      * @var string[]
      */
     protected $fillable = [
+        'id',
         'name'
     ];
 
@@ -38,12 +39,12 @@ class Role extends Model
      * 
      * @var string
      */
-    protected $keyType = 'string';
+    public $keyType = 'string';
 
     /**
      * Disable the key auto incrementing.
      * 
      * @var boolean
      */
-    protected $incrementing = false;
+    public $incrementing = false;
 }
