@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Traits\AuthHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+    use AuthHelper;
+
     /**
      * Valida o usuário e a senha e retorna um token de acesso.
      * 
@@ -19,8 +22,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'user'      => 'required',
-            'password'  => 'required'
+            'user' => 'required',
+            'password' => 'required'
         ]);
 
         if ($validator->fails()) {
@@ -45,19 +48,9 @@ class AuthController extends Controller
             ], 400);
         }
 
-        $user = User::with('role')->where('id', '=', $exists->id)->first();
+        $user = User::find($exists->id);
 
-        if ($user->role->id === 1) {
-            $abilities = [
-                'manage:contests',
-                'view:contests',
-                'manage:bank_accounts',
-                'view:bank_accounts',
-                'manage:upload',
-            ];
-        }
-
-        $token = $user->createToken('auth_token', $abilities ?? [])->plainTextToken;
+        $token = $user->createToken('auth_token', $this->getUserAbilities($user->role))->plainTextToken;
 
         return response()->json([
             'user'  => $user,
@@ -92,8 +85,8 @@ class AuthController extends Controller
             'name'      => $request->name,
             'whatsapp'  => $request->whatsapp,
             'email'     => $request->email,
-            'password'  => $request->password,
-            'role_id'   => 2
+            'password'  => $request->password ? Hash::make($request->password) : null,
+            'role'      => $this->getCustomerRole(),
         ]);
 
         $token = $created->createToken('auth_token', [])->plainTextToken;
