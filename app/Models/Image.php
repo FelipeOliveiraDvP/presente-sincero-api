@@ -9,8 +9,20 @@ class Image extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'title',
         'path',
     ];
+
+    /**
+     * Disable the timestamps.
+     * 
+     * @var boolean
+     */
+    public $timestamps = false;
 }
