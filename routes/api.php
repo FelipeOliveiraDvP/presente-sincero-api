@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\ContestController;
 use App\Http\Controllers\NumberController;
 use App\Http\Controllers\UploadController;
@@ -47,10 +48,10 @@ Route::group(['prefix' => 'numbers'], function () {
 
 // Bank Accounts
 Route::group(['prefix' => 'bank-accounts'], function () {
-    Route::get('/', [ContestController::class, 'index'])->middleware(['auth.token', 'auth.admin']);
-    Route::post('/', [ContestController::class, 'create'])->middleware(['auth.token', 'auth.admin']);
-    Route::put('/{id}', [ContestController::class, 'edit'])->middleware(['auth.token', 'auth.admin']);
-    Route::delete('/{id}', [ContestController::class, 'remove'])->middleware(['auth.token', 'auth.admin']);
+    Route::get('/', [BankAccountController::class, 'index'])->middleware(['auth.token', 'auth.admin']);
+    Route::post('/', [BankAccountController::class, 'create'])->middleware(['auth.token', 'auth.admin']);
+    Route::put('/{id}', [BankAccountController::class, 'edit'])->middleware(['auth.token', 'auth.admin']);
+    Route::delete('/{id}', [BankAccountController::class, 'remove'])->middleware(['auth.token', 'auth.admin']);
 });
 
 // Upload
