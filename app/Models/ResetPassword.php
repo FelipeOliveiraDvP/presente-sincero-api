@@ -10,6 +10,13 @@ class ResetPassword extends Model
     use HasFactory;
 
     /**
+     * The database table.
+     * 
+     * @var string
+     */
+    protected $table = 'reset_password';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var string[]
