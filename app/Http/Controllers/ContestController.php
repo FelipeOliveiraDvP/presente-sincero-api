@@ -2,18 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ContestStatus;
 use App\Enums\NumberStatus;
-use App\Models\Contact;
 use App\Models\Contest;
 use App\Models\Gallery;
-use App\Models\Number;
-use App\Models\Reward;
+use App\Models\Sale;
+use App\Models\User;
+use App\Traits\NumbersHelper;
+use App\Traits\WhatsApp;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class ContestController extends Controller
 {
+    use NumbersHelper, WhatsApp;
+
     /**
      * Retorna todos os sorteios cadastrados.
      * 
@@ -34,13 +39,91 @@ class ContestController extends Controller
                 'title',
                 'slug',
                 'short_description',
-                'full_description',
                 'start_date',
-                'days_to_end',
-                'contest_date'
+                'price',
+                'quantity'
             ]);
 
         return response()->json($contests);
+    }
+
+    /**
+     * Retorna os detalhes de um sorteio através do slug
+     * 
+     * @param string $slug
+     * 
+     * @return JsonResponse
+     */
+    public function getContestBySlug(string $slug)
+    {
+        $contest = Contest::with('gallery')
+            ->with('bank_accounts')
+            ->with('sales')
+            ->where('slug', '=', $slug)
+            ->first();
+
+        if (empty($contest)) {
+            return response()->json([
+                'message' => 'O sorteio informado não existe.'
+            ], 404);
+        }
+
+        $contest->makeHiddenIf(fn () => $contest->quantity >= 5000, ['numbers']);
+
+        return response()->json($contest);
+    }
+
+    /**
+     * Lista os sorteios por usuário
+     * 
+     * @param Request $request
+     * 
+     * @return JsonResponse
+     */
+    public function getContestsByUser(Request $request)
+    {
+        $title = $request->query('title');
+        $limit = $request->query('limit') ?? 10;
+
+        $contests = Contest::where('title', 'LIKE', "%{$title}%")
+            ->where('user_id', '=', $request->user->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate($limit, [
+                'id',
+                'title',
+                'slug',
+                'short_description',
+                'start_date',
+                'price',
+                'quantity'
+            ]);
+
+        return response()->json($contests);
+    }
+
+    /**
+     * Exibe os detalhes do sorteio pelo id.
+     * 
+     * @param int $id
+     * 
+     * @return JsonResponse
+     */
+    public function details(int $id)
+    {
+        $contest = Contest::with('gallery')
+            ->with('bank_accounts')
+            ->with('sales')
+            ->find($id);
+
+        if (empty($contest)) {
+            return response()->json([
+                'message' => 'O sorteio informado não existe.'
+            ], 404);
+        }
+
+        $contest->makeHiddenIf(fn () => $contest->quantity >= 5000, ['numbers']);
+
+        return response()->json($contest);
     }
 
     /**
@@ -53,22 +136,18 @@ class ContestController extends Controller
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'title'                 => 'required|string',
-            'short_description'     => 'required|string',
-            'full_description'      => 'required|string',
-            'start_date'            => 'required|date|after:now',
-            'days_to_end'           => 'required|numeric',
-            'contest_date'          => 'required|date|after:start_date',
-            'number_start'          => 'required|numeric|gte:0',
-            'number_price'          => 'required|numeric|gte:5',
-            'number_quantity'       => 'required|numeric|gte:1',
-            'number_per_customer'   => 'required|numeric|gte:1',
-            'rewards.*.number'      => 'required|numeric|gte:1',
-            'rewards.*.description' => 'required|string',
-            'contacts.*.name'       => 'required|string',
-            'contacts.*.value'      => 'required|string',
-            'gallery.*.image_path'  => 'required|string',
-            'gallery.*.thumbnail'   => 'boolean',
+            'title'             => 'required|unique:contests,title',
+            'start_date'        => 'required|date|after:now',
+            'contest_date'      => 'date|after:now',
+            'price'             => 'required|gte:0.5',
+            'quantity'          => 'required|gte:1',
+            'short_description' => 'required|string',
+            'full_description'  => 'required|string',
+            'whatsapp_number'   => 'required|string',
+            'whatsapp_group'    => 'url',
+            'sales.*.quantity'  => 'required|gte:1',
+            'sales.*.price'     => 'required|gte:0.5',
+            'bank_accounts.*'   => 'exists:bank_accounts,id',
         ]);
 
         if ($validator->fails()) {
@@ -78,131 +157,172 @@ class ContestController extends Controller
             ], 400);
         }
 
+        $numbers = $this->generateContestNumbers($request->quantity);
+
         $contest = [
+            'user_id'           => $request->user->id,
             'title'             => $request->title,
             'slug'              => Str::slug($request->title),
+            'start_date'        => $request->start_date,
+            'contest_date'      => $request->start_date ?? null,
+            'price'             => $request->price,
+            'quantity'          => $request->quantity,
             'short_description' => $request->short_description,
             'full_description'  => $request->full_description,
-            'start_date'        => $request->start_date,
-            'days_to_end'       => $request->days_to_end,
-            'contest_date'      => $request->contest_date,
+            'whatsapp_number'   => $request->whatsapp_number,
+            'whatsapp_group'    => $request->whatsapp_group,
+            'numbers'           => $numbers
         ];
 
         $contest_created = Contest::create($contest);
 
-        $numbers = [
-            'contest_id'    => $contest_created->id,
-            'price'         => (float) $request->number_price,
-            'start'         => (int) $request->number_start,
-            'quantity'      => (int) $request->number_quantity,
-            'per_customer'  => (int) $request->number_per_customer,
-            'numbers'       => $this->generateNumbers($request->number_start, $request->number_quantity)
-        ];
+        $contest_created->bank_accounts()->sync($request->bank_accounts);
 
-        $numbers_created = Number::create($numbers);
-
-        foreach ($request->rewards as $reward) {
-            Reward::create([
-                'contest_id'  => $contest_created->id,
-                'number'      => $reward['number'],
-                'description' => $reward['description'],
-            ]);
-        }
-
-        foreach ($request->contacts as $contact) {
-            Contact::create([
-                'contest_id' => $contest_created->id,
-                'name'       => $contact['name'],
-                'value'      => $contact['value'],
+        foreach ($request->sales as $sale) {
+            Sale::create([
+                'contest_id'    => $contest_created->id,
+                'quantity'      => $sale['quantity'],
+                'price'         => $sale['price'],
             ]);
         }
 
         foreach ($request->gallery as $image) {
             Gallery::create([
                 'contest_id' => $contest_created->id,
-                'image_path' => $image['image_path'],
-                'thumbnail'  => isset($image['thumbnail']) ? $image['thumbnail'] : false,
+                'path' => $image,
             ]);
         }
 
         return response()->json([
-            'contest' => $contest_created,
-            'numbers' => $numbers_created,
+            'constest' => $contest_created
         ], 201);
-    }
-
-    /**
-     * Exibe os detalhes do sorteio pelo id.
-     * 
-     * @param int $id
-     * 
-     * @return JsonResponse
-     */
-    public function details(int $id)
-    {
-        return response()->json(['message' => 'Ok'], 200);
-    }
-
-    /**
-     * Exibe os detalhes do sorteio pelo slug.
-     * 
-     * @param string $slug
-     * 
-     * @return JsonResponse
-     */
-    public function getContestBySlug(string $slug)
-    {
-        return response()->json(['message' => 'Ok'], 200);
     }
 
     /**
      * Editar as informações do sorteio
      * 
-     * @param Request $request Corpo da requisição.
+     * @param int $id
+     * @param Request $request
      * 
      * @return JsonResponse
      */
-    public function edit(Request $request)
+    public function edit(int $id, Request $request)
     {
-        return response()->json(['message' => 'Ok'], 200);
+        $contest = Contest::find($id);
+
+        if (empty($contest)) {
+            return response()->json([
+                'message' => 'O sorteio informado não existe.'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'title'             => 'required',
+            'contest_date'      => 'date|after:now',
+            'price'             => 'required|gte:0.5',
+            'short_description' => 'required|string',
+            'full_description'  => 'required|string',
+            'whatsapp_number'   => 'required|string',
+            'whatsapp_group'    => 'url',
+            'sales.*.quantity'  => 'required|gte:1',
+            'sales.*.price'     => 'required|gte:0.5',
+            'bank_accounts.*'   => 'exists:bank_accounts,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Ocorreu um erro ao atualizar o sorteio',
+                'errors'  => $validator->errors()
+            ], 400);
+        }
+
+        $update = [
+            'id'                => $id,
+            'title'             => $request->title,
+            'contest_date'      => $request->start_date ?? null,
+            'short_description' => $request->short_description,
+            'full_description'  => $request->full_description,
+            'whatsapp_number'   => $request->whatsapp_number,
+            'whatsapp_group'    => $request->whatsapp_group,
+        ];
+
+        $can_change_price = count($this->getContestNumbersByStatus($id, NumberStatus::PAID)) <= 0;
+
+        if ($can_change_price) {
+            $update['price'] = $request->price;
+        }
+
+        $contest->update($update);
+
+        $contest->bank_accounts()->sync($request->bank_accounts);
+
+        Sale::where('contest_id', '=', $contest->id)->delete();
+        Gallery::where('contest_id', '=', $contest->id)->delete();
+
+        foreach ($request->sales as $sale) {
+            Sale::create([
+                'contest_id' => $contest->id,
+                'quantity'   => $sale['quantity'],
+                'price'      => $sale['price'],
+            ]);
+        }
+
+        foreach ($request->gallery as $image) {
+            Gallery::create([
+                'contest_id' => $contest->id,
+                'path' => $image,
+            ]);
+        }
+
+        return response()->json(['message' => 'Sorteio atualizado com sucesso'], 200);
     }
 
     /**
      * Editar as informações do sorteio
      * 
      * @param int $id.
+     * @param Request $request.
      * 
      * @return JsonResponse
      */
-    public function finishContest(int $id)
+    public function finishContest(int $id, Request $request)
     {
-        return response()->json(['message' => 'Ok'], 200);
-    }
+        $contest = Contest::find($id);
 
-    /**
-     * Gera os números do sorteio e converte em JSON
-     * 
-     * @param int $start Número inicial do sorteio.
-     * @param int $quantity Quantidade de números do sorteio.
-     * 
-     * @return string|boolean Retorna um JSON com os números.
-     */
-    private function generateNumbers(int $start, int $quantity)
-    {
-        $numbers = [];
-
-        for ($j = $start; $j <= $quantity; $j++) {
-            $number_length = strlen((string) $quantity);
-
-            $number = json_encode([
-                'number'        => str_pad($j, $number_length, '0', STR_PAD_LEFT),
-                'status'        => NumberStatus::FREE,
-                'customer_id'   => null,
-            ]);
-
-            $numbers[] = $number;
+        if (empty($contest)) {
+            return response()->json([
+                'message' => 'O sorteio informado não existe.'
+            ], 404);
         }
 
-        return json_encode($numbers);
+        $validator = Validator::make($request->all(), [
+            'number' => 'required|numeric'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Ocorreu um erro ao finalizar o sorteio',
+                'errors'  => $validator->errors()
+            ], 400);
+        }
+
+        $winner_number = $this->getContestNumberByNumber($id, $request->number);
+
+        if ($winner_number->status != NumberStatus::PAID) {
+            return response()->json([
+                'message' => 'Nenhum cliente comprou o número infomado.'
+            ], 400);
+        }
+
+        $winner = User::find($winner_number->customer->id);
+
+        $contest->status = ContestStatus::FINISHED;
+        $contest->winner_id = $winner->id;
+
+        $contest->update();
+
+        $this->sendWinContestMessage($winner, $contest);
+
+        return response()->json($winner_number, 200);
     }
 }

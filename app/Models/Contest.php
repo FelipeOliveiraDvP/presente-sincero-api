@@ -33,6 +33,7 @@ class Contest extends Model
         'user_id',
         'winner_id',
         'title',
+        'slug',
         'start_date',
         'contest_date',
         'price',
@@ -51,4 +52,30 @@ class Contest extends Model
      * @var array<int, string>
      */
     protected $hidden = [];
+
+    /**
+     * Cast attributes into other types.
+     * 
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'price' => 'double'
+    ];
+
+    public function bank_accounts()
+    {
+        return $this->belongsToMany(BankAccount::class, 'contest_bank', 'contest_id', 'bank_id');
+    }
+
+
+    public function gallery()
+    {
+        return $this->hasMany(Gallery::class, 'contest_id', 'id');
+    }
+
+
+    public function sales()
+    {
+        return $this->hasMany(Sale::class, 'contest_id', 'id');
+    }
 }

@@ -2,11 +2,43 @@
 
 namespace App\Traits;
 
+use App\Models\Contest;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 
 trait WhatsApp
 {
+
+  /**
+   * Send win contest message.
+   * 
+   * @param User $user
+   * @param Contest $contest
+   * 
+   * @return boolean
+   */
+  protected function sendWinContestMessage(User $user, Contest $contest)
+  {
+    $message = "Parabéns *{$user->name}!*,\n\nVocê acabou de vencer o sorteio *{$contest->title}.*\n\nPara solictar o seu prêmio, responda essa mensagem para conversar com a nossa equipe.";
+
+    return $this->sendMessage($user, $message);
+  }
+
+  /**
+   * Send recovery password message.
+   * 
+   * @param User $user
+   * @param sting $code
+   * 
+   * @return boolean
+   */
+  protected function sendRecoveryMessage(User $user, string $code)
+  {
+    $message = "Olá *{$user->name}*, tudo bem?\n\nUtilize o código abaixo para recuperar sua senha no Presente Sincero.\n\n*{$code}*";
+
+    return $this->sendMessage($user, $message);
+  }
+
   /**
    * Send a WhatsApp message.
    * 
@@ -30,19 +62,5 @@ trait WhatsApp
       ]);
 
     return $response->status() === 200;
-  }
-
-  /**
-   * Send recovery password message.
-   * 
-   * @param User $user
-   * 
-   * @return boolean
-   */
-  protected function sendRecoveryMessage(User $user, string $code)
-  {
-    $message = "Olá *{$user->name}*, tudo bem?\n\nUtilize o código abaixo para recuperar sua senha no Presente Sincero.\n\n*{$code}*";
-
-    return $this->sendMessage($user, $message);
   }
 }

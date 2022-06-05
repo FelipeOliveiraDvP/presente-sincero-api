@@ -19,42 +19,85 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Auth
-Route::group(['prefix' => 'auth'], function () {
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('register', [AuthController::class, 'register']);
-    Route::post('forgot', [AuthController::class, 'forgot']);
-    Route::get('verify/{code}', [AuthController::class, 'verify']);
-    Route::put('reset', [AuthController::class, 'reset']);
-    Route::get('profile', [AuthController::class, 'getProfile'])->middleware(['auth.token']);
-    Route::put('profile', [AuthController::class, 'editProfile'])->middleware(['auth.token']);
+Route::controller(AuthController::class)->group(function () {
+    /**
+     * Route: /auth
+     */
+    Route::prefix('auth')->group(function () {
+        Route::post('login', 'login');
+        Route::post('register', 'register');
+        Route::post('forgot', 'forgot');
+        Route::get('verify/{code}', 'verify');
+        Route::put('reset', 'reset');
+
+        Route::middleware(['auth.token'])->group(function () {
+            Route::get('profile', 'getProfile');
+            Route::put('profile', 'editProfile');
+        });
+    });
 });
 
 // Contests
-Route::group(['prefix' => 'contests'], function () {
-    Route::get('/', [ContestController::class, 'index']);
-    Route::post('/', [ContestController::class, 'create'])->middleware(['auth.token', 'auth.admin']);
-    Route::get('/{id}', [ContestController::class, 'details']);
-    Route::get('/{slug}', [ContestController::class, 'getContestBySlug']);
-    Route::put('/{id}', [ContestController::class, 'edit'])->middleware(['auth.token', 'auth.admin']);
-    Route::put('/{id}/finished', [ContestController::class, 'finishContest'])->middleware(['auth.token', 'auth.admin']);
+Route::controller(ContestController::class)->group(function () {
+    /**
+     * Route: /contests
+     */
+    Route::prefix('contests')->group(function () {
+        /**
+         * Route: /contests/manage
+         */
+        Route::prefix('manage')->group(function () {
+            Route::middleware(['auth.token', 'auth.admin'])->group(function () {
+                Route::get('/', 'getContestsByUser');
+                Route::get('/{id}', 'details');
+                Route::post('/', 'create');
+                Route::put('/{id}', 'edit');
+                Route::put('/{id}/finished', 'finishContest');
+            });
+        });
+
+        Route::get('/', 'index');
+        Route::get('/{slug}', 'getContestBySlug');
+    });
 });
 
 // Numbers
-Route::group(['prefix' => 'numbers'], function () {
-    Route::put('free', [NumberController::class, 'free'])->middleware(['auth.token']);
-    Route::put('reserved', [NumberController::class, 'reserved'])->middleware(['auth.token']);
-    Route::put('paid', [NumberController::class, 'paid'])->middleware(['auth.token']);
+Route::controller(NumberController::class)->group(function () {
+    /**
+     * Route: /numbers
+     */
+    Route::prefix('numbers')->group(function () {
+        Route::middleware(['auth.token', 'auth.admin'])->group(function () {
+            Route::put('free', 'free');
+            Route::put('reserved', 'reserved');
+            Route::put('paid', 'paid');
+        });
+    });
 });
 
 // Bank Accounts
-Route::group(['prefix' => 'bank-accounts'], function () {
-    Route::get('/', [BankAccountController::class, 'index'])->middleware(['auth.token', 'auth.admin']);
-    Route::post('/', [BankAccountController::class, 'create'])->middleware(['auth.token', 'auth.admin']);
-    Route::put('/{id}', [BankAccountController::class, 'edit'])->middleware(['auth.token', 'auth.admin']);
-    Route::delete('/{id}', [BankAccountController::class, 'remove'])->middleware(['auth.token', 'auth.admin']);
+Route::controller(BankAccountController::class)->group(function () {
+    /**
+     * Route: /bank-accounts
+     */
+    Route::prefix('bank-accounts')->group(function () {
+        Route::middleware(['auth.token', 'auth.admin'])->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'create');
+            Route::put('/{id}', 'edit');
+            Route::delete('/{id}', 'remove');
+        });
+    });
 });
 
 // Upload
-Route::group(['prefix' => 'upload'], function () {
-    Route::post('image', [UploadController::class, 'uploadImage'])->middleware(['auth.token', 'auth.admin']);
+Route::controller(UploadController::class)->group(function () {
+    /**
+     * Route: /upload
+     */
+    Route::prefix('upload')->group(function () {
+        Route::middleware(['auth.token', 'auth.admin'])->group(function () {
+            Route::post('image', 'uploadImage');
+        });
+    });
 });

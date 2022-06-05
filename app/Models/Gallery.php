@@ -17,6 +17,13 @@ class Gallery extends Model
     protected $table = 'gallery';
 
     /**
+     * Disable the timestamps.
+     * 
+     * @var boolean
+     */
+    public $timestamps = false;
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>

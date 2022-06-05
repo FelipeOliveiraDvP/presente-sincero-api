@@ -26,4 +26,13 @@ class Sale extends Model
         'quantity',
         'price',
     ];
+
+    /**
+     * Cast attributes into other types.
+     * 
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'price' => 'double'
+    ];
 }
