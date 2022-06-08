@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-class NumberStatus
+class OrderStatus
 {
   public const PENDING = 'PENDING';
   public const CANCELED = 'CANCELED';

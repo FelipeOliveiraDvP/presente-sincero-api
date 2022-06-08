@@ -19,7 +19,47 @@ trait WhatsApp
    */
   protected function sendWinContestMessage(User $user, Contest $contest)
   {
-    $message = "Parabéns *{$user->name}!*,\n\nVocê acabou de vencer o sorteio *{$contest->title}.*\n\nPara solictar o seu prêmio, responda essa mensagem para conversar com a nossa equipe.";
+    $message = "Parabéns *{$user->name}!*,\n\n";
+    $message .= "Você acabou de vencer o sorteio *{$contest->title}.*\n\n";
+    $message .= "Para solictar o seu prêmio, responda essa mensagem para conversar com a nossa equipe.";
+
+    return $this->sendMessage($user, $message);
+  }
+
+  /**
+   * Send numbers reservation message.
+   * 
+   * @param User $user
+   * @param Contest $contest
+   * @param array $payment_info
+   * 
+   * @return boolean
+   */
+  protected function sendReservationMessage(User $user, Contest $contest, array $payment_info)
+  {
+    $message = "Olá *{$user->name}*,\n\n";
+    $message .= "Seus números no sorteio *{$contest->title}.* foram reservados e estamos aguardando a confirmação do pagamento.\n\n";
+    $message .= "Por favor, realize o pagamento no link abaixo para concorrer ao sorteio.\n\n";
+    $message .= $payment_info['ticket_url'] . "\n\n";
+    $message .= "*Equipe Presente Sincero*";
+
+    return $this->sendMessage($user, $message);
+  }
+
+  /**
+   * Send confirmation payment message.
+   * 
+   * @param User $user
+   * @param Contest $contest
+   * @param array $payment_info
+   * 
+   * @return boolean
+   */
+  protected function sendConfirmationMessage(User $user, Contest $contest, array $payment_info)
+  {
+    $message = "Olá *{$user->name}*,\n\n";
+    $message .= "Recebemos o seu pagamento do sorteio *{$contest->title}.*\n\n";
+    $message .= "Agora é só acompanhar o resultado no grupo do sorteio no WhatsApp e torcer 🤞";
 
     return $this->sendMessage($user, $message);
   }
@@ -34,7 +74,9 @@ trait WhatsApp
    */
   protected function sendRecoveryMessage(User $user, string $code)
   {
-    $message = "Olá *{$user->name}*, tudo bem?\n\nUtilize o código abaixo para recuperar sua senha no Presente Sincero.\n\n*{$code}*";
+    $message = "Olá *{$user->name}*, tudo bem?\n\n";
+    $message .= "Utilize o código abaixo para recuperar sua senha no Presente Sincero.\n\n";
+    $message .= "*{$code}*";
 
     return $this->sendMessage($user, $message);
   }

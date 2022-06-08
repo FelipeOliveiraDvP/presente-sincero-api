@@ -36,6 +36,7 @@ class Contest extends Model
         'slug',
         'start_date',
         'contest_date',
+        'max_reserve_days',
         'price',
         'quantity',
         'short_description',

@@ -45,17 +45,26 @@ trait NumbersHelper
    * Set the contest numbers as FREE.
    * 
    * @param int $contest_id
-   * @param array $numbers      
+   * @param array $numbers   
+   * @param User $customer   
    * 
    * @return string|boolean
    */
-  protected function setContestNumbersAsFree(int $contest_id, array $numbers)
+  protected function setContestNumbersAsFree(int $contest_id, array $numbers, User $customer)
   {
+    $contest = Contest::find($contest_id);
     $contest_numbers = $this->getContestNumbers($contest_id);
     $updated_numbers = [];
 
     foreach ($contest_numbers as $number) {
-      if (in_array($number->number, $numbers) && $number->status == NumberStatus::RESERVED) {
+      $number_exists = in_array($number->number, $numbers);
+      $is_reserved = $number->status == NumberStatus::RESERVED;
+      $out_reserve_interval = $is_reserved ? Carbon::make($number->reserved_at)->diff(Carbon::now())->d > $contest->max_reserve_days : false;
+      $is_owner = $customer->id == $number->customer->id;
+
+      $can_free_number = $number_exists && $is_reserved && ($out_reserve_interval || $is_owner);
+
+      if ($can_free_number) {
         $number->status = NumberStatus::FREE;
         $number->reserved_at = null;
         $number->payment_at = null;
@@ -63,6 +72,7 @@ trait NumbersHelper
         $number->customer->name = null;
         $number->customer->whatsapp = null;
       }
+
       $updated_numbers[] = json_encode($number);
     }
 
@@ -84,13 +94,19 @@ trait NumbersHelper
     $updated_numbers = [];
 
     foreach ($contest_numbers as $number) {
-      if (in_array($number->number, $numbers) && $number->status == NumberStatus::FREE) {
+      $number_exists = in_array($number->number, $numbers);
+      $is_free = $number->status == NumberStatus::FREE;
+
+      $can_reserve_number = $number_exists && $is_free;
+
+      if ($can_reserve_number) {
         $number->status = NumberStatus::RESERVED;
         $number->reserved_at = Carbon::now();
         $number->customer->id = $customer->id;
         $number->customer->name = $customer->name;
         $number->customer->whatsapp = $customer->whatsapp;
       }
+
       $updated_numbers[] = json_encode($number);
     }
 
@@ -112,7 +128,13 @@ trait NumbersHelper
     $updated_numbers = [];
 
     foreach ($contest_numbers as $number) {
-      if (in_array($number->number, $numbers) && $number->status == NumberStatus::RESERVED) {
+      $number_exists = in_array($number->number, $numbers);
+      $is_reserved = $number->status == NumberStatus::RESERVED;
+      $is_owner = $customer->id == $number->customer->id;
+
+      $can_pay_number = $number_exists && $is_reserved && $is_owner;
+
+      if ($can_pay_number) {
         $number->status = NumberStatus::PAID;
         $number->reserved_at = null;
         $number->payment_at = Carbon::now();
@@ -120,6 +142,7 @@ trait NumbersHelper
         $number->customer->name = $customer->name;
         $number->customer->whatsapp = $customer->whatsapp;
       }
+
       $updated_numbers[] = json_encode($number);
     }
 

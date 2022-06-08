@@ -67,11 +67,13 @@ Route::controller(NumberController::class)->group(function () {
      * Route: /numbers
      */
     Route::prefix('numbers')->group(function () {
-        Route::middleware(['auth.token', 'auth.admin'])->group(function () {
-            Route::put('free', 'free');
-            Route::put('reserved', 'reserved');
-            Route::put('paid', 'paid');
+        Route::middleware(['auth.token'])->group(function () {
+            Route::get('/{contest_id}', 'index');
+            Route::post('/{contest_id}/free', 'free');
+            Route::post('/{contest_id}/reserve', 'reserved');
         });
+
+        Route::post('/{contest_id}/paid', 'paid');
     });
 });
 
