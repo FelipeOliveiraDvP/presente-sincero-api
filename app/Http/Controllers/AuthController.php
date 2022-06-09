@@ -227,11 +227,10 @@ class AuthController extends Controller
     public function editProfile(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'      => 'required',
-            'whatsapp'  => 'required|alpha_num|numeric',
+            'name'      => 'string',
+            'whatsapp'  => 'alpha_num|numeric',
             'email'     => 'email',
             'password'  => 'confirmed',
-            'avatar'    => 'string'
         ]);
 
         if ($validator->fails()) {
@@ -243,14 +242,17 @@ class AuthController extends Controller
 
         $user = User::find($request->user->id);
 
-        $user->name = $request->name;
-        $user->whatsapp = $request->whatsapp;
-        $user->email = $request->email ?? null;
-        $user->password = $request->password ? Hash::make($request->password) : null;
-        $user->avatar = $request->avatar ?? null;
+        $user->name = $request->name ?? $user->name;
+        $user->whatsapp = $request->whatsapp ?? $user->whatsapp;
+        $user->email = $request->email ?? $user->email;
+        $user->password = $request->password ? Hash::make($request->password) : $user->password;
+        $user->avatar = $request->avatar ?? $user->avatar;
 
         $user->update();
 
-        return response()->json(['message' => 'Perfil atualizado com sucesso!'], 200);
+        return response()->json([
+            'message' => 'Perfil atualizado com sucesso!',
+            'user' => $user
+        ], 200);
     }
 }
