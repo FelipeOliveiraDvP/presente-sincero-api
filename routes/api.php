@@ -73,7 +73,7 @@ Route::controller(NumberController::class)->group(function () {
             Route::post('/{contest_id}/reserve', 'reserved');
         });
 
-        Route::post('/{contest_id}/paid', 'paid');
+        Route::post('/webhook', 'webhook');
     });
 });
 

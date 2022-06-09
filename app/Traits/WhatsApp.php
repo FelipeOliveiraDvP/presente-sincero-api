@@ -3,12 +3,13 @@
 namespace App\Traits;
 
 use App\Models\Contest;
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 
+// TODO: Estudar possibilidade de trocar para o Twilio
 trait WhatsApp
 {
-
   /**
    * Send win contest message.
    * 
@@ -38,10 +39,12 @@ trait WhatsApp
   protected function sendReservationMessage(User $user, Contest $contest, array $payment_info)
   {
     $message = "Olá *{$user->name}*,\n\n";
-    $message .= "Seus números no sorteio *{$contest->title}.* foram reservados e estamos aguardando a confirmação do pagamento.\n\n";
-    $message .= "Por favor, realize o pagamento no link abaixo para concorrer ao sorteio.\n\n";
-    $message .= $payment_info['ticket_url'] . "\n\n";
-    $message .= "*Equipe Presente Sincero*";
+    $message .= "Seus números no sorteio *{$contest->title}* foram reservados com sucesso!\n";
+    $message .= "Caso ainda não tenha realizado o pagamento, é só clicar no link abaixo para abrir o QR Code.\n\n";
+    $message .= $payment_info['ticket_url'];
+    $message .= "\n\nCaso já tenha realizado o pagamento, é só aguardar a confirmação.";
+    $message .= "\n\n*Equipe Presente Sincero*";
+
 
     return $this->sendMessage($user, $message);
   }
@@ -51,15 +54,30 @@ trait WhatsApp
    * 
    * @param User $user
    * @param Contest $contest
-   * @param array $payment_info
+   * @param Order $order   
    * 
    * @return boolean
    */
-  protected function sendConfirmationMessage(User $user, Contest $contest, array $payment_info)
+  protected function sendConfirmationMessage(User $user, Contest $contest, Order $order)
   {
+    $customer_numbers = json_decode($order->numbers);
+
     $message = "Olá *{$user->name}*,\n\n";
     $message .= "Recebemos o seu pagamento do sorteio *{$contest->title}.*\n\n";
     $message .= "Agora é só acompanhar o resultado no grupo do sorteio no WhatsApp e torcer 🤞";
+
+    $mensagem = "Olá, {$user->name}\n";
+    $mensagem .= "*PARABÉNS* 🎉🍾, seu pagamento foi confirmado com sucesso.!\n";
+    $mensagem .= "*{$contest->title}.*\n";
+    $mensagem .= "Entre no grupo dos participantes do sorteio através do link abaixo:\n\n";
+    $mensagem .= $contest->whatsapp_group;
+    $mensagem .= "\n*IMPORTANTE:* É obrigatório permanecer no grupo até o término do sorteio\n\n";
+
+    $mensagem .= "Seu(s) número(s): " . join(',', $customer_numbers) . "\n";
+    $mensagem .= "Valor Total: R$ " . number_format($order->total, 2, ',', '.') . "\n";
+    $mensagem .= "Data do Pagamento: " . date('d/m/Y H:i', strtotime($contest->updated_at)) . "\n\n";
+
+    $mensagem .= "*Atenciosamente, equipe Presente Sincero*";
 
     return $this->sendMessage($user, $message);
   }

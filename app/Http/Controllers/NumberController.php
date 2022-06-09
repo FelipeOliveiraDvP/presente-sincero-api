@@ -5,14 +5,12 @@ namespace App\Http\Controllers;
 use App\Enums\OrderStatus;
 use App\Models\Contest;
 use App\Models\Order;
+use App\Models\User;
 use App\Traits\MercadoPagoHelper;
 use App\Traits\NumbersHelper;
 use App\Traits\WhatsApp;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
-
-use MercadoPago;
 
 class NumberController extends Controller
 {
@@ -129,9 +127,10 @@ class NumberController extends Controller
 
         $payment = $this->createPayment($order, $user, $contest);
 
-        return response()->json($payment);
-
         $this->sendReservationMessage($user, $contest, $payment);
+
+        $order->transaction_code = $payment['payment_id'];
+        $order->update();
 
         return response()->json([
             'message' => 'Números reservados com sucesso',
@@ -147,42 +146,38 @@ class NumberController extends Controller
      * 
      * @return JsonResponse
      */
-    public function paid(int $contest_id, Request $request)
+    public function webhook(Request $request)
     {
-        $contest = Contest::find($contest_id);
+        $callback = $this->callback($request);
 
-        if (empty($contest)) {
-            return response()->json([
-                'message' => 'O sorteio informado não está mais disponível'
-            ], 404);
+        if ($callback != false) {
+            $order = Order::find($callback);
+            $contest = Contest::find($order->contest_id);
+            $user = User::find($order->user_id);
+
+            if (empty($order) || empty($contest) || empty($user)) {
+                return response()->json([
+                    'message' => 'O pedido informado não está mais disponível'
+                ], 404);
+            }
+
+            $numbers = $this->setContestNumbersAsPaid($contest->id, $order->numbers, $user);
+
+            if ($numbers == false) {
+                return response()->json([
+                    'message' => 'Ocorreu um erro ao marcar os números como pagos.',
+                ], 400);
+            }
+
+            $contest->numbers = $numbers;
+
+            $contest->update();
+
+            $this->sendConfirmationMessage($user, $contest, $order);
+            // TODO: Chamar o WebSocket para atualizar a página de pedido
+            return response()->json(['message' => 'Pagamento dos números confirmado com sucesso'], 200);
         }
 
-        $validator = Validator::make($request->all(), [
-            'numbers.*' => 'required|numeric'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Ocorreu um erro ao confirmar o pagamento',
-                'errors'  => $validator->errors()
-            ], 400);
-        }
-
-        // TODO: Pegar o usuário com o user_id da callback do mercado pago
-        $user = auth('sanctum')->user();
-
-        $numbers = $this->setContestNumbersAsPaid($contest_id, $request->numbers, $user);
-
-        if ($numbers == false) {
-            return response()->json([
-                'message' => 'Ocorreu um erro ao marcar os números como pagos.',
-            ], 400);
-        }
-
-        $contest->numbers = $numbers;
-
-        $contest->update();
-
-        return response()->json(['message' => 'Pagamento dos números confirmado com sucesso'], 200);
+        return response()->json(['message' => 'Aguardando confirmação do pagamento'], 200);
     }
 }

@@ -5,11 +5,11 @@ namespace App\Traits;
 use App\Models\Contest;
 use App\Models\Order;
 use App\Models\User;
-use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use MercadoPago\SDK;
 use MercadoPago\Payment;
 
+// TODO: Gerenciar comissões para aplicação no Mercado Pago e contas dos vendedores.
 trait MercadoPagoHelper
 {
   /**
@@ -27,7 +27,7 @@ trait MercadoPagoHelper
 
     $payment = new Payment();
 
-    $notification = env('APP_ENV') == 'local' ? env('WEBHOOK_MERCADO_PAGO') : env('APP_URL') . "/api/numbers/{$contest->id}/paid";
+    $notification = getenv('APP_ENV') == 'local' ? getenv('WEBHOOK_MERCADO_PAGO') : getenv('APP_URL') . "/api/webhook";
     $expiration = date('Y-m-d\TH:i:s.vP', strtotime("+{$contest->max_reserve_days} days"));
 
     $payment->transaction_amount = $order->total;
@@ -48,6 +48,7 @@ trait MercadoPagoHelper
     $payment->save();
 
     return [
+      'payment_id' => $payment->id,
       'qrcode_base64' => $payment->point_of_interaction->transaction_data->qr_code_base64,
       'ticket_url' => $payment->point_of_interaction->transaction_data->ticket_url,
       'qr_code' => $payment->point_of_interaction->transaction_data->qr_code,
@@ -55,18 +56,22 @@ trait MercadoPagoHelper
   }
 
   /**
-   * Proccess Mercado Pago Callback from WebHook.
+   * Proccess Mercado Pago Callback from WebHook and return false if not approved or order id is paid.
    * 
    * @param Request $request
    * 
-   * @return array|boolean
+   * @return string|boolean
    */
   protected function callback(Request $request)
   {
-    if ($request->type == 'payment' && $request->status == 'approved') {
-      $contest_id = explode('_', $request->external_reference)[1];
+    if (empty($request->data)) return false;
 
-      return $contest_id;
+    SDK::setAccessToken("APP_USR-2306247977509923-042715-d807d8e7e04369b64d2258788140bfc5-1111566559");
+
+    $payment = Payment::find_by_id($request->data->id);
+
+    if ($request->type == 'payment' && $payment->status == 'approved') {
+      return $payment->external_reference;
     }
 
     return false;
