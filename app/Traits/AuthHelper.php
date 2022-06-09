@@ -6,6 +6,8 @@ use App\Models\Role;
 
 trait AuthHelper
 {
+  use AbilitiesHelper;
+
   /**
    * Return the user abilities by role.
    * 
@@ -15,19 +17,13 @@ trait AuthHelper
    */
   protected function getUserAbilities(string $role)
   {
-    $userRole = Role::find($role);
+    $user_role = Role::find($role);
 
-    if ($userRole->name == 'Administrador') {
-      return [
-        'manage:contests',
-        'view:contests',
-        'manage:bank_accounts',
-        'view:bank_accounts',
-        'manage:upload',
-      ];
+    if ($user_role->indentifier == 'admin') {
+      return $this->sellerAbilities();
     }
 
-    return [];
+    return $this->simpleCustomerAbilities();
   }
 
   /**
@@ -37,7 +33,7 @@ trait AuthHelper
    */
   protected function getSellerRole()
   {
-    $role = Role::where('name', '=', 'Vendedor')->first();
+    $role = Role::where('identifier', '=', 'seller')->first();
 
     return $role->id;
   }
@@ -49,7 +45,7 @@ trait AuthHelper
    */
   protected function getCustomerRole()
   {
-    $role = Role::where('name', '=', 'Cliente')->first();
+    $role = Role::where('identifier', '=', 'customer')->first();
 
     return $role->id;
   }

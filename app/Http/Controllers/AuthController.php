@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ResetPassword;
 use App\Models\User;
+use App\Traits\AbilitiesHelper;
 use App\Traits\AuthHelper;
 use App\Traits\WhatsApp;
 use Illuminate\Http\Request;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-    use AuthHelper, WhatsApp;
+    use AbilitiesHelper, WhatsApp, AuthHelper;
 
     /**
      * Valida o usuário e a senha e retorna um token de acesso.
@@ -161,7 +162,7 @@ class AuthController extends Controller
             ], 400);
         }
 
-        return response()->json(['message' => 'Ok'], 200);
+        return response()->json(['message' => 'Código verificado'], 200);
     }
 
     /**
@@ -194,7 +195,12 @@ class AuthController extends Controller
 
         ResetPassword::where('user_id', '=', $user->id)->delete();
 
-        return response()->json(['message' => 'Senha alterada com sucesso!'], 200);
+        $token = $user->createToken('auth_token', $this->getUserAbilities($user->role))->plainTextToken;
+
+        return response()->json([
+            'user'  => $user,
+            'token' => $token
+        ]);
     }
 
     /**

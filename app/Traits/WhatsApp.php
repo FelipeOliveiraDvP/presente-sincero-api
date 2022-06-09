@@ -66,18 +66,18 @@ trait WhatsApp
     $message .= "Recebemos o seu pagamento do sorteio *{$contest->title}.*\n\n";
     $message .= "Agora é só acompanhar o resultado no grupo do sorteio no WhatsApp e torcer 🤞";
 
-    $mensagem = "Olá, {$user->name}\n";
-    $mensagem .= "*PARABÉNS* 🎉🍾, seu pagamento foi confirmado com sucesso.!\n";
-    $mensagem .= "*{$contest->title}.*\n";
-    $mensagem .= "Entre no grupo dos participantes do sorteio através do link abaixo:\n\n";
-    $mensagem .= $contest->whatsapp_group;
-    $mensagem .= "\n*IMPORTANTE:* É obrigatório permanecer no grupo até o término do sorteio\n\n";
+    $message = "Olá, {$user->name}\n";
+    $message .= "*PARABÉNS* 🎉🍾, seu pagamento foi confirmado com sucesso.!\n";
+    $message .= "*{$contest->title}.*\n";
+    $message .= "Entre no grupo dos participantes do sorteio através do link abaixo:\n\n";
+    $message .= $contest->whatsapp_group;
+    $message .= "\n*IMPORTANTE:* É obrigatório permanecer no grupo até o término do sorteio\n\n";
 
-    $mensagem .= "Seu(s) número(s): " . join(',', $customer_numbers) . "\n";
-    $mensagem .= "Valor Total: R$ " . number_format($order->total, 2, ',', '.') . "\n";
-    $mensagem .= "Data do Pagamento: " . date('d/m/Y H:i', strtotime($contest->updated_at)) . "\n\n";
+    $message .= "Seu(s) número(s): " . join(',', $customer_numbers) . "\n";
+    $message .= "Valor Total: R$ " . number_format($order->total, 2, ',', '.') . "\n";
+    $message .= "Data do Pagamento: " . date('d/m/Y H:i', strtotime($contest->updated_at)) . "\n\n";
 
-    $mensagem .= "*Atenciosamente, equipe Presente Sincero*";
+    $message .= "*Atenciosamente, equipe Presente Sincero*";
 
     return $this->sendMessage($user, $message);
   }
@@ -92,9 +92,13 @@ trait WhatsApp
    */
   protected function sendRecoveryMessage(User $user, string $code)
   {
+    $verify_link = getenv('APP_URL') . "/verificar-codigo";
+
     $message = "Olá *{$user->name}*, tudo bem?\n\n";
-    $message .= "Utilize o código abaixo para recuperar sua senha no Presente Sincero.\n\n";
-    $message .= "*{$code}*";
+    $message .= "Utilize o código abaixo para recuperar sua senha no *Presente Sincero*.\n\n";
+    $message .= "*{$code}*\n\n";
+    $message .= $verify_link;
+    $message .= "\n\n*Atenciosamente, equipe Presente Sincero*";
 
     return $this->sendMessage($user, $message);
   }

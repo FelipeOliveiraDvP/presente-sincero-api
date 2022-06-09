@@ -5,20 +5,21 @@
     >
       <div class="p-3 border rounded" style="width: 400px">
         <h3>Recuperação de senha</h3>
-        <p class="text-muted">
-          Informe seu WhatsApp ou e-mail para recuperar sua senha
-        </p>
+        <p class="text-muted">Digite o código enviado para o seu WhatsApp</p>
         <b-form @submit.stop.prevent="onSubmit">
-          <b-form-group label="WhatsApp ou E-mail" label-for="user">
+          <b-form-group label="Código de verificação" label-for="code">
             <b-form-input
-              id="user"
-              name="user"
-              v-model="$v.form.user.$model"
-              :state="validateState('user')"
+              id="code"
+              name="code"
+              v-model="$v.form.code.$model"
+              :state="validateState('code')"
             ></b-form-input>
 
-            <b-form-invalid-feedback v-if="!$v.form.user.required"
+            <b-form-invalid-feedback v-if="!$v.form.code.required"
               >Campo obrigatório</b-form-invalid-feedback
+            >
+            <b-form-invalid-feedback v-if="!$v.form.code.minLength"
+              >Digite um código válido</b-form-invalid-feedback
             >
           </b-form-group>
 
@@ -29,12 +30,14 @@
               variant="primary"
               class="w-100 mt-4"
               :disabled="loading"
-              >Recuperar senha</b-button
+              >Verificar código</b-button
             >
           </div>
 
           <div class="my-2 d-flex justify-content-between">
-            <router-link to="/login"> Ir para o login </router-link>
+            <router-link to="/recuperar-senha">
+              Solicitar um novo código
+            </router-link>
           </div>
         </b-form>
       </div>
@@ -44,29 +47,29 @@
 
 <script>
 import { validationMixin } from "vuelidate";
-import { required } from "vuelidate/lib/validators";
+import { required, minLength } from "vuelidate/lib/validators";
 
-import { forgot } from "../services/auth";
+import { verify } from "../services/auth";
 
 export default {
-  name: "Recovery",
+  name: "Verify",
   mixins: [validationMixin],
   data() {
     return {
       loading: false,
       form: {
-        user: "",
+        code: "",
       },
     };
   },
   validations: {
     form: {
-      user: { required },
+      code: { required, minLength: minLength(6) },
     },
   },
   methods: {
-    validateState(user) {
-      const { $dirty, $error } = this.$v.form[user];
+    validateState(field) {
+      const { $dirty, $error } = this.$v.form[field];
 
       return $dirty ? !$error : null;
     },
@@ -79,7 +82,7 @@ export default {
           return;
         }
 
-        const result = await forgot(this.form);
+        const result = await verify(this.form.code);
 
         this.$toasted.show(result.message, {
           type: "success",
@@ -88,7 +91,7 @@ export default {
           duration: 3000,
         });
 
-        this.$router.push({ name: "verify" });
+        this.$router.push({ name: "reset", params: { code: this.form.code } });
       } catch (error) {
         this.$toasted.show(error.message, {
           type: "error",

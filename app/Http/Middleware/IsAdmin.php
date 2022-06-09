@@ -2,13 +2,14 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\User;
+use App\Traits\AbilitiesHelper;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class IsAdmin
 {
+    use AbilitiesHelper;
+
     /**
      * Handle an incoming request.
      *
@@ -20,13 +21,7 @@ class IsAdmin
     {
         $user = auth('sanctum')->user();
 
-        $abilities = [
-            'manage:contests',
-            'view:contests',
-            'manage:bank_accounts',
-            'view:bank_accounts',
-            'manage:upload',
-        ];
+        $abilities = $this->sellerAbilities();
 
         foreach ($abilities as $ability) {
             if (!$user->tokenCan($ability)) {

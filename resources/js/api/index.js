@@ -24,7 +24,7 @@ const post = (url, data) => {
 };
 
 const update = (url, data) => {
-  return instance.update(url, data);
+  return instance.put(url, data);
 };
 
 const remove = (url) => {

@@ -12,17 +12,11 @@
         />
       </b-col>
     </b-row>
-
-    <!-- <h2>Últimos Ganhadores</h2>
-    <b-row class="mb-4">
-      <b-col v-for="i in 3" :key="i" md="6" lg="4"><winner-card /></b-col>
-    </b-row> -->
   </b-container>
 </template>
 
 <script>
 import ContestCardVue from "../components/Contests/ContestCard.vue";
-import WinnerCardVue from "../components/Winners/WinnerCard.vue";
 import LoaderVue from "../components/_commons/Loader.vue";
 
 import { listContests } from "../services/contests";
@@ -31,7 +25,6 @@ export default {
   name: "Home",
   components: {
     "contest-card": ContestCardVue,
-    "winner-card": WinnerCardVue,
     "my-loader": LoaderVue,
   },
   data() {

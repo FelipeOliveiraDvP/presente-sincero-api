@@ -4,60 +4,11 @@
       class="p-4 my-4 d-flex justify-content-center align-items-center h-100"
     >
       <div class="p-3 border rounded" style="width: 400px">
-        <h3>Cadastre-se</h3>
-        <p>
-          Realize seu cadastro abaixo para ter acesso a vantagens exclusivas
+        <h3>Cadastrar nova senha</h3>
+        <p class="text-muted">
+          Cadastre uma nova senha para ter acesso a sua conta
         </p>
-
         <b-form @submit.stop.prevent="onSubmit">
-          <b-form-group label="Nome completo" label-for="name">
-            <b-form-input
-              id="name"
-              name="name"
-              v-model="$v.form.name.$model"
-              :state="validateState('name')"
-            ></b-form-input>
-
-            <b-form-invalid-feedback v-if="!$v.form.name.required"
-              >Campo obrigatório</b-form-invalid-feedback
-            >
-          </b-form-group>
-
-          <b-form-group label="WhatsApp" label-for="whatsapp">
-            <b-form-input
-              id="whatsapp"
-              name="whatsapp"
-              v-model="$v.form.whatsapp.$model"
-              :state="validateState('whatsapp')"
-            ></b-form-input>
-
-            <b-form-invalid-feedback v-if="!$v.form.whatsapp.required"
-              >Campo obrigatório</b-form-invalid-feedback
-            >
-            <b-form-invalid-feedback v-if="!$v.form.whatsapp.numeric"
-              >Digite somente números</b-form-invalid-feedback
-            >
-            <b-form-invalid-feedback v-if="!$v.form.whatsapp.minLength"
-              >Informe um número de WhatsApp válido</b-form-invalid-feedback
-            >
-          </b-form-group>
-
-          <b-form-group label="E-mail" label-for="email">
-            <b-form-input
-              id="email"
-              name="email"
-              v-model="$v.form.email.$model"
-              :state="validateState('email')"
-            ></b-form-input>
-
-            <b-form-invalid-feedback v-if="!$v.form.email.required"
-              >Campo obrigatório</b-form-invalid-feedback
-            >
-            <b-form-invalid-feedback v-if="!$v.form.email.email"
-              >Informe um e-mail válido</b-form-invalid-feedback
-            >
-          </b-form-group>
-
           <b-form-group label="Senha" label-for="password">
             <b-form-input
               id="password"
@@ -104,16 +55,15 @@
               variant="primary"
               class="w-100 mt-4"
               :disabled="loading"
-              >Entrar</b-button
+              >Salvar nova senha</b-button
             >
           </div>
 
           <div class="my-2 d-flex justify-content-between">
             <router-link to="/recuperar-senha">
-              Esqueci minha senha
+              Solicitar um novo código
             </router-link>
-
-            <router-link to="/cadastre-se"> Criar nova conta </router-link>
+            <router-link to="/login"> Ir para o login </router-link>
           </div>
         </b-form>
       </div>
@@ -123,36 +73,34 @@
 
 <script>
 import { validationMixin } from "vuelidate";
-import {
-  required,
-  minLength,
-  sameAs,
-  email,
-  numeric,
-} from "vuelidate/lib/validators";
+import { required, minLength, sameAs } from "vuelidate/lib/validators";
 import { mapActions } from "vuex";
-import { register } from "../services/auth";
+import { reset } from "../services/auth";
 
 export default {
-  name: "Register",
+  name: "Reset",
   mixins: [validationMixin],
   data() {
     return {
       loading: false,
       form: {
-        name: "",
-        whatsapp: "",
-        email: "",
+        code: null,
         password: "",
         password_confirmation: "",
       },
     };
   },
+  mounted() {
+    const { code } = this.$router.history.current.params;
+
+    if (code === undefined) {
+      this.$router.push({ name: "verify" });
+      return;
+    }
+    this.form.code = code;
+  },
   validations: {
     form: {
-      name: { required },
-      whatsapp: { required, numeric, minLength: minLength(10) },
-      email: { required, email },
       password: { required, minLength: minLength(8) },
       password_confirmation: { required, sameAsPassword: sameAs("password") },
     },
@@ -175,7 +123,14 @@ export default {
           return;
         }
 
-        const result = await register(this.form);
+        const result = await reset(this.form);
+
+        this.$toasted.show(result.message, {
+          type: "success",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
 
         this.signIn(result);
       } catch (error) {
