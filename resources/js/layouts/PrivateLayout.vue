@@ -71,6 +71,11 @@ export default {
           href: { name: "adminBankAccountList" },
           faIcon: ["fas", "fa-building-columns"],
         },
+        {
+          name: "Minha conta",
+          href: { name: "adminAccountManage" },
+          faIcon: ["fas", "fa-user"],
+        },
       ],
     };
   },

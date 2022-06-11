@@ -15,12 +15,17 @@
     font-size: 1.2rem;
   }
 
+  .account {
+    display: flex;
+    align-items: center;
+  }
+
   @media (min-width: 768px) {
     & .account {
       background-color: transparent;
       padding: 5px 15px;
       border-radius: 25px;
       border: 1px solid $primary;
-    }  
-  }  
+    }
+  }
 }

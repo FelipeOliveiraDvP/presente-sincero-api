@@ -21,7 +21,21 @@
           </b-nav-item>
         </b-navbar-nav>
 
-        <b-navbar-nav class="account">
+        <b-navbar-nav class="account" v-if="authenticated">
+          <b-nav-item>
+            <router-link to="/minha-conta"
+              >Bem vindo {{ user.name }}</router-link
+            >
+          </b-nav-item>
+
+          <b-nav-item>
+            <b-button size="sm" variant="outline-danger" @click="signOut"
+              >Sair</b-button
+            >
+          </b-nav-item>
+        </b-navbar-nav>
+
+        <b-navbar-nav class="account" v-else>
           <b-nav-item>
             <router-link to="/login"
               ><i class="fas fa-sign-in-alt"></i> ENTRE</router-link
@@ -39,8 +53,23 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
+
 export default {
   name: "Header",
+  computed: {
+    user() {
+      return this.$store.state.auth.user;
+    },
+    authenticated() {
+      return this.$store.state.auth.authenticated;
+    },
+  },
+  methods: {
+    ...mapActions({
+      signOut: "auth/logout",
+    }),
+  },
 };
 </script>
 

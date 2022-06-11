@@ -172,6 +172,14 @@ const routes = [
           adminRoute: true,
         },
       },
+      {
+        name: "adminAccountManage",
+        path: "/admin/minha-conta",
+        component: Profile,
+        meta: {
+          adminRoute: true,
+        },
+      },
     ],
   },
 ];
