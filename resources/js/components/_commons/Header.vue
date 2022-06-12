@@ -37,8 +37,9 @@
 
         <b-navbar-nav class="account" v-else>
           <b-nav-item>
-            <router-link to="/login"
-              ><i class="fas fa-sign-in-alt"></i> ENTRE</router-link
+            <router-link to="/login">
+              <font-awesome-icon icon="fa-sign-in-alt" />
+              ENTRE</router-link
             >
           </b-nav-item>
           <b-nav-item>

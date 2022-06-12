@@ -21,6 +21,7 @@
       </b-col>
       <b-col
         v-for="(image, index) in contest.gallery"
+        class="mb-3"
         :key="`image-${index}`"
         md="6"
         lg="4"
@@ -28,7 +29,7 @@
       >
         <div class="img-wrapper">
           <img
-            :src="image.image_path"
+            :src="image.image_path || image.path"
             class="img-fluid"
             :class="{ thumbnail: image.thumbnail }"
           />
@@ -46,7 +47,7 @@
 </template>
 
 <script>
-import { uploadImage } from "../../../services/upload";
+import { uploadImage } from "@/services/upload";
 
 export default {
   props: {

@@ -17,16 +17,19 @@ class RoleSeeder extends Seeder
     {
         Role::insert([
             'id' => Str::uuid(),
+            'identifier' => 'admin',
             'name' => 'Administrador',
         ]);
 
         Role::insert([
             'id' => Str::uuid(),
+            'identifier' => 'seller',
             'name' => 'Vendedor',
         ]);
 
         Role::insert([
             'id' => Str::uuid(),
+            'identifier' => 'customer',
             'name' => 'Cliente',
         ]);
     }

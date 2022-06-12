@@ -53,7 +53,7 @@ class BankAccountController extends Controller
             ], 400);
         }
 
-        $has_main = BankAccount::where('main', '=', true)->first()->main;
+        $has_main = BankAccount::exists('main', '=', true);
 
         $bank_account = BankAccount::create([
             'user_id' => $request->user->id,

@@ -6,8 +6,8 @@
     ok-title="Salvar"
     cancel-title="Cancelar"
     :ok-disabled="loading"
-    @show="handleReset"
-    @hidden="handleReset"
+    @show="openModal"
+    @hidden="closeModal"
     @ok="handleOk"
   >
     <b-form ref="form" @submit.stop.prevent="handleSubmit">
@@ -20,7 +20,11 @@
         />
       </b-form-group>
 
-      <b-form-group label="Nome" label-for="name">
+      <b-form-group
+        label="Nome"
+        label-for="name"
+        invalid-feedback="Campo obrigatório"
+      >
         <b-form-input
           id="name"
           v-model="$v.bank_account.name.$model"
@@ -30,7 +34,11 @@
 
       <b-row v-if="bank_account.type === 'BANK'">
         <b-col md="6">
-          <b-form-group label="Conta" label-for="cc">
+          <b-form-group
+            label="Conta"
+            label-for="cc"
+            invalid-feedback="Campo obrigatório"
+          >
             <b-form-input
               id="cc"
               v-model="$v.bank_account.cc.$model"
@@ -39,16 +47,24 @@
           </b-form-group>
         </b-col>
         <b-col md="4">
-          <b-form-group label="Agência" label-for="agencia">
+          <b-form-group
+            label="Agência"
+            label-for="agency"
+            invalid-feedback="Campo obrigatório"
+          >
             <b-form-input
-              id="agencia"
-              v-model="$v.bank_account.agencia.$model"
-              :state="validateState('agencia')"
+              id="agency"
+              v-model="$v.bank_account.agency.$model"
+              :state="validateState('agency')"
             />
           </b-form-group>
         </b-col>
         <b-col md="2">
-          <b-form-group label="DV" label-for="dv">
+          <b-form-group
+            label="DV"
+            label-for="dv"
+            invalid-feedback="Campo obrigatório"
+          >
             <b-form-input
               id="dv"
               name="dv"
@@ -62,13 +78,14 @@
       <b-form-group
         v-if="bank_account.type === 'PIX'"
         label="Chave PIX"
-        label-for="chave"
+        label-for="key"
+        invalid-feedback="Campo obrigatório"
       >
         <b-form-input
-          id="chave"
-          name="chave"
-          v-model="$v.bank_account.chave.$model"
-          :state="validateState('chave')"
+          id="key"
+          name="key"
+          v-model="$v.bank_account.key.$model"
+          :state="validateState('key')"
         />
       </b-form-group>
     </b-form>
@@ -77,12 +94,7 @@
 
 <script>
 import { validationMixin } from "vuelidate";
-import {
-  required,
-  numeric,
-  requiredUnless,
-  minLength,
-} from "vuelidate/lib/validators";
+import { required, minLength } from "vuelidate/lib/validators";
 
 export default {
   name: "BankAccountModal",
@@ -98,9 +110,10 @@ export default {
         type: "PIX",
         name: "",
         cc: "",
-        agencia: "",
+        agency: "",
         dv: "",
-        chave: "",
+        key: "",
+        main: false,
       },
       account_types: [
         { value: "PIX", text: "Pagar com PIX" },
@@ -109,38 +122,36 @@ export default {
     };
   },
   watch: {
-    account: function (newVal, oldVal) {
+    account(newVal, oldVal) {
       this.bank_account = { ...newVal };
     },
   },
-  validations() {
-    return {
-      bank_account: {
-        name: { required },
-        cc: {
-          requiredIfBank: requiredUnless(this.bank_account.type === "BANK"),
-        },
-        agencia: {
-          requiredIfBank: requiredUnless(this.bank_account.type === "BANK"),
-        },
-        dv: {
-          requiredIfBank: requiredUnless(this.bank_account.type === "BANK"),
-        },
-        chave: {
-          minLength: minLength(10),
-          requiredIfPix: requiredUnless(this.bank_account.type === "PIX"),
-        },
+  validations: {
+    bank_account: {
+      name: { required },
+      cc: {
+        required,
       },
-    };
+      agency: {
+        required,
+      },
+      dv: {
+        required,
+      },
+      key: {
+        minLength: minLength(10),
+        required,
+      },
+    },
   },
   mounted() {
-    if (this.account !== undefined) {
+    if (this.account !== null) {
       this.bank_account = { ...this.account };
     }
   },
   computed: {
     modalTitle() {
-      return this.account !== undefined ? "Editar conta" : "Nova conta";
+      return this.account !== null ? "Editar conta" : "Nova conta";
     },
   },
   methods: {
@@ -149,12 +160,15 @@ export default {
         type: "PIX",
         name: "",
         cc: "",
-        agencia: "",
+        agency: "",
         dv: "",
-        chave: "",
+        key: "",
+        main: false,
       };
 
       this.bank_account = { ...reset };
+
+      this.$emit("reset");
     },
     validateState(field) {
       const { $dirty, $error } = this.$v.bank_account[field];
@@ -169,9 +183,14 @@ export default {
     handleSubmit() {
       this.$v.$touch();
 
-      // if (this.$v.$anyError) return;
-
       this.onSubmit(this.bank_account);
+    },
+    openModal(account = null) {
+      this.$emit("open", account);
+    },
+    closeModal() {
+      this.$emit("close");
+      this.handleReset();
     },
   },
 };

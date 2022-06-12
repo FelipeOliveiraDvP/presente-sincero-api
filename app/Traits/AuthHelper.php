@@ -19,11 +19,11 @@ trait AuthHelper
   {
     $user_role = Role::find($role);
 
-    if ($user_role->indentifier == 'admin') {
-      return $this->sellerAbilities();
+    if ($user_role->identifier == 'admin') {
+      return $this->adminAbilities();
     }
 
-    return $this->simpleCustomerAbilities();
+    return $this->getCustomerRole();
   }
 
   /**

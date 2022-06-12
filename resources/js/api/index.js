@@ -1,18 +1,14 @@
 import axios from "axios";
 
-import store from "@/store";
 import onSuccess from "./interceptors/success.interceptor";
 import onError from "./interceptors/error.interceptor";
-
-const { token } = store.state.auth;
+import tokenInterceptor from "./interceptors/token.interceptor";
 
 const instance = axios.create({
   baseURL: process.env.MIX_API_URL,
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
 });
 
+instance.interceptors.request.use(tokenInterceptor);
 instance.interceptors.response.use(onSuccess, onError);
 
 const get = (url, params) => {

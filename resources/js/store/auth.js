@@ -68,6 +68,8 @@ export default {
       commit("SET_TOKEN", null);
       commit("SET_ADMIN", false);
 
+      window.localStorage.removeItem("presente-sincero-app");
+
       router.push({ name: "login" });
     },
     updateUser({ commit }, payload) {

@@ -14,11 +14,17 @@
       </b-col>
       <b-col md="6">
         <b-form-group id="sale_price" label="Valor R$" label-for="sale_price">
-          <b-form-input
+          <!-- <b-form-input
             id="sale_price"
             v-model="sale.price"
             type="number"
-          ></b-form-input>
+          ></b-form-input> -->
+          <the-mask
+            :mask="['#,##', '##,##', '###,##', '#.###,##']"
+            class="form-control"
+            id="sale_price"
+            v-model="sale.price"
+          ></the-mask>
         </b-form-group>
       </b-col>
       <b-col md="2" class="d-flex align-items-end">

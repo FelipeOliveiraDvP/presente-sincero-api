@@ -56,21 +56,9 @@ class ContestController extends Controller
      */
     public function getContestBySlug(string $slug)
     {
-        $contest = Contest::with('gallery')
-            ->with('bank_accounts')
-            ->with('sales')
-            ->where('slug', '=', $slug)
-            ->first();
+        $contest = Contest::where('slug', '=', $slug)->first();
 
-        if (empty($contest)) {
-            return response()->json([
-                'message' => 'O sorteio informado não existe.'
-            ], 404);
-        }
-
-        $contest->makeHiddenIf(fn () => $contest->quantity >= 5000, ['numbers']);
-
-        return response()->json($contest);
+        return $this->details($contest->id);
     }
 
     /**
@@ -138,7 +126,7 @@ class ContestController extends Controller
         $validator = Validator::make($request->all(), [
             'title'             => 'required|unique:contests,title',
             'start_date'        => 'required|date|after:now',
-            'contest_date'      => 'date|after:now',
+            'contest_date'      => 'nullable|date|after:now',
             'max_reserve_days'  => 'gte:1|lte:30',
             'price'             => 'required|gte:0.5',
             'quantity'          => 'required|gte:1',
@@ -149,6 +137,7 @@ class ContestController extends Controller
             'sales.*.quantity'  => 'required|gte:1',
             'sales.*.price'     => 'required|gte:0.5',
             'bank_accounts.*'   => 'exists:bank_accounts,id',
+            'gallery.*'         => 'string',
         ]);
 
         if ($validator->fails()) {
@@ -165,9 +154,9 @@ class ContestController extends Controller
             'title'             => $request->title,
             'slug'              => Str::slug($request->title),
             'start_date'        => $request->start_date,
-            'contest_date'      => $request->start_date ?? null,
+            'contest_date'      => $request->contest_date ?? null,
             'max_reserve_days'  => $request->max_reserve_days ?? 1,
-            'price'             => $request->price,
+            'price'             => $request->price / 100,
             'quantity'          => $request->quantity,
             'short_description' => $request->short_description,
             'full_description'  => $request->full_description,
@@ -184,19 +173,21 @@ class ContestController extends Controller
             Sale::create([
                 'contest_id'    => $contest_created->id,
                 'quantity'      => $sale['quantity'],
-                'price'         => $sale['price'],
+                'price'         => $sale['price'] / 100,
             ]);
         }
 
         foreach ($request->gallery as $image) {
-            Gallery::create([
-                'contest_id' => $contest_created->id,
-                'path' => $image,
-            ]);
+            if (!is_null($image)) {
+                Gallery::create([
+                    'contest_id' => $contest_created->id,
+                    'path' => $image,
+                ]);
+            }
         }
 
         return response()->json([
-            'constest' => $contest_created
+            'contest' => $contest_created
         ], 201);
     }
 
@@ -230,6 +221,7 @@ class ContestController extends Controller
             'sales.*.quantity'  => 'required|gte:1',
             'sales.*.price'     => 'required|gte:0.5',
             'bank_accounts.*'   => 'exists:bank_accounts,id',
+            'gallery.*'         => 'string',
         ]);
 
         if ($validator->fails()) {
@@ -242,7 +234,7 @@ class ContestController extends Controller
         $update = [
             'id'                => $id,
             'title'             => $request->title,
-            'contest_date'      => $request->start_date ?? null,
+            'contest_date'      => $request->contest_date ?? null,
             'max_reserve_days'  => $request->max_reserve_days ?? 1,
             'short_description' => $request->short_description,
             'full_description'  => $request->full_description,

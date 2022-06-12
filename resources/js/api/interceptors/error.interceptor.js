@@ -1,5 +1,5 @@
 export default (error) => {
-    console.log("Interceptor: ", error);
+  console.log("ErrorInterceptor: ", error.response.data);
 
-    return Promise.reject(error.response.data);
+  return Promise.reject(error.response.data);
 };

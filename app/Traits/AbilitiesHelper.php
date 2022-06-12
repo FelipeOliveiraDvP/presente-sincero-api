@@ -33,11 +33,11 @@ trait AbilitiesHelper
   }
 
   /**
-   * Returns the seller token abilities.
+   * Returns the admin token abilities.
    * 
    * @return array<string>
    */
-  protected function sellerAbilities()
+  protected function adminAbilities()
   {
     return [
       'reserve.numbers',
@@ -51,6 +51,7 @@ trait AbilitiesHelper
       'create.bank_accounts',
       'edit.bank_accounts',
       'remove.bank_accounts',
+      'upload.images'
     ];
   }
 }

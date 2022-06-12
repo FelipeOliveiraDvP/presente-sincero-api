@@ -26,6 +26,7 @@
                 v-model="$v.contest.start_date.$model"
                 placeholder="Selecione uma data"
                 :state="validateState('start_date')"
+                :min="minStartDate"
               ></b-form-datepicker>
 
               <b-form-invalid-feedback v-if="!$v.contest.start_date.required"
@@ -46,25 +47,26 @@
         </b-row>
 
         <b-row>
-          <b-col md="6">
+          <b-col md="4">
             <b-form-group label="Valor do número R$" label-for="price">
-              <b-form-input
+              <the-mask
+                :mask="['#,##', '##,##', '###,##', '#.###,##']"
+                class="form-control"
                 id="price"
                 name="price"
-                type="number"
                 v-model="$v.contest.price.$model"
                 :state="validateState('price')"
-              ></b-form-input>
+              ></the-mask>
 
               <b-form-invalid-feedback v-if="!$v.contest.price.required"
                 >Campo obrigatório</b-form-invalid-feedback
               >
               <b-form-invalid-feedback v-if="!$v.contest.price.minValue"
-                >Valor mínimo deve ser R$ 0,01</b-form-invalid-feedback
+                >Valor mínimo deve ser R$ 0,50</b-form-invalid-feedback
               >
             </b-form-group>
           </b-col>
-          <b-col md="6">
+          <b-col md="4">
             <b-form-group label="Quantidade de números" label-for="quantity">
               <b-form-input
                 id="quantity"
@@ -79,6 +81,30 @@
               >
               <b-form-invalid-feedback v-if="!$v.contest.quantity.minValue"
                 >Deve ter pelo menos 1 número</b-form-invalid-feedback
+              >
+            </b-form-group>
+          </b-col>
+          <b-col md="4">
+            <b-form-group
+              label="Dias para pagamento"
+              description="Quantidade de dias após a reserva em que o pagamento ficará disponível"
+              label-for="max_reserve_days"
+            >
+              <b-form-input
+                id="max_reserve_days"
+                name="max_reserve_days"
+                type="number"
+                v-model="$v.contest.max_reserve_days.$model"
+                :state="validateState('max_reserve_days')"
+              ></b-form-input>
+
+              <b-form-invalid-feedback
+                v-if="!$v.contest.max_reserve_days.required"
+                >Campo obrigatório</b-form-invalid-feedback
+              >
+              <b-form-invalid-feedback
+                v-if="!$v.contest.max_reserve_days.minValue"
+                >Deve ter pelo menos 1 dia</b-form-invalid-feedback
               >
             </b-form-group>
           </b-col>
@@ -114,20 +140,29 @@
           >
         </b-form-group>
 
+        <h3>Contas bancárias</h3>
         <b-form-group
-          label="Contas bancárias"
+          label="Contas disponíveis"
           description="Selecione as contas para receber o pagamento dos números"
           label-for="full_description"
         >
-          <b-form-select
+          <b-form-checkbox-group
+            v-if="bank_accounts.length > 0"
             class="d-block w-100"
             v-model="contest.bank_accounts"
             :options="
               bank_accounts.map((acc) => ({ value: acc.id, text: acc.name }))
             "
-            multiple
-            :select-size="4"
-          ></b-form-select>
+          ></b-form-checkbox-group>
+          <div v-else>
+            <b-alert show variant="warning">
+              Não existem contas cadastradas.
+              <hr />
+              <router-link class="alert-link" to="/admin/contas">
+                Cadastrar contas
+              </router-link>
+            </b-alert>
+          </div>
         </b-form-group>
 
         <b-row>
@@ -199,7 +234,6 @@
 </template>
 
 <script>
-import { validationMixin } from "vuelidate";
 import {
   required,
   numeric,
@@ -207,11 +241,14 @@ import {
   url,
   minLength,
 } from "vuelidate/lib/validators";
+import { validationMixin } from "vuelidate";
 
-import SalesFormVue from "../../components/Contests/Admin/SalesForm.vue";
-import GalleryFormVue from "../../components/Contests/Admin/GalleryForm.vue";
+import SalesFormVue from "@/components/Contests/Admin/SalesForm.vue";
+import GalleryFormVue from "@/components/Contests/Admin/GalleryForm.vue";
 
-import { createContest } from "../../services/contests";
+import { createContest } from "@/services/contests";
+import { listBankAccounts } from "@/services/bankAccounts";
+import moment from "moment";
 
 export default {
   name: "AdminContestCreate",
@@ -223,53 +260,39 @@ export default {
   data() {
     return {
       loading: false,
-      bank_accounts: [
-        {
-          id: 1,
-          type: "PIX",
-          name: "Pagar com PIX",
-          cc: null,
-          agencia: null,
-          dv: null,
-          chave: "123.456.789-09",
-        },
-        {
-          id: 2,
-          type: "BANK",
-          name: "Banco do Brasil",
-          cc: "195866",
-          agencia: "5901",
-          dv: "6",
-          chave: null,
-        },
-      ],
+      bank_accounts: [],
       contest: {
-        title: "Título do sorteio",
-        start_date: "2022-05-26",
-        price: 5,
-        sales: [
-          {
-            quantity: 2,
-            price: 7,
-          },
-        ],
+        title: "",
+        start_date: moment().add(1, "day").format("YYYY-MM-DD"),
+        contest_date: null,
+        price: 0.5,
         quantity: 1,
-        short_description: "Descrição curta",
-        full_description: "Decrição completa",
+        max_reserve_days: 1,
+        sales: [],
+        short_description: "",
+        full_description: "",
         bank_accounts: [],
-        contest_date: "2022-06-15",
-        whatsapp_number: "11964513763",
-        whatsapp_group: "https://chat.whatsapp.com/HDDZGY0grOwD6Y1Y5xRnXd",
+        whatsapp_number: "",
+        whatsapp_group: "",
         gallery: [],
       },
     };
+  },
+  computed: {
+    minStartDate() {
+      return moment().add(1, "day").format("YYYY-MM-DD");
+    },
+  },
+  mounted() {
+    this.getBankAccountsData();
   },
   validations: {
     contest: {
       title: { required },
       start_date: { required },
-      price: { required, minValue: minValue(0.01) },
+      price: { required, minValue: minValue(0.5) },
       quantity: { required, minValue: minValue(1) },
+      max_reserve_days: { required, minValue: minValue(1) },
       short_description: { required },
       full_description: { required },
       whatsapp_number: { required, numeric, minLength: minLength(10) },
@@ -279,7 +302,7 @@ export default {
   methods: {
     async onSubmit() {
       try {
-        const { bank_accounts, gallery } = this.contest;
+        const { bank_accounts, gallery, price } = this.contest;
 
         this.$v.contest.$touch();
 
@@ -316,9 +339,13 @@ export default {
           return;
         }
 
-        await createContest(this.contest);
+        this.contest.gallery = gallery.map((img) =>
+          img ? img?.image_path : ""
+        );
 
-        this.$toasted.show("Sorteio criado com sucesso!", {
+        const result = await createContest(this.contest);
+
+        this.$toasted.show(result.message, {
           type: "success",
           theme: "toasted-primary",
           position: "top-right",
@@ -334,6 +361,11 @@ export default {
           duration: 3000,
         });
       }
+    },
+    async getBankAccountsData() {
+      const result = await listBankAccounts();
+
+      this.bank_accounts = result.data;
     },
     handleAddSale() {
       const { sales } = this.contest;

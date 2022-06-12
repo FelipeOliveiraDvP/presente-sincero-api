@@ -21,7 +21,7 @@ class IsAdmin
     {
         $user = auth('sanctum')->user();
 
-        $abilities = $this->sellerAbilities();
+        $abilities = $this->adminAbilities();
 
         foreach ($abilities as $ability) {
             if (!$user->tokenCan($ability)) {

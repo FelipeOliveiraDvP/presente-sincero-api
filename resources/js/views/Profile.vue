@@ -130,6 +130,7 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
 import { validationMixin } from "vuelidate";
 import {
   required,
@@ -172,6 +173,9 @@ export default {
     },
   },
   methods: {
+    ...mapActions({
+      refreshUserData: "auth/updateUser",
+    }),
     validateState(form, field) {
       const { $dirty, $error } = form[field];
 
@@ -189,6 +193,7 @@ export default {
         const result = await editProfile(this.updateProfile);
 
         this.updateProfile = { ...result.user };
+        this.refreshUserData({ ...result.user });
 
         this.$toasted.show(result.message, {
           type: "success",

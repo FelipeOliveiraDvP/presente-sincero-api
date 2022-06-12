@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex justify-content-between align-items-center">
       <h2>Contas bancárias</h2>
-      <b-button variant="primary" @click="toggleModal()"> Nova conta </b-button>
+      <b-button variant="primary" @click="showModal()"> Nova conta </b-button>
     </div>
 
     <b-table
@@ -17,11 +17,11 @@
       </template>
 
       <template #cell(actions)="data">
-        <b-button variant="primary" @click="toggleModal(data.item)">
+        <b-button variant="primary" @click="showModal(data.item)">
           <font-awesome-icon :icon="['fas', 'pen']" class="icon alt" />
         </b-button>
 
-        <b-button variant="danger" @click="handleRemove(data.item)">
+        <b-button variant="danger" @click="handleRemoveAccount(data.item)">
           <font-awesome-icon :icon="['fas', 'trash']" class="icon alt" />
         </b-button>
       </template>
@@ -36,13 +36,22 @@
       @change="handlePaginate"
     ></b-pagination>
 
-    <account-modal :account="selectedAccount" :onSubmit="handleSaveAccount" />
+    <account-modal
+      :account="selectedAccount"
+      :onSubmit="handleSaveAccount"
+      @reset="hideModal"
+    />
   </div>
 </template>
 
 <script>
-// import { listContests } from "../../services/contests";
-import BankAccountModal from "../../components/BankAccount/AccountModal.vue";
+import BankAccountModal from "@/components/BankAccount/AccountModal.vue";
+import {
+  listBankAccounts,
+  createBankAccount,
+  editBankAccount,
+  removeBankAccount,
+} from "@/services/bankAccounts";
 
 export default {
   name: "AdminBankAccountList",
@@ -52,7 +61,7 @@ export default {
   data() {
     return {
       loading: false,
-      selectedAccount: undefined,
+      selectedAccount: null,
       params: {
         limit: 10,
         page: 1,
@@ -83,12 +92,17 @@ export default {
           label: "Conta corrente",
         },
         {
+          key: "agency",
+          sortable: false,
+          label: "Agência",
+        },
+        {
           key: "dv",
           sortable: false,
           label: "Dígito verificador",
         },
         {
-          key: "chave",
+          key: "key",
           sortable: false,
           label: "Chave PIX",
         },
@@ -98,63 +112,108 @@ export default {
           label: "Ações",
         },
       ],
-      items: [
-        {
-          id: 1,
-          type: "PIX",
-          name: "Pagar com PIX",
-          cc: null,
-          agencia: null,
-          dv: null,
-          chave: "123.456.789-09",
-        },
-        {
-          id: 2,
-          type: "BANK",
-          name: "Banco do Brasil",
-          cc: "195866",
-          agencia: "5901",
-          dv: "6",
-          chave: null,
-        },
-      ],
+      items: [],
     };
   },
-  computed: {},
   mounted() {
-    this.getContests();
+    this.getContestsData();
   },
   methods: {
-    async getContests() {
-      // try {
-      //   this.loading = true;
-      //   const result = await listContests(this.params);
-      //   this.items = result.data;
-      //   this.pager = {
-      //     current_page: result.current_page,
-      //     from: result.from,
-      //     last_page: result.last_page,
-      //     per_page: result.per_page,
-      //     to: result.to,
-      //     total: result.total,
-      //   };
-      // } catch (error) {
-      //   this.items = [];
-      // } finally {
-      //   this.loading = false;
-      // }
+    async getContestsData() {
+      try {
+        this.loading = true;
+
+        const result = await listBankAccounts(this.params);
+
+        this.items = result.data;
+        this.pager = {
+          current_page: result.current_page,
+          from: result.from,
+          last_page: result.last_page,
+          per_page: result.per_page,
+          to: result.to,
+          total: result.total,
+        };
+      } catch (error) {
+        this.items = [];
+      } finally {
+        this.loading = false;
+      }
+    },
+    async handleSaveAccount(account) {
+      try {
+        let result;
+        this.loading = true;
+
+        if (this.selectedAccount === null) {
+          result = await createBankAccount(account);
+        } else {
+          result = await editBankAccount(account.id, account);
+        }
+
+        this.$toasted.show(result.message, {
+          type: "success",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
+      } catch (error) {
+        this.$toasted.show(error.message, {
+          type: "error",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
+      } finally {
+        this.loading = false;
+        this.selectedAccount = null;
+        this.getContestsData();
+
+        this.$bvModal.hide("bank-account-modal");
+      }
+    },
+    async handleRemoveAccount(account) {
+      try {
+        this.loading = true;
+
+        const result = await removeBankAccount(account.id);
+
+        this.$toasted.show(result.message, {
+          type: "success",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
+      } catch (error) {
+        this.$toasted.show(error.message, {
+          type: "error",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
+      } finally {
+        this.loading = false;
+        this.selectedAccount = null;
+        this.getContestsData();
+
+        this.$bvModal.hide("bank-account-modal");
+      }
     },
     async handlePaginate(page) {
       this.params.page = page;
-      await this.getContests();
+      await this.getContestsData();
     },
-    toggleModal(account = undefined) {
-      this.selectedAccount = account;
+    showModal(account = null) {
+      if (account !== null) {
+        this.selectedAccount = account;
+      }
 
       this.$bvModal.show("bank-account-modal");
     },
-    handleSaveAccount(account) {
-      console.log(account);
+    hideModal() {
+      this.selectedAccount = null;
+
+      this.$bvModal.hide("bank-account-modal");
     },
   },
 };
