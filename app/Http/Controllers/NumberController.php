@@ -140,8 +140,7 @@ class NumberController extends Controller
 
     /**
      * Marca os números como PAID
-     * 
-     * @param int $contest_id
+     *      
      * @param Request $request
      * 
      * @return JsonResponse
@@ -179,5 +178,39 @@ class NumberController extends Controller
         }
 
         return response()->json(['message' => 'Aguardando confirmação do pagamento'], 200);
+    }
+
+    /**
+     * Retorna os números do cliente no sorteio através do WhatsApp.
+     * 
+     * @param int $contest_id
+     * @param Request $request
+     * 
+     * @return JsonResponse
+     */
+    public function getCustomerNumbers(int $contest_id, Request $request)
+    {
+        $contest = Contest::find($contest_id);
+
+        if (empty($contest)) {
+            return response()->json([
+                'message' => 'O sorteio informado não está mais disponível'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'whatsapp' => 'required|exists:users'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Ocorreu um erro ao verificar os números',
+                'errors'  => $validator->errors()
+            ], 400);
+        }
+
+        $user = User::where('whatsapp', '=', $request->whatsapp)->first();
+
+        return response()->json($this->getContestNumbersByCustomer($contest_id, $user));
     }
 }

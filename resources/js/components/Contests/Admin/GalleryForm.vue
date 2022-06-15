@@ -28,11 +28,7 @@
         xl="3"
       >
         <div class="img-wrapper">
-          <img
-            :src="image.image_path || image.path"
-            class="img-fluid"
-            :class="{ thumbnail: image.thumbnail }"
-          />
+          <img :src="image.image_path || image.path" class="img-fluid" />
           <b-button
             class="remove-btn"
             variant="danger"

@@ -2,43 +2,33 @@
   <b-card no-body class="contest-card overflow-hidden mb-3">
     <b-row no-gutters>
       <b-col md="6">
-        <b-card-img :src="thumbnail" :alt="title" />
+        <b-card-img :src="thumbnail" :alt="contest.title" />
       </b-col>
       <b-col md="6">
-        <b-card-body :title="title">
+        <b-card-body :title="contest.title">
           <b-card-text>
-            {{ description }}
+            {{ contest.short_description }}
           </b-card-text>
-          <router-link :to="`sorteios/${slug}`">
+          <router-link :to="`sorteios/${contest.slug}`">
             <b-button variant="primary">PARTICIPAR</b-button>
           </router-link>
         </b-card-body>
       </b-col>
     </b-row>
-    <!-- <b-card-text>
-      {{ description }}
-    </b-card-text>
-
-    <router-link :to="`sorteios/${slug}`">
-      <b-button variant="primary">PARTICIPAR</b-button>
-    </router-link> -->
   </b-card>
 </template>
 
 <script>
 export default {
   props: {
-    title: String,
-    description: String,
-    slug: String,
-    gallery: Array,
+    contest: Object,
   },
   name: "ContestCard",
   computed: {
     thumbnail() {
-      const thumb = this.gallery.find((img) => img.thumbnail === true);
+      const { gallery } = this.contest;
 
-      return thumb ? thumb.image_path : this.gallery[0].image_path;
+      return gallery[0].path;
     },
   },
 };

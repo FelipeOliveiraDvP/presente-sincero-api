@@ -40,6 +40,7 @@ class Contest extends Model
         'show_percentage',
         'use_custom_percentage',
         'paid_percentage',
+        'custom_percentage',
         'price',
         'quantity',
         'short_description',
@@ -63,7 +64,11 @@ class Contest extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'price' => 'double'
+        'price' => 'double',
+        'paid_percentage' => 'double',
+        'custom_percentage' => 'double',
+        'show_percentage' => 'boolean',
+        'use_custom_percentage' => 'boolean',
     ];
 
     public function bank_accounts()

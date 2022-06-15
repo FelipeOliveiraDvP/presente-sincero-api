@@ -62,6 +62,13 @@ export default {
         router.push({ name: "profile" });
       }
     },
+    simpleLogin({ commit }, payload) {
+      const { user, token } = { ...payload };
+
+      commit("SET_USER", user);
+      commit("SET_AUTHENTICATED", true);
+      commit("SET_TOKEN", token);
+    },
     logout({ commit }) {
       commit("SET_USER", emptyUser);
       commit("SET_AUTHENTICATED", false);

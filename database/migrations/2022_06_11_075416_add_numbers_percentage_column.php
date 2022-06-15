@@ -16,7 +16,8 @@ class AddNumbersPercentageColumn extends Migration
         Schema::table('contests', function (Blueprint $table) {
             $table->boolean('show_percentage')->default(false)->after('max_reserve_days');
             $table->boolean('use_custom_percentage')->default(false)->after('show_percentage');
-            $table->decimal('paid_percentage', 1, 1)->default(0)->after('use_custom_percentage');
+            $table->decimal('paid_percentage', 2, 2)->default(0)->after('use_custom_percentage');
+            $table->decimal('custom_percentage', 2, 2)->default(0)->after('paid_percentage');
         });
     }
 

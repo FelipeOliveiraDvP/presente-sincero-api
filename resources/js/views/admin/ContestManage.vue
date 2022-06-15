@@ -22,7 +22,8 @@
       >
     </b-row>
 
-    <div class="mt-4">
+    <my-loader v-if="loading" />
+    <div class="mt-4" v-else-if="numbers.length <= maxNumbersShow">
       <b-row>
         <b-col md="6">
           <b-button-group class="w-100">
@@ -74,8 +75,13 @@
     </div>
 
     <div class="my-4">
+      <contest-percentage-form
+        class="mb-4"
+        :percentageInfo="percentageInfo"
+        @changePercentage="handleChangePercentage"
+      />
       <b-row>
-        <b-col md="6" lg="8">
+        <b-col md="6" lg="8" v-if="numbers.length <= maxNumbersShow">
           <h4>Números selecionados</h4>
           <b-row style="max-height: 120px; overflow-y: auto">
             <b-col cols="12" v-if="selectedNumbers.length === 0">
@@ -101,7 +107,10 @@
           <b-button
             variant="success"
             size="lg"
-            :disabled="selectedNumbers.length === 0"
+            :disabled="
+              selectedNumbers.length === 0 && numbers.length <= maxNumbersShow
+            "
+            @click="handleFreeNumbers"
           >
             Marcar números como disponível
           </b-button>
@@ -112,42 +121,64 @@
 </template>
 
 <script>
-import ContestNumberVue from "../../components/Contests/ContestNumber.vue";
+import LoaderVue from "@/components/_commons/Loader.vue";
+import ContestNumberVue from "@/components/Contests/ContestNumber.vue";
+import ContestPercentageForm from "@/components/Contests/Admin/ContestPercentageForm.vue";
+import { getContest } from "@/services/contests";
+import { freeNumbers } from "@/services/numbers";
+
 export default {
   name: "AdminContestManage",
   components: {
+    "my-loader": LoaderVue,
     "contest-number": ContestNumberVue,
+    "contest-percentage-form": ContestPercentageForm,
   },
   data() {
     return {
       loading: false,
+      contestId: null,
+      maxNumbersShow: 5000,
       numbers: [],
       selectedNumbers: [],
       filteredNumbers: [],
+      percentageInfo: {
+        show_percentage: false,
+        use_custom_percentage: false,
+        paid_percentage: 0,
+        custom_percentage: 0,
+      },
     };
   },
   mounted() {
-    this.numbers = this.getNumbers();
-    this.filteredNumbers = this.numbers;
+    const { id } = this.$router.history.current.params;
+
+    this.contestId = id;
+    this.getContestData(id);
+    // this.numbers = this.getContestData(id);
+    // this.filteredNumbers = this.numbers;
   },
   methods: {
-    getNumbers() {
-      const STATUS = ["FREE", "RESERVED", "PAID"];
-      const n = [];
+    async getContestData(id) {
+      try {
+        this.loading = true;
 
-      for (let i = 0; i < 300; i++) {
-        n.push({
-          number: i,
-          status: STATUS[Math.floor(Math.random() * 3)],
-          customer: {
-            id: i + 1,
-            name: `Cliente ${i + 1}`,
-            whatsapp: `(11) 99999 4444`,
-          },
-        });
+        const result = await getContest(id);
+        const numbersArray = result.numbers ? JSON.parse(result.numbers) : [];
+
+        this.numbers = numbersArray.map((number) => JSON.parse(number));
+        this.filteredNumbers = this.numbers;
+        this.percentageInfo = {
+          show_percentage: result.show_percentage,
+          use_custom_percentage: result.use_custom_percentage,
+          paid_percentage: result.paid_percentage,
+          custom_percentage: result.custom_percentage,
+        };
+      } catch (error) {
+        return [];
+      } finally {
+        this.loading = false;
       }
-
-      return n;
     },
     handleSelectNumber(number) {
       const isSelected = !!this.selectedNumbers.find(
@@ -181,6 +212,12 @@ export default {
     },
     isSelected(number) {
       return !!this.selectedNumbers.find((n) => n.number === number.number);
+    },
+    handleChangePercentage(obj) {
+      console.log(obj);
+    },
+    handleFreeNumbers() {
+      console.log("Liberar números selecionados");
     },
   },
 };

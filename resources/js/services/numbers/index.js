@@ -7,3 +7,7 @@ export async function freeNumbers(contestId, numbers) {
 export async function reserveNumbers(contestId, order) {
   return api.post(`numbers/${contestId}/reserve`, order);
 }
+
+export async function getCustomerNumbers(contestId, data) {
+  return api.post(`numbers/${contestId}/customer-numbers`, data);
+}

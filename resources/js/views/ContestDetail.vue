@@ -1,48 +1,59 @@
 <template>
   <b-container class="page">
     <h1>
-      Lorem ipsum dolor sit amet consectetur adipisicing elit. Tenetur
-      distinctio
+      {{ loading ? "Carregando..." : contest && contest.title }}
     </h1>
     <p>
-      Lorem ipsum dolor sit, amet consectetur adipisicing elit. Amet debitis at
-      corrupti, tenetur nobis molestiae soluta qui dolorum nostrum, minima sequi
-      velit facere culpa ex minus in accusantium modi ratione?
+      {{ loading ? "Carregando..." : contest && contest.short_description }}
     </p>
 
     <b-row>
-      <b-col md="6">
+      <b-col md="6" style="min-height: 550px">
         <img
-          src="https://picsum.photos/600/600?random=1"
-          alt="Sorteio"
-          class="img-fluid"
+          v-if="loading"
+          class="img-fluid w-100"
+          src="/img/placeholder.jpg"
+          alt="Carregando"
+        />
+        <img
+          v-else
+          :src="contest && contest.gallery[0].path"
+          :alt="contest && contest.title"
+          class="img-fluid w-100"
         />
       </b-col>
       <b-col md="6" class="d-flex flex-column justify-content-between">
         <div>
-          <p>
-            Lorem ipsum, dolor sit amet consectetur adipisicing elit. Temporibus
-            tempora nihil fugit, non omnis vel, ipsum odio sint eos voluptatum
-            incidunt iste quis natus deserunt rem soluta consectetur minima
-            quam.
-          </p>
-          <p>
-            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Suscipit,
-            necessitatibus nisi molestias tenetur officia doloremque maxime.
-            Odit delectus necessitatibus qui aspernatur neque nulla hic unde
-            similique, doloribus nam tempora adipisci?
-          </p>
+          {{ loading ? "Carregando..." : contest && contest.full_description }}
         </div>
 
-        <div>
+        <div
+          v-if="
+            contest &&
+            (contest.show_percentage || contest.use_custom_percentage)
+          "
+        >
+          <p>Números vendidos {{ contestPercentage }}%</p>
+          <div class="border">
+            <div
+              class="bg-danger"
+              :style="{ width: `${contestPercentage}%`, height: '50px' }"
+            ></div>
+          </div>
+        </div>
+
+        <div v-if="loading">Carregando informações...</div>
+        <div v-else>
           <p>
             Participe do grupo do sorteio no WhatsApp e mantenha-se informado
           </p>
-          <b-button variant="success">
-            Entrar no grupo <i class="fab fa-whatsapp"></i>
-          </b-button>
+          <a :href="contest && contest.whatsapp_group" target="_blank">
+            <b-button variant="success">
+              Entrar no grupo <i class="fab fa-whatsapp"></i>
+            </b-button>
+          </a>
           <div class="border border-success p-4 text-center text-success mt-4">
-            COMPRE AGORA POR {{ formatPrice(price) }}
+            COMPRE AGORA POR {{ contest && formatPrice(contest.price) }}
           </div>
         </div>
       </b-col>
@@ -50,7 +61,7 @@
 
     <div class="mt-4">
       <b-row>
-        <b-col md="6">
+        <b-col md="6" v-if="contest && contest.quantity <= 500">
           <b-button-group class="w-100">
             <b-button @click="handleFilterNumbers('ALL')" variant="light"
               >Todos ({{ numbers.length }})</b-button
@@ -66,7 +77,11 @@
             >
           </b-button-group>
         </b-col>
-        <b-col md="6" lg="4" offset-lg="2">
+        <b-col
+          md="6"
+          lg="4"
+          :offset-lg="contest && contest.quantity <= 500 ? '2' : ''"
+        >
           <b-button
             v-b-modal.customer-numbers
             variant="secondary"
@@ -78,6 +93,7 @@
     </div>
 
     <div
+      v-if="contest && contest.quantity <= 500"
       class="my-4 border border-secondary p-4"
       style="max-height: 400px; overflow-y: auto"
     >
@@ -99,9 +115,9 @@
       </b-row>
     </div>
 
-    <div class="border p-4 mb-4 rounded">
+    <div class="border p-4 my-4 rounded">
       <b-row>
-        <b-col md="6">
+        <b-col md="6" v-if="contest && contest.quantity <= 500">
           <h4>Números selecionados</h4>
           <b-row style="max-height: 120px; overflow-y: auto">
             <b-col cols="12" v-if="selectedNumbers.length === 0">
@@ -174,8 +190,13 @@
               <h5>PROMOÇÃO</h5>
               <p>
                 DE
-                <del>{{ formatPrice(selectedNumbers.length * price) }}</del>
-                por <strong>{{ formatPrice(currentSale.price) }}</strong>
+                <del>{{
+                  contest && formatPrice(selectedNumbers.length * contest.price)
+                }}</del>
+                por
+                <strong>{{
+                  formatPrice(selectedNumbers.length * currentSale.price)
+                }}</strong>
               </p>
             </div>
           </div>
@@ -195,53 +216,42 @@
       </b-row>
     </div>
 
-    <b-modal
-      id="customer-numbers"
-      title="Meus números"
-      ok-title="Ver meus números"
-    >
-      <p>
-        Informe seu WhatsApp abaixo para conferir seus números nesse sorteio
-      </p>
-      <b-form-input placeholder="Informe seu WhatsApp" />
-    </b-modal>
+    <contest-numbers-modal :contestId="contest && contest.id" />
+
+    <simple-register-modal />
   </b-container>
 </template>
 
 <script>
 import { mapActions } from "vuex";
 
-import ContestNumberVue from "../components/Contests/ContestNumber.vue";
-import moneyFormat from "../utils/moneyFormat";
+import ContestNumberVue from "@/components/Contests/ContestNumber.vue";
+import LoaderVue from "@/components/_commons/Loader.vue";
+import ContestNumbersModal from "@/components/Customers/ContestNumbersModal.vue";
+import SimpleRegisterModal from "@/components/Auth/SimpleRegisterModal.vue";
+
+import { getContestBySlug } from "@/services/contests";
+
+import moneyFormat from "@/utils/moneyFormat";
 
 export default {
   name: "ContestDetail",
   components: {
     "contest-number": ContestNumberVue,
+    "my-loader": LoaderVue,
+    "contest-numbers-modal": ContestNumbersModal,
+    "simple-register-modal": SimpleRegisterModal,
   },
   data() {
     return {
+      loading: false,
       filter: "ALL",
-      price: 5,
+      contest: null,
       numbers: [],
       selectedNumbers: [],
       filteredNumbers: [],
       magicNumbers: 0,
-      // TODO: Retornar as promoções ordenada pela quantity DESC
-      sales: [
-        {
-          quantity: 50,
-          price: 2,
-        },
-        {
-          quantity: 15,
-          price: 2.5,
-        },
-        {
-          quantity: 10,
-          price: 3.5,
-        },
-      ],
+      sales: [],
       currentSale: {
         quantity: 0,
         price: 0,
@@ -252,15 +262,7 @@ export default {
     };
   },
   mounted() {
-    const { checkout } = this.$router.history.current.params;
-
-    this.numbers = this.getNumbers();
-    this.filteredNumbers = this.numbers;
-
-    if (checkout) {
-      this.selectedNumbers = [...checkout.numbers];
-      this.calcSaleDiscount();
-    }
+    this.getContestData();
   },
   computed: {
     formattedCartTotal() {
@@ -271,24 +273,61 @@ export default {
         (sale) => this.selectedNumbers.length >= sale.quantity
       );
     },
+    contestPercentage() {
+      const {
+        use_custom_percentage,
+        show_percentage,
+        paid_percentage,
+        custom_percentage,
+      } = this.contest;
+
+      if (use_custom_percentage) return custom_percentage * 100;
+
+      if (show_percentage) return paid_percentage * 100;
+
+      return 0;
+    },
   },
   methods: {
     ...mapActions({
       addToCart: "cart/updateCart",
     }),
-    getNumbers() {
-      const STATUS = ["FREE", "RESERVED", "PAID"];
-      const n = [];
+    async getContestData() {
+      try {
+        const { checkout, slug } = this.$router.history.current.params;
 
-      for (let i = 0; i < 300; i++) {
-        n.push({
-          number: i,
-          status: STATUS[Math.floor(Math.random() * 3)],
-          customer: null,
+        this.loading = true;
+
+        const result = await getContestBySlug(slug);
+
+        this.contest = { ...result };
+        this.numbers = result.numbers ? JSON.parse(result.numbers) : [];
+        this.filteredNumbers = this.numbers.map((number) => JSON.parse(number));
+        this.sales = result.sales
+          .map((sale) => ({
+            price: sale.price,
+            quantity: sale.quantity,
+          }))
+          .reverse();
+
+        if (checkout) {
+          this.selectedNumbers = [...checkout.numbers];
+        }
+
+        this.magicNumbers = this.selectedNumbers.length;
+        this.calcSaleDiscount();
+
+        // console.log(result);
+      } catch (error) {
+        this.$toasted.show(error.message, {
+          type: "error",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
         });
+      } finally {
+        this.loading = false;
       }
-
-      return n;
     },
     handleSelectNumber(number) {
       const isSelected = !!this.selectedNumbers.find(
@@ -312,15 +351,24 @@ export default {
       return moneyFormat(price);
     },
     handleCheckout() {
+      const { authenticated } = this.$store.state.auth;
+
+      if (!authenticated) {
+        this.$bvModal.show("simple-register");
+        return;
+      }
+
       this.$router.push({
         name: "checkout",
         params: {
           numbers: this.selectedNumbers,
           total: this.cart.totals,
           details: {
-            slug: "slug-do-sorteio",
-            short_description: "Descrição curta do sorteio",
-            price: this.price,
+            title: this.contest.title,
+            slug: this.contest.slug,
+            short_description: this.contest.short_description,
+            price: this.contest.price,
+            sale: this.currentSale,
           },
         },
       });
@@ -337,7 +385,7 @@ export default {
       }
     },
     countNumbersByStatus(status) {
-      const filtered = this.numbers.filter((n) => n.status === status);
+      const filtered = this.filteredNumbers.filter((n) => n.status === status);
 
       return filtered.length;
     },
@@ -362,14 +410,16 @@ export default {
       this.handleAddMagicNumber();
     },
     handleAddMagicNumber() {
-      const freeNumbers = this.numbers.filter((n) => n.status === "FREE");
+      const freeNumbers = this.filteredNumbers.filter(
+        (n) => n.status === "FREE"
+      );
 
       this.selectedNumbers = freeNumbers.slice(0, this.magicNumbers);
 
       this.calcSaleDiscount();
     },
     getFirstFreeNumber() {
-      return this.numbers.find((n) => n.status === "FREE");
+      return this.filteredNumbers.find((n) => n.status === "FREE");
     },
     calcSaleDiscount() {
       const { length } = this.selectedNumbers;
@@ -384,13 +434,11 @@ export default {
       const sale = this.sales.find((s) => length >= s.quantity);
 
       for (let i = 0; i < length; i++) {
-        // const sale = this.sales.find((s) => s.quantity === i + 1);
         if (sale !== undefined) {
           partial += sale.price;
           this.currentSale = { ...sale };
         } else {
-          // partial += this.price;
-          partial += this.price;
+          partial += this.contest.price;
         }
       }
 

@@ -109,8 +109,6 @@ class ContestController extends Controller
             ], 404);
         }
 
-        $contest->makeHiddenIf(fn () => $contest->quantity >= 5000, ['numbers']);
-
         return response()->json($contest);
     }
 
@@ -211,7 +209,7 @@ class ContestController extends Controller
 
         $validator = Validator::make($request->all(), [
             'title'             => 'required',
-            'contest_date'      => 'date|after:now',
+            'contest_date'      => 'nullable|date|after:now',
             'max_reserve_days'  => 'gte:1|lte:30',
             'price'             => 'required|gte:0.5',
             'short_description' => 'required|string',

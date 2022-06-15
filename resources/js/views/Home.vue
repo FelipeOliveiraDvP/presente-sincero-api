@@ -4,22 +4,17 @@
     <my-loader v-if="loading" />
     <b-row v-else>
       <b-col v-for="contest in contests" :key="contest.id" md="6">
-        <contest-card
-          :title="contest.title"
-          :description="contest.short_description"
-          :slug="contest.slug"
-          :gallery="contest.gallery"
-        />
+        <contest-card :contest="contest" />
       </b-col>
     </b-row>
   </b-container>
 </template>
 
 <script>
-import ContestCardVue from "../components/Contests/ContestCard.vue";
-import LoaderVue from "../components/_commons/Loader.vue";
+import ContestCardVue from "@/components/Contests/ContestCard.vue";
+import LoaderVue from "@/components/_commons/Loader.vue";
 
-import { listContests } from "../services/contests";
+import { listContests } from "@/services/contests";
 
 export default {
   name: "Home",
@@ -44,6 +39,8 @@ export default {
       this.loading = true;
 
       const result = await listContests(this.params);
+
+      console.log(result);
 
       this.contests = result.data;
       this.loading = false;
