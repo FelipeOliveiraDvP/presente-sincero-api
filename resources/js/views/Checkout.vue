@@ -2,8 +2,13 @@
   <b-container class="page">
     <div class="border p-4 my-4 rounded">
       <b-row>
-        <b-col md="8" class="p-1">
+        <b-col md="7" class="p-1">
           <h2>Finalizar compra</h2>
+
+          <div class="">
+            <strong>Sorteio</strong>
+            <p>{{ details.title }}</p>
+          </div>
 
           <div class="">
             <strong>Prêmio do sorteio</strong>
@@ -27,15 +32,24 @@
               </b-row>
             </p>
             <p>
-              <b-button variant="link" @click="addMoreNumbers">
+              <b-button variant="link" @click="freeReservedNumbers">
                 Gostaria de trocar ou escolher mais números? Clique aqui
               </b-button>
             </p>
           </div>
 
           <div class="d-flex justify-content-between w-50">
+            <strong>Quantidade</strong>
+            <p>{{ numbers.length }}</p>
+          </div>
+
+          <div class="d-flex justify-content-between w-50">
             <strong>Valor do número</strong>
-            <p>{{ formatPrice(details.price) }}</p>
+            <p v-if="details.sale">
+              <del>{{ formatPrice(details.price) }}</del>
+              {{ formatPrice(details.sale.price) }}
+            </p>
+            <p v-else>{{ formatPrice(details.price) }}</p>
           </div>
 
           <div class="d-flex justify-content-between w-50">
@@ -55,7 +69,7 @@
             Após o pagamento, permaneça na página para aguardar a confirmação.
           </p>
         </b-col>
-        <b-col md="4">
+        <b-col md="5" class="d-flex justify-content-center align-items-center">
           <!-- Pagamento confirmado -->
           <div v-if="paymentConfirmed" class="payment-success">
             <div class="icon text-success">
@@ -69,14 +83,24 @@
           <!-- QRCode e código para copiar -->
           <div v-else>
             <my-loader v-if="loading" />
-            <div v-else>
+            <div class="text-center" v-else>
               <img
-                src="/img/qr-code.png"
+                src="/img/mercado-pago.png"
+                class="w-50 mb-2"
+                alt="Mercado Pago"
+              />
+              <img
+                :src="`data:image/jpeg;base64,${payment.qrcode_base64}`"
                 alt="qrcode"
                 class="img-fluid mb-2 rounded"
               />
+              <!-- TODO: Implementar função de copiar o código -->
               <b-input-group>
-                <b-form-input type="text" readonly></b-form-input>
+                <b-form-input
+                  type="text"
+                  v-model="payment.qr_code"
+                  readonly
+                ></b-form-input>
 
                 <b-input-group-append>
                   <b-button variant="primary"
@@ -97,6 +121,8 @@ import ContestNumberVue from "../components/Contests/ContestNumber.vue";
 import LoaderVue from "../components/_commons/Loader.vue";
 import moneyFormat from "../utils/moneyFormat";
 
+import { reserveNumbers, freeNumbers } from "@/services/numbers";
+
 export default {
   name: "Checkout",
   components: {
@@ -113,24 +139,85 @@ export default {
         short_description: "",
         price: 0,
       },
-      paymentConfirmed: true,
+      payment: {
+        qrcode_base64: "",
+        qr_code: "",
+      },
+      paymentConfirmed: false,
     };
   },
   mounted() {
+    const { authenticated } = this.$store.state.auth;
     const { numbers, total, details } = this.$router.history.current.params;
 
-    this.numbers = numbers;
-    this.total = total;
+    if (!numbers || !total || !details || !authenticated) {
+      this.$router.push({
+        name: "contests",
+      });
+      return;
+    }
+
+    this.numbers = numbers || [];
+    this.total = total || 0;
     this.details = { ...details };
 
     this.getQRCode();
   },
   methods: {
     async getQRCode() {
-      this.loading = true;
-      setTimeout(() => {
+      try {
+        this.loading = true;
+
+        const { contestId } = this.details;
+        const order = {
+          total: this.total,
+          numbers: this.numbers.map((n) => n.number),
+        };
+
+        const { payment } = await reserveNumbers(contestId, order);
+
+        this.payment = { ...payment };
+      } catch (error) {
+        this.$toasted.show(error.message, {
+          type: "error",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
+
+        this.$router.push({
+          name: "contests",
+        });
+      } finally {
         this.loading = false;
-      }, 2000);
+      }
+    },
+    async freeReservedNumbers() {
+      try {
+        this.loading = true;
+
+        const { contestId } = this.details;
+        const order = {
+          numbers: this.numbers.map((n) => n.number),
+        };
+
+        await freeNumbers(contestId, order);
+
+        this.addMoreNumbers();
+      } catch (error) {
+        this.$toasted.show(error.message, {
+          type: "error",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
+
+        this.$router.push({
+          name: "contests",
+        });
+      } finally {
+        this.loading = false;
+      }
     },
     addMoreNumbers() {
       this.$router.push({

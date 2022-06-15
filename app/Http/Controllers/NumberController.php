@@ -10,6 +10,7 @@ use App\Traits\MercadoPagoHelper;
 use App\Traits\NumbersHelper;
 use App\Traits\WhatsApp;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 
 class NumberController extends Controller
@@ -18,6 +19,10 @@ class NumberController extends Controller
 
     /**
      * Visualizar os números do sorteio
+     * 
+     * @param int $contest_id     
+     * 
+     * @return JsonResponse
      */
     public function index(int $contest_id)
     {
@@ -116,16 +121,20 @@ class NumberController extends Controller
 
         Order::where('user_id', '=', $user->id)
             ->where('contest_id', '=', $contest_id)
+            ->where('status', '=', OrderStatus::PENDING)
             ->update(['status' => OrderStatus::CANCELED]);
 
         $order = Order::create([
             'contest_id' => $contest_id,
             'user_id' => $user->id,
             'total' => $request->total,
-            'numbers' => json_encode($request->numbers)
+            'numbers' => $numbers
         ]);
 
         $payment = $this->createPayment($order, $user, $contest);
+
+        // return response()->json($payment);
+        // return print_r($payment, true);
 
         $this->sendReservationMessage($user, $contest, $payment);
 
@@ -147,10 +156,10 @@ class NumberController extends Controller
      */
     public function webhook(Request $request)
     {
-        $callback = $this->callback($request);
+        $cb_order_id = $this->callback($request);
 
-        if ($callback != false) {
-            $order = Order::find($callback);
+        if ($cb_order_id != false) {
+            $order = Order::find($cb_order_id);
             $contest = Contest::find($order->contest_id);
             $user = User::find($order->user_id);
 
@@ -168,6 +177,7 @@ class NumberController extends Controller
                 ], 400);
             }
 
+            // TODO: Incrementar a porcentagem paga do sorteio
             $contest->numbers = $numbers;
 
             $contest->update();

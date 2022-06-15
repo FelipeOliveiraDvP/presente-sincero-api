@@ -6,8 +6,7 @@ use App\Models\Contest;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
-use MercadoPago\SDK;
-use MercadoPago\Payment;
+use MercadoPago;
 
 // TODO: Gerenciar comissões para aplicação no Mercado Pago e contas dos vendedores.
 trait MercadoPagoHelper
@@ -23,9 +22,9 @@ trait MercadoPagoHelper
    */
   protected function createPayment(Order $order, User $user, Contest $contest)
   {
-    SDK::setAccessToken("APP_USR-2306247977509923-042715-d807d8e7e04369b64d2258788140bfc5-1111566559");
+    MercadoPago\SDK::setAccessToken("APP_USR-2306247977509923-042715-d807d8e7e04369b64d2258788140bfc5-1111566559");
 
-    $payment = new Payment();
+    $payment = new MercadoPago\Payment();
 
     $notification = getenv('APP_ENV') == 'local' ? getenv('MERCADO_PAGO_WEBHOOK') : getenv('APP_URL') . "/api/webhook";
     $expiration = date('Y-m-d\TH:i:s.vP', strtotime("+{$contest->max_reserve_days} days"));
@@ -37,8 +36,9 @@ trait MercadoPagoHelper
     $payment->date_of_expiration = $expiration;
     $payment->notification_url = $notification;
     $payment->payer = [
-      'email' => $user->email,
       'first_name' => $user->name,
+      'last_name' => 'ps',
+      'email' => $user->email ?? 'test@email.com',
       'identification' => [
         'type' => 'customer',
         'number' => $user->whatsapp,
@@ -66,9 +66,9 @@ trait MercadoPagoHelper
   {
     if (empty($request->data)) return false;
 
-    SDK::setAccessToken("APP_USR-2306247977509923-042715-d807d8e7e04369b64d2258788140bfc5-1111566559");
+    MercadoPago\SDK::setAccessToken("APP_USR-2306247977509923-042715-d807d8e7e04369b64d2258788140bfc5-1111566559");
 
-    $payment = Payment::find_by_id($request->data->id);
+    $payment = MercadoPago\Payment::find_by_id($request->data->id);
 
     if ($request->type == 'payment' && $payment->status == 'approved') {
       return $payment->external_reference;

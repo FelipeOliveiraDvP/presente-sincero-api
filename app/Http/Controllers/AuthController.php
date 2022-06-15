@@ -92,7 +92,7 @@ class AuthController extends Controller
             'role'      => $this->getCustomerRole(),
         ]);
 
-        $token = $created->createToken('auth_token', [])->plainTextToken;
+        $token = $created->createToken('auth_token', $this->simpleCustomerAbilities())->plainTextToken;
 
         return response()->json([
             'user'  => $created,

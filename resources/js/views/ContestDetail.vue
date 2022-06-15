@@ -310,9 +310,9 @@ export default {
           }))
           .reverse();
 
-        if (checkout) {
-          this.selectedNumbers = [...checkout.numbers];
-        }
+        // if (checkout) {
+        //   this.selectedNumbers = [...checkout.numbers];
+        // }
 
         this.magicNumbers = this.selectedNumbers.length;
         this.calcSaleDiscount();
@@ -364,6 +364,7 @@ export default {
           numbers: this.selectedNumbers,
           total: this.cart.totals,
           details: {
+            contestId: this.contest.id,
             title: this.contest.title,
             slug: this.contest.slug,
             short_description: this.contest.short_description,
