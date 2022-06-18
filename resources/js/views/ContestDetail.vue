@@ -249,7 +249,7 @@ export default {
       filteredNumbers: [],
       quantity: 0,
       partial: 300,
-      current: 300,
+      current: 0,
       magicNumbers: 0,
       sales: [],
       currentSale: {
@@ -373,17 +373,18 @@ export default {
     },
     handleFilterNumbers(filter) {
       this.filter = filter;
+      this.current = 0;
 
       if (filter === "ALL") {
-        this.filteredNumbers = this.numbers;
+        this.filteredNumbers = [...this.numbers].splice(0, this.partial);
       } else {
         const filtered = this.numbers.filter((n) => n.status === filter);
 
-        this.filteredNumbers = filtered;
+        this.filteredNumbers = [...filtered].splice(0, this.partial);
       }
     },
     countNumbersByStatus(status) {
-      const filtered = this.filteredNumbers.filter((n) => n.status === status);
+      const filtered = this.numbers.filter((n) => n.status === status);
 
       return filtered.length;
     },
@@ -446,12 +447,20 @@ export default {
       return !!this.selectedNumbers.find((n) => n.number === number.number);
     },
     handleScroll(el) {
+      console.log(this.current < this.quantity - this.partial);
       if (
         el.srcElement.offsetHeight + el.srcElement.scrollTop >=
-        el.srcElement.scrollHeight
+          el.srcElement.scrollHeight &&
+        this.current < this.quantity - this.partial
       ) {
-        this.filteredNumbers = [...this.numbers].splice(0, this.current);
+        const filtered =
+          this.filter === "ALL"
+            ? [...this.numbers]
+            : [...this.numbers].filter((n) => n.status === this.filter);
+
         this.current += this.partial;
+
+        this.filteredNumbers = [...filtered].splice(this.current, this.partial);
       }
     },
   },

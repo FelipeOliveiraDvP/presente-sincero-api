@@ -42,6 +42,7 @@
           </b-button-group>
         </b-col>
         <b-col md="6" lg="4" offset-lg="2">
+          <!-- TODO: Filtros de nome e whatsapp -->
           <!-- <b-button
             v-b-modal.customer-numbers
             variant="secondary"
@@ -146,9 +147,7 @@ export default {
       filteredNumbers: [],
       quantity: 0,
       partial: 300,
-      current: 300,
-      // os filteredNumbers iniciais, vão receber os numeros parciais
-      // quando chegar no final do scroll, os filteredNumbers vão receber mais parciais
+      current: 0,
       percentageInfo: {
         show_percentage: false,
         use_custom_percentage: false,
@@ -204,13 +203,14 @@ export default {
     // TODO: Fitrar pelo endpoint de numbers
     handleFilterNumbers(filter) {
       this.filter = filter;
+      this.current = 0;
 
       if (filter === "ALL") {
-        this.filteredNumbers = this.numbers;
+        this.filteredNumbers = [...this.numbers].splice(0, this.partial);
       } else {
         const filtered = this.numbers.filter((n) => n.status === filter);
 
-        this.filteredNumbers = filtered;
+        this.filteredNumbers = [...filtered].splice(0, this.partial);
       }
     },
     countNumbersByStatus(status) {
@@ -264,10 +264,17 @@ export default {
     handleScroll(el) {
       if (
         el.srcElement.offsetHeight + el.srcElement.scrollTop >=
-        el.srcElement.scrollHeight
+          el.srcElement.scrollHeight &&
+        this.current < this.quantity - this.partial
       ) {
-        this.filteredNumbers = [...this.numbers].splice(0, this.current);
+        const filtered =
+          this.filter === "ALL"
+            ? [...this.numbers]
+            : [...this.numbers].filter((n) => n.status === this.filter);
+
         this.current += this.partial;
+
+        this.filteredNumbers = [...filtered].splice(this.current, this.partial);
       }
     },
   },
