@@ -62,6 +62,65 @@ class AuthController extends Controller
     }
 
     /**
+     * Verifica se um usuário já está cadastrado, e se não estiver cadastra um cliente simples.
+     * 
+     * @param Request $request Corpo da requisição.
+     * 
+     * @return JsonResponse
+     */
+    public function simpleLogin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'whatsapp'    => 'required|numeric|min:10',
+            'new_account' => 'boolean'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Informe um número válido!',
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $user_exists = User::where('whatsapp', '=', $request->whatsapp)->first();
+
+        if (empty($user_exists) && $request->new_account == false) {
+            return response()->json([
+                'message' => 'Você ainda não possui uma conta!',
+                'new_account' => true
+            ], 200);
+        }
+
+        if (!empty($user_exists)) {
+            $user_exists_token = $user_exists->createToken('auth_token', $this->simpleCustomerAbilities())->plainTextToken;
+
+            return response()->json([
+                'user'  => $user_exists,
+                'token' => $user_exists_token
+            ]);
+        }
+
+        if (empty($request->name) && $request->new_account == true) {
+            return response()->json([
+                'message' => 'Informe o seu nome completo.',
+            ], 400);
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'whatsapp' => $request->whatsapp,
+            'role' => $this->getCustomerRole()
+        ]);
+
+        $token = $user->createToken('auth_token', $this->simpleCustomerAbilities())->plainTextToken;
+
+        return response()->json([
+            'user'  => $user,
+            'token' => $token
+        ]);
+    }
+
+    /**
      * Realiza o cadastro de um novo usuário e retorna um token de acesso
      * 
      * @param Request $request Corpo da requisição.

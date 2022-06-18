@@ -23,11 +23,19 @@ trait AuthHelper
       return $this->adminAbilities();
     }
 
-    return $this->getCustomerRole();
+    if ($user_role->identifier == 'seller') {
+      return $this->sellerAbilities();
+    }
+
+    if ($user_role->identifier == 'customer') {
+      return $this->fullCustomerAbilities();
+    }
+
+    return $this->simpleCustomerAbilities();
   }
 
   /**
-   * Get the "Vendedor" role uuid.
+   * Get the "Seller" role UUID.
    * 
    * @return string
    */
@@ -39,7 +47,7 @@ trait AuthHelper
   }
 
   /**
-   * Get the "Cliente" role uuid.
+   * Get the "Customer" role UUID.
    * 
    * @return string
    */

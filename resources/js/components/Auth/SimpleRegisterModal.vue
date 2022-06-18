@@ -1,25 +1,34 @@
 <template>
   <b-modal
     id="simple-register"
-    title="Cadastre-se"
-    ok-title="Criar conta"
+    title="Finalizar compra"
+    :ok-title="newAccount ? 'Criar conta' : 'Acessar minha conta'"
     :ok-disabled="loading"
     ok-only
     hide-header-close
     @ok="handleOk"
     @hidden="handleClose"
   >
-    <p>Para continuar, você deve informar seu nome e WhatsApp</p>
+    <p v-if="newAccount">
+      Caso você já tenha uma conta, informe seu WhatsApp abaixo para continuar
+    </p>
+    <div v-else>
+      <p>
+        Por favor, nos informe seu nome e WhatsApp abaixo para finalizar a
+        compra.
+      </p>
+    </div>
+
     <b-form ref="form" class="mb-3" @submit.stop.prevent="handleSubmit">
-      <b-form-group class="mb-4">
+      <b-form-group v-if="newAccount" class="mb-4">
         <b-form-input
           id="name"
           v-model="$v.form.name.$model"
-          :state="validateState('name')"
+          :state="!newAccount && form.name === ''"
           placeholder="Nome completo"
         />
 
-        <b-form-invalid-feedback v-if="!$v.form.name.required"
+        <b-form-invalid-feedback v-if="!newAccount && form.name === ''"
           >Campo obrigatório</b-form-invalid-feedback
         >
       </b-form-group>
@@ -42,14 +51,19 @@
         >
       </b-form-group>
     </b-form>
+    <p>
+      <strong>IMPORTANTE:</strong> Tenha certeza de nos informar o WhatsApp
+      correto, pois é através dele que enviaremos seu comprovante.
+    </p>
   </b-modal>
 </template>
 
 <script>
 import { mapActions } from "vuex";
-import { register } from "@/services/auth";
 import { validationMixin } from "vuelidate";
 import { required, minLength, numeric } from "vuelidate/lib/validators";
+
+import { simpleLogin } from "@/services/auth";
 
 export default {
   name: "SimpleRegisterModal",
@@ -57,6 +71,7 @@ export default {
   data() {
     return {
       loading: false,
+      newAccount: false,
       form: {
         name: "",
         whatsapp: "",
@@ -65,7 +80,7 @@ export default {
   },
   validations: {
     form: {
-      name: { required },
+      name: {},
       whatsapp: { required, minLength: minLength(10), numeric },
     },
   },
@@ -83,11 +98,27 @@ export default {
           return;
         }
 
-        const result = await register(this.form);
+        const result = await simpleLogin({
+          ...this.form,
+          new_account: this.newAccount,
+        });
 
-        this.signIn(result);
+        if (result.new_account === true) {
+          this.newAccount = true;
 
-        this.$bvModal.hide("simple-register");
+          this.$toasted.show(result.message, {
+            type: "success",
+            theme: "toasted-primary",
+            position: "top-right",
+            duration: 3000,
+          });
+
+          this.loading = false;
+        } else {
+          this.signIn(result);
+
+          this.$bvModal.hide("simple-register");
+        }
       } catch (error) {
         this.$toasted.show(error.message, {
           type: "error",

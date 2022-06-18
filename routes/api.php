@@ -25,6 +25,7 @@ Route::controller(AuthController::class)->group(function () {
      */
     Route::prefix('auth')->group(function () {
         Route::post('login', 'login');
+        Route::post('simple-login', 'simpleLogin');
         Route::post('register', 'register');
         Route::post('forgot', 'forgot');
         Route::get('verify/{code}', 'verify');

@@ -4,6 +4,10 @@ export async function login(credentials) {
   return api.post("auth/login", credentials);
 }
 
+export async function simpleLogin(credentials) {
+  return api.post("auth/simple-login", credentials);
+}
+
 export async function register(credentials) {
   return api.post("auth/register", credentials);
 }

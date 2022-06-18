@@ -447,7 +447,6 @@ export default {
       return !!this.selectedNumbers.find((n) => n.number === number.number);
     },
     handleScroll(el) {
-      console.log(this.current < this.quantity - this.partial);
       if (
         el.srcElement.offsetHeight + el.srcElement.scrollTop >=
           el.srcElement.scrollHeight &&
