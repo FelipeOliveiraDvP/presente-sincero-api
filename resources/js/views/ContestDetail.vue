@@ -61,7 +61,7 @@
 
     <div class="mt-4">
       <b-row>
-        <b-col md="6" v-if="contest && contest.quantity <= 500">
+        <b-col md="6">
           <b-button-group class="w-100">
             <b-button @click="handleFilterNumbers('ALL')" variant="light"
               >Todos ({{ numbers.length }})</b-button
@@ -77,11 +77,7 @@
             >
           </b-button-group>
         </b-col>
-        <b-col
-          md="6"
-          lg="4"
-          :offset-lg="contest && contest.quantity <= 500 ? '2' : ''"
-        >
+        <b-col md="6" lg="4">
           <b-button
             v-b-modal.customer-numbers
             variant="secondary"
@@ -93,11 +89,12 @@
     </div>
 
     <div
-      v-if="contest && contest.quantity <= 500"
       class="my-4 border border-secondary p-4"
       style="max-height: 400px; overflow-y: auto"
+      @scroll="handleScroll"
     >
-      <b-row>
+      <my-loader v-if="loading" />
+      <b-row v-else>
         <b-col
           :key="number.number"
           v-for="number in filteredNumbers"
@@ -117,7 +114,7 @@
 
     <div class="border p-4 my-4 rounded">
       <b-row>
-        <b-col md="6" v-if="contest && contest.quantity <= 500">
+        <b-col md="6">
           <h4>Números selecionados</h4>
           <b-row style="max-height: 120px; overflow-y: auto">
             <b-col cols="12" v-if="selectedNumbers.length === 0">
@@ -250,6 +247,9 @@ export default {
       numbers: [],
       selectedNumbers: [],
       filteredNumbers: [],
+      quantity: 0,
+      partial: 300,
+      current: 300,
       magicNumbers: 0,
       sales: [],
       currentSale: {
@@ -294,15 +294,18 @@ export default {
     }),
     async getContestData() {
       try {
-        const { checkout, slug } = this.$router.history.current.params;
+        const { slug } = this.$router.history.current.params;
 
         this.loading = true;
 
         const result = await getContestBySlug(slug);
+        const numbersArray = result.numbers ? JSON.parse(result.numbers) : [];
 
         this.contest = { ...result };
-        this.numbers = result.numbers ? JSON.parse(result.numbers) : [];
-        this.filteredNumbers = this.numbers.map((number) => JSON.parse(number));
+        this.quantity = result.quantity;
+        this.numbers = numbersArray.map((number) => JSON.parse(number));
+        this.filteredNumbers = [...this.numbers].splice(0, this.partial);
+        this.current += this.partial;
         this.sales = result.sales
           .map((sale) => ({
             price: sale.price,
@@ -310,14 +313,8 @@ export default {
           }))
           .reverse();
 
-        // if (checkout) {
-        //   this.selectedNumbers = [...checkout.numbers];
-        // }
-
         this.magicNumbers = this.selectedNumbers.length;
         this.calcSaleDiscount();
-
-        // console.log(result);
       } catch (error) {
         this.$toasted.show(error.message, {
           type: "error",
@@ -447,6 +444,15 @@ export default {
     },
     isSelected(number) {
       return !!this.selectedNumbers.find((n) => n.number === number.number);
+    },
+    handleScroll(el) {
+      if (
+        el.srcElement.offsetHeight + el.srcElement.scrollTop >=
+        el.srcElement.scrollHeight
+      ) {
+        this.filteredNumbers = [...this.numbers].splice(0, this.current);
+        this.current += this.partial;
+      }
     },
   },
 };

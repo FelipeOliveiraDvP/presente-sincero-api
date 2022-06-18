@@ -22,9 +22,9 @@
       >
     </b-row>
 
-    <my-loader v-if="loading" />
-    <div class="mt-4" v-else-if="numbers.length <= maxNumbersShow">
-      <b-row>
+    <div class="mt-4">
+      <my-loader v-if="loading" />
+      <b-row v-else>
         <b-col md="6">
           <b-button-group class="w-100">
             <b-button @click="handleFilterNumbers('ALL')" variant="light"
@@ -55,8 +55,10 @@
     <div
       class="my-4 border border-secondary p-4"
       style="max-height: 400px; overflow-y: auto"
+      @scroll="handleScroll"
     >
-      <b-row>
+      <my-loader v-if="loading" />
+      <b-row v-else>
         <b-col
           :key="number.number"
           v-for="number in filteredNumbers"
@@ -75,13 +77,15 @@
     </div>
 
     <div class="my-4">
+      <my-loader v-if="loading" />
       <contest-percentage-form
+        v-else
         class="mb-4"
         :percentageInfo="percentageInfo"
         @changePercentage="handleChangePercentage"
       />
       <b-row>
-        <b-col md="6" lg="8" v-if="numbers.length <= maxNumbersShow">
+        <b-col md="6" lg="8">
           <h4>Números selecionados</h4>
           <b-row style="max-height: 120px; overflow-y: auto">
             <b-col cols="12" v-if="selectedNumbers.length === 0">
@@ -107,9 +111,7 @@
           <b-button
             variant="success"
             size="lg"
-            :disabled="
-              selectedNumbers.length === 0 && numbers.length <= maxNumbersShow
-            "
+            :disabled="selectedNumbers.length === 0"
             @click="handleFreeNumbers"
           >
             Marcar números como disponível
@@ -139,10 +141,14 @@ export default {
     return {
       loading: false,
       contestId: null,
-      maxNumbersShow: 5000,
       numbers: [],
       selectedNumbers: [],
       filteredNumbers: [],
+      quantity: 0,
+      partial: 300,
+      current: 300,
+      // os filteredNumbers iniciais, vão receber os numeros parciais
+      // quando chegar no final do scroll, os filteredNumbers vão receber mais parciais
       percentageInfo: {
         show_percentage: false,
         use_custom_percentage: false,
@@ -156,8 +162,6 @@ export default {
 
     this.contestId = id;
     this.getContestData(id);
-    // this.numbers = this.getContestData(id);
-    // this.filteredNumbers = this.numbers;
   },
   methods: {
     async getContestData(id) {
@@ -167,8 +171,10 @@ export default {
         const result = await getContest(id);
         const numbersArray = result.numbers ? JSON.parse(result.numbers) : [];
 
+        this.quantity = result.quantity;
         this.numbers = numbersArray.map((number) => JSON.parse(number));
-        this.filteredNumbers = this.numbers;
+        this.filteredNumbers = [...this.numbers].splice(0, this.partial);
+        this.current += this.partial;
         this.percentageInfo = {
           show_percentage: result.show_percentage,
           use_custom_percentage: result.use_custom_percentage,
@@ -195,6 +201,7 @@ export default {
 
       this.selectedNumbers.splice(index, 1);
     },
+    // TODO: Fitrar pelo endpoint de numbers
     handleFilterNumbers(filter) {
       this.filter = filter;
 
@@ -253,6 +260,15 @@ export default {
     },
     handleFreeNumbers() {
       console.log("Liberar números selecionados");
+    },
+    handleScroll(el) {
+      if (
+        el.srcElement.offsetHeight + el.srcElement.scrollTop >=
+        el.srcElement.scrollHeight
+      ) {
+        this.filteredNumbers = [...this.numbers].splice(0, this.current);
+        this.current += this.partial;
+      }
     },
   },
 };
