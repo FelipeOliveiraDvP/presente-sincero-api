@@ -32,7 +32,10 @@
               </b-row>
             </p>
             <p>
-              <b-button variant="link" @click="freeReservedNumbers">
+              <b-button
+                variant="link"
+                @click="$bvModal.show('confirmation-leave-modal')"
+              >
                 Gostaria de trocar ou escolher mais números? Clique aqui
               </b-button>
             </p>
@@ -76,8 +79,8 @@
               <i class="fas fa-check-circle"></i>
             </div>
             <p>Pagamento recebido com sucesso. Boa sorte!</p>
-            <router-link to="/sorteios">
-              <b-button variant="primary">MAIS SORTEIOS</b-button>
+            <router-link :to="`/sorteios/${this.details.slug}`">
+              <b-button variant="primary">Escolher mais números</b-button>
             </router-link>
           </div>
           <!-- QRCode e código para copiar -->
@@ -94,7 +97,6 @@
                 alt="qrcode"
                 class="img-fluid mb-2 rounded"
               />
-              <!-- TODO: Implementar função de copiar o código -->
               <b-input-group>
                 <b-form-input
                   type="text"
@@ -117,6 +119,25 @@
         </b-col>
       </b-row>
     </div>
+
+    <!-- Confirmation modal -->
+    <b-modal
+      id="confirmation-leave-modal"
+      ok-variant="danger"
+      ok-title="Sim, desejo sair"
+      cancel-title="Não"
+      @ok="freeReservedNumbers"
+    >
+      <template #modal-title> Deseja realmente sair da página? </template>
+      <div>
+        <p>
+          Ao sair da página, seus números selecionados serão disponibilizados
+          para outros clientes.
+        </p>
+        <p>Recomendamos finalizar a compra para garantir seus números.</p>
+        <p><strong>Ainda sim deseja sair?</strong></p>
+      </div>
+    </b-modal>
   </b-container>
 </template>
 
@@ -136,6 +157,7 @@ export default {
   data() {
     return {
       loading: false,
+      leaving: true,
       numbers: [],
       total: 0,
       details: {
@@ -149,6 +171,11 @@ export default {
       },
       paymentConfirmed: false,
     };
+  },
+  created() {
+    window.addEventListener("beforeunload", (e) => {
+      e.returnValue = "";
+    });
   },
   mounted() {
     const { authenticated } = this.$store.state.auth;
@@ -215,15 +242,12 @@ export default {
           position: "top-right",
           duration: 3000,
         });
-
-        this.$router.push({
-          name: "contests",
-        });
       } finally {
         this.loading = false;
       }
     },
     addMoreNumbers() {
+      this.leaving = false;
       this.$router.push({
         name: "contestDetail",
         params: {
@@ -254,6 +278,14 @@ export default {
         duration: 3000,
       });
     },
+  },
+  beforeRouteLeave(to, from, next) {
+    if (this.leaving) {
+      this.$bvModal.show("confirmation-leave-modal");
+      return;
+    }
+
+    next();
   },
 };
 </script>

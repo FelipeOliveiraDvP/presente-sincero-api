@@ -10,7 +10,6 @@ use App\Traits\MercadoPagoHelper;
 use App\Traits\NumbersHelper;
 use App\Traits\WhatsApp;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 
 class NumberController extends Controller
