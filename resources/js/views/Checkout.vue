@@ -38,12 +38,12 @@
             </p>
           </div>
 
-          <div class="d-flex justify-content-between w-50">
+          <div class="d-flex justify-content-between w-md-50">
             <strong>Quantidade</strong>
             <p>{{ numbers.length }}</p>
           </div>
 
-          <div class="d-flex justify-content-between w-50">
+          <div class="d-flex justify-content-between w-md-50">
             <strong>Valor do número</strong>
             <p v-if="details.sale">
               <del>{{ formatPrice(details.price) }}</del>
@@ -52,7 +52,7 @@
             <p v-else>{{ formatPrice(details.price) }}</p>
           </div>
 
-          <div class="d-flex justify-content-between w-50">
+          <div class="d-flex justify-content-between w-md-50">
             <strong>Valor total</strong>
             <p>{{ formatPrice(total) }}</p>
           </div>
@@ -103,7 +103,11 @@
                 ></b-form-input>
 
                 <b-input-group-append>
-                  <b-button variant="primary"
+                  <b-button
+                    variant="primary"
+                    v-clipboard:copy="payment.qr_code"
+                    v-clipboard:success="onCopySuccess"
+                    v-clipboard:error="onCopyError"
                     ><i class="fas fa-copy"></i
                   ></b-button>
                 </b-input-group-append>
@@ -233,6 +237,22 @@ export default {
     },
     formatPrice(price) {
       return moneyFormat(price);
+    },
+    onCopySuccess(e) {
+      this.$toasted.show("Código copiado com sucesso!", {
+        type: "success",
+        theme: "toasted-primary",
+        position: "top-right",
+        duration: 3000,
+      });
+    },
+    onCopyError(e) {
+      this.$toasted.show("Erro ao copiar o código", {
+        type: "error",
+        theme: "toasted-primary",
+        position: "top-right",
+        duration: 3000,
+      });
     },
   },
 };

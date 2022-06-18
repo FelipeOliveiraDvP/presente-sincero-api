@@ -21,12 +21,24 @@ class NumberController extends Controller
      * Visualizar os números do sorteio
      * 
      * @param int $contest_id     
+     * @param Request $request
      * 
      * @return JsonResponse
      */
-    public function index(int $contest_id)
+    public function index(int $contest_id, Request $request)
     {
-        return response()->json($this->getContestNumbers($contest_id));
+        $whatsapp = $request->query('whatsapp');
+        $customer = $request->query('customer');
+
+        $user = User::where('whatsapp', '=', $whatsapp)
+            ->orWhere('name', 'like', "%{$customer}%")
+            ->first();
+
+        if (empty($user)) {
+            return response()->json([]);
+        }
+
+        return response()->json($this->getContestNumbersByCustomer($contest_id, $user));
     }
 
     /**
@@ -133,7 +145,9 @@ class NumberController extends Controller
 
         $payment = $this->createPayment($order, $user, $contest);
 
-        $this->sendReservationMessage($user, $contest, $payment);
+        if (getenv('APP_ENV') != 'local') {
+            $this->sendReservationMessage($user, $contest, $payment);
+        }
 
         $order->transaction_code = $payment['payment_id'];
         $order->update();
