@@ -107,15 +107,15 @@ class NumberController extends Controller
 
         $user = auth('sanctum')->user();
 
-        $numbers = $this->setContestNumbersAsReserved($contest_id, $request->numbers, $user);
+        $reserved_numbers = $this->setContestNumbersAsReserved($contest_id, $request->numbers, $user);
 
-        if ($numbers == false) {
+        if ($reserved_numbers == false) {
             return response()->json([
                 'message' => 'Ocorreu um erro ao reservar os números',
             ], 400);
         }
 
-        $contest->numbers = $numbers;
+        $contest->numbers = $reserved_numbers;
 
         $contest->update();
 
@@ -128,13 +128,10 @@ class NumberController extends Controller
             'contest_id' => $contest_id,
             'user_id' => $user->id,
             'total' => $request->total,
-            'numbers' => $numbers
+            'numbers' => json_encode($request->numbers)
         ]);
 
         $payment = $this->createPayment($order, $user, $contest);
-
-        // return response()->json($payment);
-        // return print_r($payment, true);
 
         $this->sendReservationMessage($user, $contest, $payment);
 
@@ -177,8 +174,10 @@ class NumberController extends Controller
                 ], 400);
             }
 
-            // TODO: Incrementar a porcentagem paga do sorteio
+            $paid_percentage = count(json_decode($order->numbers)) / $contest->quantity;
+
             $contest->numbers = $numbers;
+            $contest->paid_percentage += $paid_percentage;
 
             $contest->update();
 

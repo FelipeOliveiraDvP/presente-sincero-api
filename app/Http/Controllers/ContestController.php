@@ -208,16 +208,15 @@ class ContestController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'title'             => 'required',
             'contest_date'      => 'nullable|date|after:now',
             'max_reserve_days'  => 'gte:1|lte:30',
-            'price'             => 'required|gte:0.5',
-            'short_description' => 'required|string',
-            'full_description'  => 'required|string',
-            'whatsapp_number'   => 'required|string',
+            'price'             => 'gte:0.5',
+            'short_description' => 'string',
+            'full_description'  => 'string',
+            'whatsapp_number'   => 'string',
             'whatsapp_group'    => 'url',
-            'sales.*.quantity'  => 'required|gte:1',
-            'sales.*.price'     => 'required|gte:0.5',
+            'sales.*.quantity'  => 'gte:1',
+            'sales.*.price'     => 'gte:0.5',
             'bank_accounts.*'   => 'exists:bank_accounts,id',
             'gallery.*'         => 'string',
         ]);
@@ -230,42 +229,51 @@ class ContestController extends Controller
         }
 
         $update = [
-            'id'                => $id,
-            'title'             => $request->title,
-            'contest_date'      => $request->contest_date ?? null,
-            'max_reserve_days'  => $request->max_reserve_days ?? 1,
-            'short_description' => $request->short_description,
-            'full_description'  => $request->full_description,
-            'whatsapp_number'   => $request->whatsapp_number,
-            'whatsapp_group'    => $request->whatsapp_group,
+            'title' => $request->title ?? $contest->title,
+            'contest_date' => $request->contest_date ?? $contest->contest_date,
+            'max_reserve_days' => $request->max_reserve_days ?? $contest->max_reserve_days,
+            'show_percentage' => $request->show_percentage ?? $contest->show_percentage,
+            'use_custom_percentage' => $request->use_custom_percentage ?? $contest->use_custom_percentage,
+            'custom_percentage' => $request->custom_percentage ?? $contest->custom_percentage,
+            'short_description' => $request->short_description ?? $contest->short_description,
+            'full_description' => $request->full_description ?? $contest->full_description,
+            'whatsapp_number' => $request->whatsapp_number ?? $contest->whatsapp_number,
+            'whatsapp_group' => $request->whatsapp_group ?? $contest->whatsapp_group,
         ];
 
         $can_change_price = count($this->getContestNumbersByStatus($id, NumberStatus::PAID)) <= 0;
 
         if ($can_change_price) {
-            $update['price'] = $request->price;
+            $update['price'] = $request->price ?? $contest->price;
         }
 
         $contest->update($update);
 
-        $contest->bank_accounts()->sync($request->bank_accounts);
-
-        Sale::where('contest_id', '=', $contest->id)->delete();
-        Gallery::where('contest_id', '=', $contest->id)->delete();
-
-        foreach ($request->sales as $sale) {
-            Sale::create([
-                'contest_id' => $contest->id,
-                'quantity'   => $sale['quantity'],
-                'price'      => $sale['price'],
-            ]);
+        if ($request->bank_accounts) {
+            $contest->bank_accounts()->sync($request->bank_accounts);
         }
 
-        foreach ($request->gallery as $image) {
-            Gallery::create([
-                'contest_id' => $contest->id,
-                'path' => $image,
-            ]);
+        if ($request->sales) {
+            Sale::where('contest_id', '=', $contest->id)->delete();
+
+            foreach ($request->sales as $sale) {
+                Sale::create([
+                    'contest_id' => $contest->id,
+                    'quantity'   => $sale['quantity'],
+                    'price'      => $sale['price'],
+                ]);
+            }
+        }
+
+        if ($request->gallery) {
+            Gallery::where('contest_id', '=', $contest->id)->delete();
+
+            foreach ($request->gallery as $image) {
+                Gallery::create([
+                    'contest_id' => $contest->id,
+                    'path' => $image,
+                ]);
+            }
         }
 
         return response()->json(['message' => 'Sorteio atualizado com sucesso'], 200);

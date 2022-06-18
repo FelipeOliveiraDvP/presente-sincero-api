@@ -113,9 +113,9 @@ trait WhatsApp
    */
   protected function sendMessage(User $user, string $message)
   {
-    $api = 'https://v4.chatpro.com.br/chatpro-qygz3swuoo/api/v1/send_message';
+    $api = 'https://v4.chatpro.com.br/chatpro-8nc942m0vu/api/v1/send_message';
     $headers = [
-      'Authorization' =>  '0w6y11mxbqavng3fuwnvsb6t0f19ts',
+      'Authorization' =>  'qp9tk8gic51lmcij9lkrg7cd70eh8p',
       'Content-Type' =>  'application/json'
     ];
 

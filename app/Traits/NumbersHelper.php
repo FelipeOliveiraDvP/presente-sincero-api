@@ -42,6 +42,10 @@ trait NumbersHelper
   }
 
   /**
+   * Converts the 
+   */
+
+  /**
    * Set the contest numbers as FREE.
    * 
    * @param int $contest_id

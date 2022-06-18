@@ -124,7 +124,8 @@
 import LoaderVue from "@/components/_commons/Loader.vue";
 import ContestNumberVue from "@/components/Contests/ContestNumber.vue";
 import ContestPercentageForm from "@/components/Contests/Admin/ContestPercentageForm.vue";
-import { getContest } from "@/services/contests";
+
+import { getContest, editContest } from "@/services/contests";
 import { freeNumbers } from "@/services/numbers";
 
 export default {
@@ -213,8 +214,42 @@ export default {
     isSelected(number) {
       return !!this.selectedNumbers.find((n) => n.number === number.number);
     },
-    handleChangePercentage(obj) {
-      console.log(obj);
+    async handleChangePercentage(obj) {
+      try {
+        this.loading = true;
+        let result;
+
+        if (obj.selected === "use_true") {
+          result = await editContest(this.contestId, {
+            show_percentage: true,
+            use_custom_percentage: false,
+          });
+        }
+
+        if (obj.selected === "use_custom") {
+          result = await editContest(this.contestId, {
+            show_percentage: false,
+            use_custom_percentage: true,
+            custom_percentage: obj.percentage,
+          });
+        }
+
+        this.$toasted.show(result.message, {
+          type: "success",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
+      } catch (error) {
+        this.$toasted.show(error.message, {
+          type: "error",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
+      } finally {
+        this.loading = false;
+      }
     },
     handleFreeNumbers() {
       console.log("Liberar números selecionados");
