@@ -42,7 +42,7 @@ export default {
   },
   data() {
     return {
-      initialShow: true,
+      initialShow: false,
       header: "<h3>LOGO</h3>",
       links: [
         {

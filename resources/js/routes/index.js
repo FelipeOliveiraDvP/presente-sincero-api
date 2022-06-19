@@ -56,6 +56,9 @@ const routes = [
         name: "checkout",
         path: "/finalizar-compra",
         component: Checkout,
+        meta: {
+          checkout: true,
+        },
       },
       {
         name: "login",
@@ -191,7 +194,7 @@ const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
   const { authenticated, admin } = store.state.auth;
-  const { adminRoute, logged, restricted } = to.meta;
+  const { adminRoute, logged, restricted, checkout } = to.meta;
 
   if (authenticated && restricted) {
     next({ name: "profile" });
@@ -199,6 +202,8 @@ router.beforeEach((to, from, next) => {
     next({ name: "profile" });
   } else if (authenticated && restricted && admin) {
     next({ name: "adminContestList" });
+  } else if (!authenticated && checkout) {
+    next({ name: "contests" });
   } else if (!authenticated && (logged || adminRoute)) {
     next({ name: "login" });
   }

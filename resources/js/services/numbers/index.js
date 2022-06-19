@@ -1,5 +1,9 @@
 import api from "@/api";
 
+export async function listNumbers(contestId, params) {
+  return api.get(`numbers/${contestId}`, params);
+}
+
 export async function freeNumbers(contestId, numbers) {
   return api.post(`numbers/${contestId}/free`, numbers);
 }

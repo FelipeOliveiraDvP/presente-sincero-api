@@ -39,7 +39,7 @@
 
     <b-alert :show="success === true && numbers.length > 0" variant="light">
       <h3 class="mb-3">Seus números para esse sorteio</h3>
-      <p>{{ numbers.map((n) => n.number).join(",") }}</p>
+      <p>{{ numbers.map((n) => n.number).join(", ") }}</p>
     </b-alert>
   </b-modal>
 </template>

@@ -1,6 +1,7 @@
 <template>
   <b-container class="page">
-    <div class="my-4 d-flex flex-column flex-md-row justify-content-between">
+    <!-- TODO: Filtros de sorteios -->
+    <!-- <div class="my-4 d-flex flex-column flex-md-row justify-content-between">
       <b-button-group class="mb-3">
         <b-button variant="success">Em andamento</b-button>
         <b-button variant="warning">Próximos</b-button>
@@ -12,29 +13,23 @@
         v-model="order"
         :options="options"
       ></b-form-select>
-    </div>
+    </div> -->
+
+    <h2 class="text-center">Sorteios em andamento</h2>
 
     <my-loader v-if="loading" />
     <b-row v-else>
       <b-col v-for="contest in contests" :key="contest.id" md="6">
-        <contest-card
-          :title="contest.title"
-          :description="contest.short_description"
-          :slug="contest.slug"
-          :gallery="contest.gallery"
-        />
+        <contest-card :contest="contest" />
       </b-col>
     </b-row>
-
-    <div class="text-center my-4">
-      <b-button variant="primary">CARREGAR MAIS</b-button>
-    </div>
   </b-container>
 </template>
 
 <script>
 import ContestCardVue from "../components/Contests/ContestCard.vue";
 import LoaderVue from "../components/_commons/Loader.vue";
+
 import { listContests } from "../services/contests";
 
 export default {

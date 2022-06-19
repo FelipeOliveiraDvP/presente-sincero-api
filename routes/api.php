@@ -5,6 +5,7 @@ use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\ContestController;
 use App\Http\Controllers\NumberController;
 use App\Http\Controllers\UploadController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -90,6 +91,18 @@ Route::controller(BankAccountController::class)->group(function () {
             Route::post('/', 'create');
             Route::put('/{id}', 'edit');
             Route::delete('/{id}', 'remove');
+        });
+    });
+});
+
+// Users
+Route::controller(UserController::class)->group(function () {
+    /**
+     * Route: /users
+     */
+    Route::prefix('users')->group(function () {
+        Route::middleware(['auth.token', 'auth.admin'])->group(function () {
+            Route::get('/', 'index');
         });
     });
 });

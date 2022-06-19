@@ -142,9 +142,9 @@
 </template>
 
 <script>
-import ContestNumberVue from "../components/Contests/ContestNumber.vue";
-import LoaderVue from "../components/_commons/Loader.vue";
-import moneyFormat from "../utils/moneyFormat";
+import ContestNumberVue from "@/components/Contests/ContestNumber.vue";
+import LoaderVue from "@/components/_commons/Loader.vue";
+import moneyFormat from "@/utils/moneyFormat";
 
 import { reserveNumbers, freeNumbers } from "@/services/numbers";
 
@@ -157,7 +157,7 @@ export default {
   data() {
     return {
       loading: false,
-      leaving: true,
+      leaving: false,
       numbers: [],
       total: 0,
       details: {
@@ -173,15 +173,9 @@ export default {
     };
   },
   created() {
-    window.addEventListener("beforeunload", (e) => {
-      e.returnValue = "";
-    });
-  },
-  mounted() {
-    const { authenticated } = this.$store.state.auth;
     const { numbers, total, details } = this.$router.history.current.params;
 
-    if (!numbers || !total || !details || !authenticated) {
+    if (!numbers || !total || !details) {
       this.$router.push({
         name: "contests",
       });
@@ -191,7 +185,11 @@ export default {
     this.numbers = numbers || [];
     this.total = total || 0;
     this.details = { ...details };
+    this.leaving = true;
 
+    window.addEventListener("beforeunload", this.showLeaveConfirmation);
+  },
+  mounted() {
     this.getQRCode();
   },
   methods: {
@@ -242,9 +240,16 @@ export default {
           position: "top-right",
           duration: 3000,
         });
+
+        this.$router.push({
+          name: "contests",
+        });
       } finally {
         this.loading = false;
       }
+    },
+    showLeaveConfirmation(e) {
+      e.returnValue = "";
     },
     addMoreNumbers() {
       this.leaving = false;
@@ -286,6 +291,9 @@ export default {
     }
 
     next();
+  },
+  beforeDestroy() {
+    window.removeEventListener("beforeunload", this.showLeaveConfirmation);
   },
 };
 </script>

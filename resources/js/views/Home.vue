@@ -40,8 +40,6 @@ export default {
 
       const result = await listContests(this.params);
 
-      console.log(result);
-
       this.contests = result.data;
       this.loading = false;
     },

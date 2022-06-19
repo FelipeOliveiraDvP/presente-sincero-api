@@ -23,8 +23,7 @@
     </b-row>
 
     <div class="mt-4">
-      <my-loader v-if="loading" />
-      <b-row v-else>
+      <b-row>
         <b-col md="6">
           <b-button-group class="w-100">
             <b-button @click="handleFilterNumbers('ALL')" variant="light"
@@ -43,12 +42,10 @@
         </b-col>
         <b-col md="6" lg="4" offset-lg="2">
           <!-- TODO: Filtros de nome e whatsapp -->
-          <!-- <b-button
-            v-b-modal.customer-numbers
-            variant="secondary"
-            class="d-block w-100 mt-2 mt-md-0"
-            >MEUS NÚMEROS</b-button
-          > -->
+          <users-select
+            @select="handleFilterByCustomer"
+            @clear="handleClearFilterByCustomer"
+          />
         </b-col>
       </b-row>
     </div>
@@ -78,13 +75,6 @@
     </div>
 
     <div class="my-4">
-      <my-loader v-if="loading" />
-      <contest-percentage-form
-        v-else
-        class="mb-4"
-        :percentageInfo="percentageInfo"
-        @changePercentage="handleChangePercentage"
-      />
       <b-row>
         <b-col md="6" lg="8">
           <h4>Números selecionados</h4>
@@ -119,6 +109,15 @@
           </b-button>
         </b-col>
       </b-row>
+
+      <!-- Andamento do sorteio -->
+      <my-loader v-if="loading" />
+      <contest-percentage-form
+        v-else
+        class="my-4"
+        :percentageInfo="percentageInfo"
+        @changePercentage="handleChangePercentage"
+      />
     </div>
   </b-container>
 </template>
@@ -127,9 +126,10 @@
 import LoaderVue from "@/components/_commons/Loader.vue";
 import ContestNumberVue from "@/components/Contests/ContestNumber.vue";
 import ContestPercentageForm from "@/components/Contests/Admin/ContestPercentageForm.vue";
+import UsersSelectVue from "@/components/Users/UsersSelect.vue";
 
 import { getContest, editContest } from "@/services/contests";
-import { freeNumbers } from "@/services/numbers";
+import { freeNumbers, listNumbers } from "@/services/numbers";
 
 export default {
   name: "AdminContestManage",
@@ -137,6 +137,7 @@ export default {
     "my-loader": LoaderVue,
     "contest-number": ContestNumberVue,
     "contest-percentage-form": ContestPercentageForm,
+    "users-select": UsersSelectVue,
   },
   data() {
     return {
@@ -181,45 +182,15 @@ export default {
           custom_percentage: result.custom_percentage,
         };
       } catch (error) {
-        return [];
+        this.$toasted.show(error.message, {
+          type: "error",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
       } finally {
         this.loading = false;
       }
-    },
-    handleSelectNumber(number) {
-      const isSelected = !!this.selectedNumbers.find(
-        (n) => n.number === number.number
-      );
-
-      if (!isSelected && number.status === "RESERVED") {
-        this.selectedNumbers.push(number);
-      }
-    },
-    handleRemoveSelectedNumber(number) {
-      const index = this.selectedNumbers.indexOf(number);
-
-      this.selectedNumbers.splice(index, 1);
-    },
-    // TODO: Fitrar pelo endpoint de numbers
-    handleFilterNumbers(filter) {
-      this.filter = filter;
-      this.current = 0;
-
-      if (filter === "ALL") {
-        this.filteredNumbers = [...this.numbers].splice(0, this.partial);
-      } else {
-        const filtered = this.numbers.filter((n) => n.status === filter);
-
-        this.filteredNumbers = [...filtered].splice(0, this.partial);
-      }
-    },
-    countNumbersByStatus(status) {
-      const filtered = this.numbers.filter((n) => n.status === status);
-
-      return filtered.length;
-    },
-    isSelected(number) {
-      return !!this.selectedNumbers.find((n) => n.number === number.number);
     },
     async handleChangePercentage(obj) {
       try {
@@ -257,6 +228,57 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    async handleFilterByCustomer(customerId) {
+      this.loading = true;
+
+      const result = await listNumbers(this.contestId, {
+        customer_id: customerId,
+      });
+
+      this.filter = "ALL";
+      this.current = 0;
+      this.numbers = result;
+      this.filteredNumbers = [...this.numbers].splice(0, this.partial);
+
+      this.loading = false;
+    },
+    handleClearFilterByCustomer() {
+      this.getContestData(this.contestId);
+    },
+    handleSelectNumber(number) {
+      const isSelected = !!this.selectedNumbers.find(
+        (n) => n.number === number.number
+      );
+
+      if (!isSelected && number.status === "RESERVED") {
+        this.selectedNumbers.push(number);
+      }
+    },
+    handleRemoveSelectedNumber(number) {
+      const index = this.selectedNumbers.indexOf(number);
+
+      this.selectedNumbers.splice(index, 1);
+    },
+    handleFilterNumbers(filter) {
+      this.filter = filter;
+      this.current = 0;
+
+      if (filter === "ALL") {
+        this.filteredNumbers = [...this.numbers].splice(0, this.partial);
+      } else {
+        const filtered = this.numbers.filter((n) => n.status === filter);
+
+        this.filteredNumbers = [...filtered].splice(0, this.partial);
+      }
+    },
+    countNumbersByStatus(status) {
+      const filtered = this.numbers.filter((n) => n.status === status);
+
+      return filtered.length;
+    },
+    isSelected(number) {
+      return !!this.selectedNumbers.find((n) => n.number === number.number);
     },
     handleFreeNumbers() {
       console.log("Liberar números selecionados");

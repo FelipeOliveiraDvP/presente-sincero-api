@@ -26,18 +26,15 @@ class NumberController extends Controller
      */
     public function index(int $contest_id, Request $request)
     {
-        $whatsapp = $request->query('whatsapp');
-        $customer = $request->query('customer');
+        $customer_id = $request->query('customer_id');
 
-        $user = User::where('whatsapp', '=', $whatsapp)
-            ->orWhere('name', 'like', "%{$customer}%")
-            ->first();
+        $customer = User::find($customer_id);
 
-        if (empty($user)) {
+        if (empty($customer)) {
             return response()->json([]);
         }
 
-        return response()->json($this->getContestNumbersByCustomer($contest_id, $user));
+        return response()->json($this->getContestNumbersByCustomer($contest_id, $customer));
     }
 
     /**
