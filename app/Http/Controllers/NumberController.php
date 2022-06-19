@@ -10,6 +10,7 @@ use App\Traits\MercadoPagoHelper;
 use App\Traits\NumbersHelper;
 use App\Traits\WhatsApp;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 
 class NumberController extends Controller
@@ -29,12 +30,16 @@ class NumberController extends Controller
         $customer_id = $request->query('customer_id');
 
         $customer = User::find($customer_id);
+        $order = Order::where('contest_id', '=', $contest_id)
+            ->where('user_id', '=', $customer->id)
+            ->where('status', '=', OrderStatus::PENDING)
+            ->first();
 
-        if (empty($customer)) {
+        if (empty($customer) || empty($order)) {
             return response()->json([]);
         }
 
-        return response()->json($this->getContestNumbersByCustomer($contest_id, $customer));
+        return response()->json($this->getContestNumbersByOrder($contest_id, $order));
     }
 
     /**
@@ -115,18 +120,6 @@ class NumberController extends Controller
 
         $user = auth('sanctum')->user();
 
-        $reserved_numbers = $this->setContestNumbersAsReserved($contest_id, $request->numbers, $user);
-
-        if ($reserved_numbers == false) {
-            return response()->json([
-                'message' => 'Ocorreu um erro ao reservar os números',
-            ], 400);
-        }
-
-        $contest->numbers = $reserved_numbers;
-
-        $contest->update();
-
         Order::where('user_id', '=', $user->id)
             ->where('contest_id', '=', $contest_id)
             ->where('status', '=', OrderStatus::PENDING)
@@ -138,6 +131,12 @@ class NumberController extends Controller
             'total' => $request->total,
             'numbers' => json_encode($request->numbers)
         ]);
+
+        $reserved_numbers = $this->setContestNumbersAsReserved($contest_id, $request->numbers, $order, $user);
+
+        $contest->numbers = $reserved_numbers;
+
+        $contest->update();
 
         $payment = $this->createPayment($order, $user, $contest);
 
@@ -156,6 +155,64 @@ class NumberController extends Controller
 
     /**
      * Marca os números como PAID
+     *      
+     * @param int $contest_id
+     * @param Request $request
+     * 
+     * @return JsonResponse
+     */
+    public function paid(int $contest_id, Request $request)
+    {
+        $contest = Contest::find($contest_id);
+
+        if (empty($contest)) {
+            return response()->json([
+                'message' => 'O sorteio informado não está mais disponível'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'customer_id' => 'required|exists:users,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Ocorreu um erro ao marcar os números como pago.',
+                'errors'  => $validator->errors()
+            ], 400);
+        }
+
+        $customer = User::find($request->customer_id);
+        $order = Order::where('contest_id', '=', $contest_id)
+            ->where('user_id', '=', $customer->id)
+            ->where('status', '=', OrderStatus::PENDING)
+            ->first();
+
+        $numbers = $this->setContestNumbersAsPaid($contest->id, $order->numbers, $customer);
+
+        if ($numbers == false) {
+            return response()->json([
+                'message' => 'Ocorreu um erro ao marcar os números como pagos.',
+            ], 400);
+        }
+
+        $paid_percentage = count(json_decode($order->numbers)) / $contest->quantity;
+
+        $contest->numbers = $numbers;
+        $contest->paid_percentage += $paid_percentage;
+        $contest->update();
+
+        $order->status = OrderStatus::CONFIRMED;
+        $order->confirmed_at = Carbon::now();
+        $order->update();
+
+        $this->sendConfirmationMessage($customer, $contest, $order);
+        // TODO: Chamar o WebSocket para atualizar a página de pedido
+        return response()->json(['message' => 'Pagamento dos números confirmado com sucesso'], 200);
+    }
+
+    /**
+     * Trata o callback da API de pagamento para atualizar as informações do pedido.
      *      
      * @param Request $request
      * 
@@ -188,8 +245,11 @@ class NumberController extends Controller
 
             $contest->numbers = $numbers;
             $contest->paid_percentage += $paid_percentage;
-
             $contest->update();
+
+            $order->status = OrderStatus::CONFIRMED;
+            $order->confirmed_at = Carbon::now();
+            $order->update();
 
             $this->sendConfirmationMessage($user, $contest, $order);
             // TODO: Chamar o WebSocket para atualizar a página de pedido
@@ -229,7 +289,11 @@ class NumberController extends Controller
         }
 
         $user = User::where('whatsapp', '=', $request->whatsapp)->first();
+        $orders = Order::where('contest_id', '=', $contest_id)
+            ->where('user_id', '=', $user->id)
+            ->where('status', '=', OrderStatus::CONFIRMED)
+            ->get(['id', 'numbers']);
 
-        return response()->json($this->getContestNumbersByCustomer($contest_id, $user));
+        return response()->json(empty($orders) ? [] : $orders);
     }
 }

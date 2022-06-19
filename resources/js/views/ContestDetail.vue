@@ -215,7 +215,7 @@
 
     <contest-numbers-modal :contestId="contest && contest.id" />
 
-    <simple-register-modal />
+    <simple-register-modal @onsuccess="handleCheckout" />
   </b-container>
 </template>
 

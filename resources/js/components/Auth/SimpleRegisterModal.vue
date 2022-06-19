@@ -118,6 +118,8 @@ export default {
           this.signIn(result);
 
           this.$bvModal.hide("simple-register");
+
+          this.$emit("onsuccess");
         }
       } catch (error) {
         this.$toasted.show(error.message, {

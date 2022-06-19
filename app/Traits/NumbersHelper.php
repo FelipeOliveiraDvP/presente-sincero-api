@@ -4,6 +4,7 @@ namespace App\Traits;
 
 use App\Enums\NumberStatus;
 use App\Models\Contest;
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 
@@ -26,6 +27,7 @@ trait NumbersHelper
       $number = json_encode([
         'number'      => str_pad($i, $number_length, '0', STR_PAD_LEFT),
         'status'      => NumberStatus::FREE,
+        'order_id'    => null,
         'reserved_at' => null,
         'payment_at'  => null,
         'customer'  => [
@@ -70,6 +72,7 @@ trait NumbersHelper
 
       if ($can_free_number) {
         $number->status = NumberStatus::FREE;
+        $number->order_id = null;
         $number->reserved_at = null;
         $number->payment_at = null;
         $number->customer->id = null;
@@ -88,11 +91,12 @@ trait NumbersHelper
    * 
    * @param int $contest_id
    * @param array $numbers   
+   * @param Order $order
    * @param User $customer
    * 
    * @return string|boolean
    */
-  protected function setContestNumbersAsReserved(int $contest_id, array $numbers, User $customer)
+  protected function setContestNumbersAsReserved(int $contest_id, array $numbers, Order $order, User $customer)
   {
     $contest_numbers = $this->getContestNumbers($contest_id);
     $updated_numbers = [];
@@ -105,6 +109,7 @@ trait NumbersHelper
 
       if ($can_reserve_number) {
         $number->status = NumberStatus::RESERVED;
+        $number->order_id = $order->id;
         $number->reserved_at = Carbon::now();
         $number->customer->id = $customer->id;
         $number->customer->name = $customer->name;
@@ -189,6 +194,28 @@ trait NumbersHelper
 
     foreach ($numbers as $value) {
       if ($value->customer->id == $customer->id) {
+        $customer_numbers[] = $value;
+      }
+    }
+
+    return $customer_numbers;
+  }
+
+  /**
+   * Get contest numbers by order.
+   * 
+   * @param int $contest_id
+   * @param Order $order
+   * 
+   * @return array
+   */
+  protected function getContestNumbersByOrder(int $contest_id, Order $order)
+  {
+    $numbers = $this->getContestNumbers($contest_id);
+    $customer_numbers = [];
+
+    foreach ($numbers as $value) {
+      if ($value->order_id == $order->id) {
         $customer_numbers[] = $value;
       }
     }

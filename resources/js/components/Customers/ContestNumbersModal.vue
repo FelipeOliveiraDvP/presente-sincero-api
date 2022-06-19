@@ -29,28 +29,44 @@
       </b-form-group>
     </b-form>
 
-    <b-alert :show="success === false" variant="warning">
-      O número informado não é válido ou ainda não está cadastrado.
-    </b-alert>
+    <my-loader v-if="loading" />
+    <div v-else>
+      <b-alert :show="success === false" variant="warning">
+        O número informado não é válido ou ainda não está cadastrado.
+      </b-alert>
 
-    <b-alert :show="success === true && numbers.length === 0" variant="warning">
-      Você ainda não comprou nenhum número nesse sorteio.
-    </b-alert>
+      <b-alert
+        :show="success === true && numbers.length === 0"
+        variant="warning"
+      >
+        Você ainda não comprou nenhum número nesse sorteio.
+      </b-alert>
 
-    <b-alert :show="success === true && numbers.length > 0" variant="light">
-      <h3 class="mb-3">Seus números para esse sorteio</h3>
-      <p>{{ numbers.map((n) => n.number).join(", ") }}</p>
-    </b-alert>
+      <b-alert :show="success === true && numbers.length > 0" variant="light">
+        <h3 class="mb-3">Seus números para esse sorteio</h3>
+        <p>{{ numbers.join(", ") }}</p>
+      </b-alert>
+    </div>
+
+    <p class="text-muted">
+      <strong>IMPORTANTE:</strong> Somente vão aparecer os números dos pedidos
+      que tiveram o pagamento <strong>confirmado.</strong>
+    </p>
   </b-modal>
 </template>
 
 <script>
-import { getCustomerNumbers } from "@/services/numbers";
 import { validationMixin } from "vuelidate";
 import { required, minLength, numeric } from "vuelidate/lib/validators";
+import LoaderVue from "@/components/_commons/Loader.vue";
+
+import { getCustomerNumbers } from "@/services/numbers";
 
 export default {
   name: "ContestNumbersModal",
+  components: {
+    "my-loader": LoaderVue,
+  },
   props: {
     contestId: Number,
   },
@@ -80,8 +96,9 @@ export default {
         const result = await getCustomerNumbers(this.contestId, {
           whatsapp: this.whatsapp,
         });
+        const contestNumbers = result.map((r) => JSON.parse(r.numbers));
 
-        this.numbers = result;
+        this.numbers = [].concat.apply([], contestNumbers);
 
         this.success = true;
       } catch (error) {

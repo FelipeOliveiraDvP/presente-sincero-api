@@ -48,7 +48,7 @@
 
           <div class="d-flex justify-content-between w-md-50">
             <strong>Valor do número</strong>
-            <p v-if="details.sale">
+            <p v-if="details.sale.quantity > 0">
               <del>{{ formatPrice(details.price) }}</del>
               {{ formatPrice(details.sale.price) }}
             </p>
