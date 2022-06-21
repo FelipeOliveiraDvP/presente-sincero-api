@@ -32,19 +32,22 @@ trait WhatsApp
    * 
    * @param User $user
    * @param Contest $contest
+   * @param Order $order
    * @param array $payment_info
    * 
    * @return boolean
    */
-  protected function sendReservationMessage(User $user, Contest $contest, array $payment_info)
+  protected function sendReservationMessage(User $user, Contest $contest, Order $order, array $payment_info)
   {
+    $customer_numbers = json_decode($order->numbers);
+
     $message = "Olá *{$user->name}*,\n\n";
     $message .= "Seus números no sorteio *{$contest->title}* foram reservados com sucesso!\n";
+    $message .= "*Seu(s) número(s):* " . join(',', $customer_numbers) . "\n\n";
     $message .= "Caso ainda não tenha realizado o pagamento, é só clicar no link abaixo para abrir o QR Code.\n\n";
     $message .= $payment_info['ticket_url'];
     $message .= "\n\nCaso já tenha realizado o pagamento, é só aguardar a confirmação.";
     $message .= "\n\n*Equipe Presente Sincero*";
-
 
     return $this->sendMessage($user, $message);
   }
@@ -113,9 +116,9 @@ trait WhatsApp
    */
   protected function sendMessage(User $user, string $message)
   {
-    $api = 'https://v4.chatpro.com.br/chatpro-8nc942m0vu/api/v1/send_message';
+    $api =  getenv('API_CHATPRO_URL') . '/api/v1/send_message';
     $headers = [
-      'Authorization' =>  'qp9tk8gic51lmcij9lkrg7cd70eh8p',
+      'Authorization' =>  getenv('API_CHATPRO_TOKEN'),
       'Content-Type' =>  'application/json'
     ];
 

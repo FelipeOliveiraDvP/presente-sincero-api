@@ -72,8 +72,12 @@ Route::controller(NumberController::class)->group(function () {
         Route::middleware(['auth.token'])->group(function () {
             Route::get('/{contest_id}', 'index');
             Route::post('/{contest_id}/free', 'free');
-            Route::post('/{contest_id}/reserve', 'reserved');
-            Route::post('/{contest_id}/paid', 'paid');
+            Route::post('/{contest_id}/reserve', 'reserve');
+
+            Route::middleware(['auth.admin'])->group(function () {
+                Route::post('/{contest_id}/manage/paid', 'adminPaidNumbers');
+                Route::post('/{contest_id}/manage/free', 'adminFreeNumbers');
+            });
         });
 
         Route::post('/{contest_id}/customer-numbers', 'getCustomerNumbers');

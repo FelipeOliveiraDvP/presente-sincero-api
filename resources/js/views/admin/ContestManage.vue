@@ -100,12 +100,21 @@
         </b-col>
         <b-col md="6" lg="4">
           <b-button
+            variant="danger"
+            size="lg"
+            class="mb-2 w-100"
+            :disabled="customerId === null"
+            @click="$bvModal.show('confirmation-paid-modal')"
+          >
+            Marcar selecionados como pago
+          </b-button>
+          <b-button
             variant="success"
             size="lg"
-            :disabled="selectedNumbers.length === 0"
-            @click="handleFreeNumbers"
+            class="w-100"
+            @click="$bvModal.show('confirmation-free-modal')"
           >
-            Marcar números como disponível
+            Marcar reservados como disponível
           </b-button>
         </b-col>
       </b-row>
@@ -119,6 +128,46 @@
         @changePercentage="handleChangePercentage"
       />
     </div>
+
+    <!-- Modal confirmar pagamento dos números -->
+    <b-modal
+      id="confirmation-paid-modal"
+      ok-variant="danger"
+      ok-title="Sim, confirmo o pagamento"
+      cancel-title="Não"
+      @ok="handlePaidCustomerNumbers"
+    >
+      <template #modal-title> Confirmar pagamento </template>
+      <div>
+        <p>
+          Ao clicar no botão sim, você confirma que o cliente realizou o
+          pagamento de forma manual e fez o envio do comprovante.
+        </p>
+        <p>
+          Após a confirmação, o cliente receberá a notificação via WhatsApp
+          sobre a aprovação do pagamento.
+        </p>
+        <p><strong>Deseja confirmar o pagamento?</strong></p>
+      </div>
+    </b-modal>
+
+    <!-- Modal confirmar liberação de números -->
+    <b-modal
+      id="confirmation-free-modal"
+      ok-variant="danger"
+      ok-title="Sim, desejo liberar os números"
+      cancel-title="Não"
+      @ok="handleFreeNumbers"
+    >
+      <template #modal-title> Liberar números reservados </template>
+      <div>
+        <p>
+          Ao clicar no botão sim, todos os números marcados como reservado serão
+          disponibilizados novamente para reserva dos clientes.
+        </p>
+        <p><strong>Deseja liberar todos os números reservados?</strong></p>
+      </div>
+    </b-modal>
   </b-container>
 </template>
 
@@ -129,7 +178,11 @@ import ContestPercentageForm from "@/components/Contests/Admin/ContestPercentage
 import UsersSelectVue from "@/components/Users/UsersSelect.vue";
 
 import { getContest, editContest } from "@/services/contests";
-import { freeNumbers, listNumbers } from "@/services/numbers";
+import {
+  adminFreeNumbers,
+  adminPaidNumbers,
+  listNumbers,
+} from "@/services/numbers";
 
 export default {
   name: "AdminContestManage",
@@ -143,6 +196,7 @@ export default {
     return {
       loading: false,
       contestId: null,
+      customerId: null,
       numbers: [],
       selectedNumbers: [],
       filteredNumbers: [],
@@ -231,6 +285,7 @@ export default {
     },
     async handleFilterByCustomer(customerId) {
       this.loading = true;
+      this.customerId = customerId;
 
       const result = await listNumbers(this.contestId, {
         customer_id: customerId,
@@ -242,6 +297,54 @@ export default {
       this.filteredNumbers = [...this.numbers].splice(0, this.partial);
 
       this.loading = false;
+    },
+    async handlePaidCustomerNumbers() {
+      try {
+        this.loading = true;
+
+        const result = await adminPaidNumbers(this.contestId, {
+          customer_id: this.customerId,
+        });
+
+        this.$toasted.show(result.message, {
+          type: "success",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
+      } catch (error) {
+        this.$toasted.show(error.message, {
+          type: "error",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
+      } finally {
+        await this.getContestData(this.contestId);
+      }
+    },
+    async handleFreeNumbers() {
+      try {
+        this.loading = true;
+
+        const result = await adminFreeNumbers(this.contestId);
+
+        this.$toasted.show(result.message, {
+          type: "success",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
+      } catch (error) {
+        this.$toasted.show(error.message, {
+          type: "error",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
+      } finally {
+        await this.getContestData(this.contestId);
+      }
     },
     handleClearFilterByCustomer() {
       this.getContestData(this.contestId);
@@ -279,9 +382,6 @@ export default {
     },
     isSelected(number) {
       return !!this.selectedNumbers.find((n) => n.number === number.number);
-    },
-    handleFreeNumbers() {
-      console.log("Liberar números selecionados");
     },
     handleScroll(el) {
       if (

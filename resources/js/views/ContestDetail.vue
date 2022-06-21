@@ -15,12 +15,23 @@
           src="/img/placeholder.jpg"
           alt="Carregando"
         />
-        <img
-          v-else
-          :src="contest && contest.gallery[0].path"
-          :alt="contest && contest.title"
-          class="img-fluid w-100"
-        />
+        <b-carousel
+          v-else-if="contest !== null"
+          id="contest-gallery"
+          :interval="4000"
+          controls
+          indicators
+          background="#ababab"
+          img-width="1024"
+          img-height="480"
+          style="text-shadow: 1px 1px 2px #333"
+        >
+          <b-carousel-slide
+            v-for="image in contest.gallery"
+            :key="image.id"
+            :img-src="image.path"
+          ></b-carousel-slide>
+        </b-carousel>
       </b-col>
       <b-col md="6" class="d-flex flex-column justify-content-between">
         <div>

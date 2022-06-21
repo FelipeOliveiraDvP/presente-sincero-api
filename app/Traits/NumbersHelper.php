@@ -10,6 +10,8 @@ use Illuminate\Support\Carbon;
 
 trait NumbersHelper
 {
+  use AuthHelper;
+
   /**
    * Generate the contest numbers JSON.
    *      
@@ -68,7 +70,7 @@ trait NumbersHelper
       $out_reserve_interval = $is_reserved ? Carbon::make($number->reserved_at)->diff(Carbon::now())->d > $contest->max_reserve_days : false;
       $is_owner = $customer->id == $number->customer->id;
 
-      $can_free_number = $number_exists && $is_reserved && ($out_reserve_interval || $is_owner);
+      $can_free_number = $number_exists && $is_reserved && ($is_owner || $out_reserve_interval);
 
       if ($can_free_number) {
         $number->status = NumberStatus::FREE;
@@ -177,6 +179,30 @@ trait NumbersHelper
     }
 
     return null;
+  }
+
+  /**
+   * Get contest numbers by numbers.
+   * 
+   * @param int $contest_id
+   * @param array<int> $numbers
+   * 
+   * @return array
+   */
+  protected function getContestNumbersByNumbers(int $contest_id, array $numbers)
+  {
+    $contest_numbers = $this->getContestNumbers($contest_id);
+    $filtered_numbers = [];
+
+    foreach ($contest_numbers as $number) {
+      $number_exists = in_array($number->number, $numbers);
+
+      if ($number_exists) {
+        $filtered_numbers[] = $number;
+      }
+    }
+
+    return $filtered_numbers;
   }
 
   /**

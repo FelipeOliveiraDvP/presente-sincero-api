@@ -35,6 +35,18 @@ trait AuthHelper
   }
 
   /**
+   * Get the "Admin" role UUID.
+   * 
+   * @return string
+   */
+  protected function getAdminRole()
+  {
+    $role = Role::where('identifier', '=', 'admin')->first();
+
+    return $role->id;
+  }
+
+  /**
    * Get the "Seller" role UUID.
    * 
    * @return string

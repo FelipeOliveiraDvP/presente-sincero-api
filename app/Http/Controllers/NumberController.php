@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\NumberStatus;
 use App\Enums\OrderStatus;
 use App\Models\Contest;
 use App\Models\Order;
@@ -39,7 +40,9 @@ class NumberController extends Controller
             return response()->json([]);
         }
 
-        return response()->json($this->getContestNumbersByOrder($contest_id, $order));
+        $order_numbers = json_decode($order->numbers);
+
+        return response()->json($this->getContestNumbersByNumbers($contest_id, $order_numbers));
     }
 
     /**
@@ -96,7 +99,7 @@ class NumberController extends Controller
      * 
      * @return JsonResponse
      */
-    public function reserved(int $contest_id, Request $request)
+    public function reserve(int $contest_id, Request $request)
     {
         $contest = Contest::find($contest_id);
 
@@ -141,7 +144,7 @@ class NumberController extends Controller
         $payment = $this->createPayment($order, $user, $contest);
 
         if (getenv('APP_ENV') != 'local') {
-            $this->sendReservationMessage($user, $contest, $payment);
+            $this->sendReservationMessage($user, $contest, $order, $payment);
         }
 
         $order->transaction_code = $payment['payment_id'];
@@ -154,6 +157,45 @@ class NumberController extends Controller
     }
 
     /**
+     * Marca todos os números RESERVED como FREE
+     * 
+     * @param int $contest_id     
+     * 
+     * @return JsonResponse
+     */
+    public function adminFreeNumbers(int $contest_id)
+    {
+        $contest = Contest::find($contest_id);
+
+        if (empty($contest)) {
+            return response()->json([
+                'message' => 'O sorteio informado não está mais disponível'
+            ], 404);
+        }
+
+        $user = auth('sanctum')->user();
+        $reserved_numbers = $this->getContestNumbersByStatus($contest_id, NumberStatus::RESERVED);
+
+        $mapped_numbers = collect($reserved_numbers)->map(function ($item, $key) {
+            return $item->number;
+        })->all();
+
+        $numbers = $this->setContestNumbersAsFree($contest_id, $mapped_numbers, $user);
+
+        if ($numbers == false) {
+            return response()->json([
+                'message' => 'Ocorreu um erro ao liberar os números',
+            ], 400);
+        }
+
+        $contest->numbers = $numbers;
+
+        $contest->update();
+
+        return response()->json(['message' => 'Números liberados com sucesso'], 200);
+    }
+
+    /**
      * Marca os números como PAID
      *      
      * @param int $contest_id
@@ -161,7 +203,7 @@ class NumberController extends Controller
      * 
      * @return JsonResponse
      */
-    public function paid(int $contest_id, Request $request)
+    public function adminPaidNumbers(int $contest_id, Request $request)
     {
         $contest = Contest::find($contest_id);
 
@@ -212,6 +254,44 @@ class NumberController extends Controller
     }
 
     /**
+     * Retorna os números do cliente no sorteio através do WhatsApp.
+     * 
+     * @param int $contest_id
+     * @param Request $request
+     * 
+     * @return JsonResponse
+     */
+    public function getCustomerNumbers(int $contest_id, Request $request)
+    {
+        $contest = Contest::find($contest_id);
+
+        if (empty($contest)) {
+            return response()->json([
+                'message' => 'O sorteio informado não está mais disponível'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'whatsapp' => 'required|exists:users'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Ocorreu um erro ao verificar os números',
+                'errors'  => $validator->errors()
+            ], 400);
+        }
+
+        $user = User::where('whatsapp', '=', $request->whatsapp)->first();
+        $orders = Order::where('contest_id', '=', $contest_id)
+            ->where('user_id', '=', $user->id)
+            ->where('status', '=', OrderStatus::CONFIRMED)
+            ->get(['id', 'numbers']);
+
+        return response()->json(empty($orders) ? [] : $orders);
+    }
+
+    /**
      * Trata o callback da API de pagamento para atualizar as informações do pedido.
      *      
      * @param Request $request
@@ -257,43 +337,5 @@ class NumberController extends Controller
         }
 
         return response()->json(['message' => 'Aguardando confirmação do pagamento'], 200);
-    }
-
-    /**
-     * Retorna os números do cliente no sorteio através do WhatsApp.
-     * 
-     * @param int $contest_id
-     * @param Request $request
-     * 
-     * @return JsonResponse
-     */
-    public function getCustomerNumbers(int $contest_id, Request $request)
-    {
-        $contest = Contest::find($contest_id);
-
-        if (empty($contest)) {
-            return response()->json([
-                'message' => 'O sorteio informado não está mais disponível'
-            ], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'whatsapp' => 'required|exists:users'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Ocorreu um erro ao verificar os números',
-                'errors'  => $validator->errors()
-            ], 400);
-        }
-
-        $user = User::where('whatsapp', '=', $request->whatsapp)->first();
-        $orders = Order::where('contest_id', '=', $contest_id)
-            ->where('user_id', '=', $user->id)
-            ->where('status', '=', OrderStatus::CONFIRMED)
-            ->get(['id', 'numbers']);
-
-        return response()->json(empty($orders) ? [] : $orders);
     }
 }
