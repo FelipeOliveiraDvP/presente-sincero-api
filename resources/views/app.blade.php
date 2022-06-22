@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ mix('css/app.css') }}">
-    <title>Presente Sincero</title>
+    <title>{{ env('APP_NAME') }}</title>
 </head>
 
 <body>
