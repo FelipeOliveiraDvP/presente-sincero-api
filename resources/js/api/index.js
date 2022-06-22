@@ -5,7 +5,7 @@ import onError from "./interceptors/error.interceptor";
 import tokenInterceptor from "./interceptors/token.interceptor";
 
 const instance = axios.create({
-  baseURL: process.env.MIX_API_URL,
+  baseURL: "/api/",
 });
 
 instance.interceptors.request.use(tokenInterceptor);
