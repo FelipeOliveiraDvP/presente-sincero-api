@@ -19,6 +19,9 @@ php artisan clear-compiled
 # Recreate cache
 php artisan optimize
 
+# Install node depencencies
+npm install --legacy-peer-deps
+
 # Compile npm assets
 npm run prod
 
