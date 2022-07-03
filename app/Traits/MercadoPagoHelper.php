@@ -47,6 +47,8 @@ trait MercadoPagoHelper
 
     $payment->save();
 
+    return $payment;
+
     return [
       'payment_id' => $payment->id,
       'qrcode_base64' => $payment->point_of_interaction->transaction_data->qr_code_base64,
