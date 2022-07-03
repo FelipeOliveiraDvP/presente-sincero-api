@@ -22,11 +22,10 @@ trait MercadoPagoHelper
    */
   protected function createPayment(Order $order, User $user, Contest $contest)
   {
-    MercadoPago\SDK::setAccessToken(getenv('MERCADO_PAGO_PUBLIC'));
+    MercadoPago\SDK::setAccessToken(env('MERCADO_PAGO_PUBLIC'));
 
     $payment = new MercadoPago\Payment();
 
-    $notification = getenv('APP_ENV') == 'local' ? getenv('MERCADO_PAGO_WEBHOOK') : getenv('APP_URL') . "/api/webhook";
     $expiration = date('Y-m-d\TH:i:s.vP', strtotime("+{$contest->max_reserve_days} days"));
 
     $payment->transaction_amount = $order->total;
@@ -34,7 +33,7 @@ trait MercadoPagoHelper
     $payment->external_reference = $order->id;
     $payment->payment_method_id = "pix";
     $payment->date_of_expiration = $expiration;
-    $payment->notification_url = $notification;
+    $payment->notification_url = env('MERCADO_PAGO_WEBHOOK');
     $payment->payer = [
       'first_name' => $user->name,
       'last_name' => 'ps',
