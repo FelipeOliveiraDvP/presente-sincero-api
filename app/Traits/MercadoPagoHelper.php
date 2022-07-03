@@ -22,7 +22,8 @@ trait MercadoPagoHelper
    */
   protected function createPayment(Order $order, User $user, Contest $contest)
   {
-    MercadoPago\SDK::setAccessToken(env('MERCADO_PAGO_PUBLIC'));
+    // MercadoPago\SDK::setAccessToken(env('MERCADO_PAGO_PUBLIC'));
+    MercadoPago\SDK::setAccessToken("APP_USR-2306247977509923-042715-d807d8e7e04369b64d2258788140bfc5-1111566559");
 
     $payment = new MercadoPago\Payment();
 

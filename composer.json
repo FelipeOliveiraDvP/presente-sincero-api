@@ -17,7 +17,7 @@
         "laravel/sanctum": "^2.15",
         "laravel/tinker": "^2.5",
         "laravel/ui": "^3.4",
-        "mercadopago/dx-php": "2.4.7"
+        "mercadopago/dx-php": "2.4.8"
     },
     "require-dev": {
         "facade/ignition": "^2.5",
