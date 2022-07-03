@@ -57,7 +57,7 @@ trait MercadoPagoHelper
 
 
 
-    return $payment;
+    // return $payment;
 
     return [
       'payment_id' => $payment->id,
@@ -76,7 +76,7 @@ trait MercadoPagoHelper
    */
   protected function callback($data)
   {
-    if (empty($data)) return false;
+    if (empty($data) || is_null($data)) return false;
 
     MercadoPago\SDK::setAccessToken(Config::get('ps.MERCADO_PAGO_PUBLIC'));
 

@@ -146,7 +146,7 @@ class NumberController extends Controller
 
         $payment = $this->createPayment($order, $user, $contest);
 
-        return response()->json(['debug' => $payment]);
+        // return response()->json(['debug' => $payment]);
 
         if (getenv('APP_ENV') != 'local') {
             $this->sendReservationMessage($user, $contest, $order, $payment);
