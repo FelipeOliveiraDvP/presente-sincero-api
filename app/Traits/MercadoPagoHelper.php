@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
 use MercadoPago;
 
 // TODO: Gerenciar comissões para aplicação no Mercado Pago e contas dos vendedores.
@@ -45,7 +46,16 @@ trait MercadoPagoHelper
       ]
     ];
 
+    Log::warning('Debugar Mercado Pago', array(
+      'payment' => $payment,
+      'exp'     => $expiration,
+      'access'  => Config::get('ps.MERCADO_PAGO_PUBLIC'),
+      'webhook'  => Config::get('ps.MERCADO_PAGO_WEBHOOK'),
+    ));
+
     $payment->save();
+
+
 
     return $payment;
 
