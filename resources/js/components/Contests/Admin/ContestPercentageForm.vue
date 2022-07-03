@@ -57,14 +57,8 @@ export default {
       percentage: 0,
     };
   },
-  mounted() {
-    if (this.percentageInfo.show_percentage) {
-      this.selected = "use_true";
-      this.percentage = this.percentageInfo.paid_percentage;
-    } else if (this.percentageInfo.use_custom_percentage) {
-      this.selected = "use_custom";
-      this.percentage = this.percentageInfo.custom_percentage;
-    }
+  created() {
+    this.setPercentageDefaults(this.percentageInfo);
   },
   methods: {
     handleChangePercentage() {
@@ -72,6 +66,19 @@ export default {
         selected: this.selected,
         percentage: this.percentage,
       });
+    },
+    setPercentageDefaults(percentage) {
+      if (percentage === null) return;
+
+      if (percentage.show_percentage) {
+        this.selected = "use_true";
+        this.percentage = this.percentageInfo.paid_percentage;
+      } else if (percentage.use_custom_percentage) {
+        this.selected = "use_custom";
+        this.percentage = this.percentageInfo.custom_percentage;
+      } else {
+        this.selected = "hidden";
+      }
     },
   },
 };

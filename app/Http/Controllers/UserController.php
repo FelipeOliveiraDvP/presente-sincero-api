@@ -16,12 +16,10 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $name = $request->query('name');
-        $whatsapp = $request->query('whatsapp');
+        $search = $request->query('search');
 
-        $users = User::with('role:id,name')
-            ->where('whatsapp', 'like', "%{$whatsapp}%")
-            ->where('name', 'like', "%{$name}%")
+        $users = User::orWhere('name', 'like', "%{$search}%")
+            ->orWhere('whatsapp', 'like', "%{$search}%")
             ->paginate(5, [
                 'id',
                 'name',

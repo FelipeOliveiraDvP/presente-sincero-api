@@ -52,6 +52,7 @@ Route::controller(ContestController::class)->group(function () {
             Route::middleware(['auth.token', 'auth.admin'])->group(function () {
                 Route::get('/', 'getContestsByUser');
                 Route::get('/{id}', 'details');
+                Route::get('/{id}/orders', 'getContestOrders');
                 Route::post('/', 'create');
                 Route::put('/{id}', 'edit');
                 Route::put('/{id}/finished', 'finishContest');

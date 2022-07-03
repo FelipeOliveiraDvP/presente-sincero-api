@@ -58,19 +58,19 @@ trait MercadoPagoHelper
   /**
    * Proccess Mercado Pago Callback from WebHook and return false if not approved or order id is paid.
    * 
-   * @param Request $request
+   * @param $data
    * 
    * @return string|boolean
    */
-  protected function callback(Request $request)
+  protected function callback($data)
   {
-    if (empty($request->data)) return false;
+    if (empty($data)) return false;
 
-    MercadoPago\SDK::setAccessToken(getenv('MERCADO_PAGO_PUBLIC'));
+    MercadoPago\SDK::setAccessToken(env('MERCADO_PAGO_PUBLIC'));
 
-    $payment = MercadoPago\Payment::find_by_id($request->data->id);
+    $payment = MercadoPago\Payment::find_by_id($data['data']['id']);
 
-    if ($request->type == 'payment' && $payment->status == 'approved') {
+    if ($data['type'] == 'payment' && $payment->status == 'approved') {
       return $payment->external_reference;
     }
 

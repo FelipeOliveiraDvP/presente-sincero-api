@@ -31,18 +31,17 @@ class NumberController extends Controller
         $customer_id = $request->query('customer_id');
 
         $customer = User::find($customer_id);
-        $order = Order::where('contest_id', '=', $contest_id)
+        $orders = Order::where('contest_id', '=', $contest_id)
             ->where('user_id', '=', $customer->id)
-            ->where('status', '=', OrderStatus::PENDING)
-            ->first();
+            ->get();
 
-        if (empty($customer) || empty($order)) {
-            return response()->json([]);
+        $numbers = [];
+
+        foreach ($orders as $order) {
+            $numbers[] = json_decode($order->numbers);
         }
 
-        $order_numbers = json_decode($order->numbers);
-
-        return response()->json($this->getContestNumbersByNumbers($contest_id, $order_numbers));
+        return response()->json($this->getContestNumbersByNumbers($contest_id, array_merge_recursive(...$numbers)));
     }
 
     /**
@@ -84,8 +83,12 @@ class NumberController extends Controller
             ], 400);
         }
 
-        $contest->numbers = $numbers;
+        Order::where('user_id', '=', $user->id)
+            ->where('contest_id', '=', $contest_id)
+            ->where('status', '=', OrderStatus::PENDING)
+            ->delete();
 
+        $contest->numbers = $numbers;
         $contest->update();
 
         return response()->json(['message' => 'Números liberados com sucesso'], 200);
@@ -126,7 +129,7 @@ class NumberController extends Controller
         Order::where('user_id', '=', $user->id)
             ->where('contest_id', '=', $contest_id)
             ->where('status', '=', OrderStatus::PENDING)
-            ->update(['status' => OrderStatus::CANCELED]);
+            ->delete();
 
         $order = Order::create([
             'contest_id' => $contest_id,
@@ -230,7 +233,7 @@ class NumberController extends Controller
             ->where('status', '=', OrderStatus::PENDING)
             ->first();
 
-        $numbers = $this->setContestNumbersAsPaid($contest->id, $order->numbers, $customer);
+        $numbers = $this->setContestNumbersAsPaid($contest->id, json_decode($order->numbers), $customer);
 
         if ($numbers == false) {
             return response()->json([
@@ -249,7 +252,7 @@ class NumberController extends Controller
         $order->update();
 
         $this->sendConfirmationMessage($customer, $contest, $order);
-        // TODO: Chamar o WebSocket para atualizar a página de pedido
+
         return response()->json(['message' => 'Pagamento dos números confirmado com sucesso'], 200);
     }
 
@@ -313,7 +316,13 @@ class NumberController extends Controller
                 ], 404);
             }
 
-            $numbers = $this->setContestNumbersAsPaid($contest->id, $order->numbers, $user);
+            if ($order->status == OrderStatus::CONFIRMED) {
+                return response()->json([
+                    'message' => 'O pagamento já foi realizado',
+                ], 400);
+            }
+
+            $numbers = $this->setContestNumbersAsPaid($contest->id, json_decode($order->numbers), $user);
 
             if ($numbers == false) {
                 return response()->json([

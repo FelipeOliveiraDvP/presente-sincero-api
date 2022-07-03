@@ -30,12 +30,12 @@
       :items="items"
       :busy.sync="loading"
     >
-      <template #cell(start_date)="data">
-        {{ formatDate(data.item.start_date) }}
+      <template #cell(price)="data">
+        {{ formatMoney(data.item.price) }}
       </template>
 
-      <template #cell(contest_date)="data">
-        {{ formatDate(data.item.contest_date) }}
+      <template #cell(paid_percentage)="data">
+        {{ `${data.item.paid_percentage * 100}%` }}
       </template>
 
       <template #cell(actions)="data">
@@ -47,6 +47,11 @@
         <router-link :to="`/admin/sorteios/${data.item.id}/gerenciar`">
           <b-button variant="primary">
             <font-awesome-icon :icon="['fas', 'gear']" class="icon alt" />
+          </b-button>
+        </router-link>
+        <router-link :to="`/admin/sorteios/${data.item.id}/pedidos`">
+          <b-button variant="primary">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
           </b-button>
         </router-link>
       </template>
@@ -64,8 +69,8 @@
 </template>
 
 <script>
-import moment from "moment";
-import { listContests } from "../../services/contests";
+import moneyFormat from "@/utils/moneyFormat";
+import { listContests } from "@/services/contests";
 
 export default {
   name: "AdminContestList",
@@ -90,22 +95,22 @@ export default {
         {
           key: "title",
           sortable: true,
-          label: "Nome",
+          label: "Sorteio",
         },
         {
-          key: "start_date",
+          key: "price",
           sortable: true,
-          label: "Data de início",
+          label: "R$ Valor",
         },
         {
-          key: "days_to_end",
+          key: "quantity",
           sortable: true,
-          label: "Dias para terminar",
+          label: "Quantidade",
         },
         {
-          key: "contest_date",
+          key: "paid_percentage",
           sortable: true,
-          label: "Data do sorteio",
+          label: "% vendido",
         },
         {
           key: "actions",
@@ -146,8 +151,8 @@ export default {
       this.params.page = page;
       await this.getContests();
     },
-    formatDate(date) {
-      return moment(date).format("DD/MM/YYYY");
+    formatMoney(value) {
+      return moneyFormat(value);
     },
   },
 };

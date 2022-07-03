@@ -26,6 +26,7 @@ import AdminContestList from "../views/admin/ContestList";
 import AdminContestCreate from "../views/admin/ContestCreate";
 import AdminContestDetail from "../views/admin/ContestDetail";
 import AdminContestManage from "../views/admin/ContestManage";
+import AdminContestOrders from "../views/admin/ContestOrders";
 import AdminCustomerList from "../views/admin/CustomerList";
 import AdminCustomerDetail from "../views/admin/CustomerDetail";
 import AdminBankAccountList from "../views/admin/BankAccountList";
@@ -147,6 +148,14 @@ const routes = [
         name: "adminContestManage",
         path: "/admin/sorteios/:id/gerenciar",
         component: AdminContestManage,
+        meta: {
+          adminRoute: true,
+        },
+      },
+      {
+        name: "adminContestOrders",
+        path: "/admin/sorteios/:id/pedidos",
+        component: AdminContestOrders,
         meta: {
           adminRoute: true,
         },

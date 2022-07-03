@@ -40,7 +40,7 @@
             >
           </b-button-group>
         </b-col>
-        <b-col md="6" lg="4" offset-lg="2">
+        <b-col md="6">
           <!-- TODO: Filtros de nome e whatsapp -->
           <users-select
             @select="handleFilterByCustomer"
@@ -99,7 +99,7 @@
           </b-row>
         </b-col>
         <b-col md="6" lg="4">
-          <b-button
+          <!-- <b-button
             variant="danger"
             size="lg"
             class="mb-2 w-100"
@@ -107,14 +107,14 @@
             @click="$bvModal.show('confirmation-paid-modal')"
           >
             Marcar selecionados como pago
-          </b-button>
+          </b-button> -->
           <b-button
             variant="success"
             size="lg"
             class="w-100"
             @click="$bvModal.show('confirmation-free-modal')"
           >
-            Marcar reservados como disponível
+            Marcar todos os reservados como disponível
           </b-button>
         </b-col>
       </b-row>
@@ -130,7 +130,7 @@
     </div>
 
     <!-- Modal confirmar pagamento dos números -->
-    <b-modal
+    <!-- <b-modal
       id="confirmation-paid-modal"
       ok-variant="danger"
       ok-title="Sim, confirmo o pagamento"
@@ -149,7 +149,7 @@
         </p>
         <p><strong>Deseja confirmar o pagamento?</strong></p>
       </div>
-    </b-modal>
+    </b-modal> -->
 
     <!-- Modal confirmar liberação de números -->
     <b-modal
@@ -177,12 +177,12 @@ import ContestNumberVue from "@/components/Contests/ContestNumber.vue";
 import ContestPercentageForm from "@/components/Contests/Admin/ContestPercentageForm.vue";
 import UsersSelectVue from "@/components/Users/UsersSelect.vue";
 
-import { getContest, editContest } from "@/services/contests";
 import {
   adminFreeNumbers,
-  adminPaidNumbers,
+  // adminPaidNumbers,
   listNumbers,
 } from "@/services/numbers";
+import { getContest, editContest } from "@/services/contests";
 
 export default {
   name: "AdminContestManage",
@@ -203,12 +203,7 @@ export default {
       quantity: 0,
       partial: 300,
       current: 0,
-      percentageInfo: {
-        show_percentage: false,
-        use_custom_percentage: false,
-        paid_percentage: 0,
-        custom_percentage: 0,
-      },
+      percentageInfo: null,
     };
   },
   mounted() {
@@ -248,8 +243,14 @@ export default {
     },
     async handleChangePercentage(obj) {
       try {
-        this.loading = true;
         let result;
+
+        if (obj.selected === "hidden") {
+          result = await editContest(this.contestId, {
+            show_percentage: false,
+            use_custom_percentage: false,
+          });
+        }
 
         if (obj.selected === "use_true") {
           result = await editContest(this.contestId, {
@@ -266,6 +267,13 @@ export default {
           });
         }
 
+        this.percentageInfo = {
+          show_percentage: result?.show_percentage,
+          use_custom_percentage: result?.use_custom_percentage,
+          paid_percentage: result?.paid_percentage,
+          custom_percentage: result?.custom_percentage,
+        };
+
         this.$toasted.show(result.message, {
           type: "success",
           theme: "toasted-primary",
@@ -279,8 +287,6 @@ export default {
           position: "top-right",
           duration: 3000,
         });
-      } finally {
-        this.loading = false;
       }
     },
     async handleFilterByCustomer(customerId) {
@@ -298,31 +304,31 @@ export default {
 
       this.loading = false;
     },
-    async handlePaidCustomerNumbers() {
-      try {
-        this.loading = true;
+    // async handlePaidCustomerNumbers() {
+    //   try {
+    //     this.loading = true;
 
-        const result = await adminPaidNumbers(this.contestId, {
-          customer_id: this.customerId,
-        });
+    //     const result = await adminPaidNumbers(this.contestId, {
+    //       customer_id: this.customerId,
+    //     });
 
-        this.$toasted.show(result.message, {
-          type: "success",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
-      } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
-      } finally {
-        await this.getContestData(this.contestId);
-      }
-    },
+    //     this.$toasted.show(result.message, {
+    //       type: "success",
+    //       theme: "toasted-primary",
+    //       position: "top-right",
+    //       duration: 3000,
+    //     });
+    //   } catch (error) {
+    //     this.$toasted.show(error.message, {
+    //       type: "error",
+    //       theme: "toasted-primary",
+    //       position: "top-right",
+    //       duration: 3000,
+    //     });
+    //   } finally {
+    //     await this.getContestData(this.contestId);
+    //   }
+    // },
     async handleFreeNumbers() {
       try {
         this.loading = true;

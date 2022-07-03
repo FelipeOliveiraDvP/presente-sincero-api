@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Enums\ContestStatus;
 use App\Enums\NumberStatus;
+use App\Enums\OrderStatus;
 use App\Models\Contest;
 use App\Models\Gallery;
+use App\Models\Order;
 use App\Models\Sale;
 use App\Models\User;
 use App\Traits\NumbersHelper;
@@ -41,7 +43,8 @@ class ContestController extends Controller
                 'short_description',
                 'start_date',
                 'price',
-                'quantity'
+                'quantity',
+                'paid_percentage'
             ]);
 
         return response()->json($contests);
@@ -87,6 +90,44 @@ class ContestController extends Controller
             ]);
 
         return response()->json($contests);
+    }
+
+    /**
+     * Lista os pedidos do sorteio
+     * 
+     * @param int $id
+     * @param Request $request
+     * 
+     * @return JsonResponse
+     */
+    public function getContestOrders(int $id, Request $request)
+    {
+        $search = $request->query('search');
+
+        $customer = User::whereOr('name', 'LIKE', "%{$search}%")
+            ->whereOr('whatsapp', 'LIKE', "%{$search}%")
+            ->whereOr('email', 'LIKE', "%{$search}%")
+            ->first();
+
+        $orders = Order::with('user:id,name,whatsapp')
+            ->with('contest:id,title,price')
+            ->where('contest_id', '=', $id)
+            ->where('status', '=', OrderStatus::PENDING)
+            ->whereOr('user_id', '=', $customer ? $customer->id : null)
+            ->orderBy('created_at', 'desc')
+            ->paginate(20, [
+                'id',
+                'contest_id',
+                'user_id',
+                'total',
+                'numbers',
+                'status',
+                'confirmed_at',
+                'created_at',
+                'updated_at'
+            ]);
+
+        return response()->json($orders);
     }
 
     /**

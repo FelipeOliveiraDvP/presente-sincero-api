@@ -12,6 +12,10 @@ export async function listContestsByUser(params) {
   return api.get("contests/manage", params);
 }
 
+export async function listContestOrders(id, params) {
+  return api.get(`contests/manage/${id}/orders`, params);
+}
+
 export async function createContest(contest) {
   return api.post("contests/manage", contest);
 }

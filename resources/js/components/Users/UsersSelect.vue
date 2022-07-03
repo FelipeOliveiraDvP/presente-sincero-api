@@ -1,55 +1,22 @@
 <template>
-  <div>
-    <div
-      class="
-        p-2
-        border
-        rounded
-        d-flex
-        justify-content-between
-        align-items-center
-      "
-    >
-      <p class="m-0">
-        {{ selectedUser ? selectedUser.name : "Pesquisar clientes" }}
-      </p>
-      <div>
-        <b-button
-          variant="primary"
-          size="sm"
-          @click="$bvModal.show('users-select-modal')"
-        >
-          <font-awesome-icon icon="fa-solid fa-search" />
-        </b-button>
-        <b-button
-          v-if="selectedUser !== null"
-          variant="danger"
-          size="sm"
-          @click="handleClearFilter"
-        >
-          <font-awesome-icon icon="fa-solid fa-times" />
-        </b-button>
-      </div>
+  <div class="relative">
+    <div class="input-group">
+      <input
+        class="form-control"
+        type="text"
+        placeholder="Pesquisar clientes por nome, WhatsApp ou e-mail"
+        v-model="search"
+        @input="handleSearch"
+      />
+      <b-button variant="danger" size="sm" @click="handleClearFilter">
+        <font-awesome-icon icon="fa-solid fa-times" />
+      </b-button>
     </div>
-    <b-modal id="users-select-modal" title="Pesquisar clientes" hide-footer>
-      <div class="mb-3">
-        <input
-          id="whatsapp"
-          class="form-control mb-2"
-          type="number"
-          placeholder="WhatsApp"
-          v-model="search.whatsapp"
-          @input="handleSearch"
-        />
-        <input
-          id="name"
-          class="form-control"
-          type="text"
-          placeholder="Nome do cliente"
-          v-model="search.name"
-          @input="handleSearch"
-        />
-      </div>
+
+    <div
+      class="absolute bg-white p-2 rounded text-black mt-1"
+      v-if="showResults"
+    >
       <p>Resultados da pesquisa</p>
       <my-loader v-if="loading" />
       <p
@@ -68,7 +35,7 @@
           >{{ user.name }}
         </b-list-group-item>
       </b-list-group>
-    </b-modal>
+    </div>
   </div>
 </template>
 
@@ -86,10 +53,8 @@ export default {
     return {
       loading: false,
       selectedUser: null,
-      search: {
-        whatsapp: "",
-        name: "",
-      },
+      showResults: false,
+      search: "",
       users: [],
     };
   },
@@ -100,24 +65,26 @@ export default {
     async getUsersData() {
       this.loading = true;
 
-      const result = await listUsers(this.search);
+      const result = await listUsers({ search: this.search });
 
       this.users = result.data;
       this.loading = false;
     },
     handleSelectUser(user) {
       this.selectedUser = { ...user };
+      this.showResults = false;
       this.$emit("select", user.id);
-      this.$bvModal.hide("users-select-modal");
     },
     handleClearFilter() {
       this.selectedUser = null;
+      this.showResults = false;
       this.$emit("clear");
     },
     handleSearch: debounce(async function (e) {
-      const { id, value } = e.target;
+      const { value } = e.target;
 
-      this.search[id] = value;
+      this.search = value;
+      this.showResults = true;
 
       await this.getUsersData();
     }, 500),

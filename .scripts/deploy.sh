@@ -13,6 +13,9 @@ git pull origin production
 # Install composer dependencies
 composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
+# Clear the routes cache
+php artisan route:cache
+
 # Clear the old cache
 php artisan clear-compiled
 
@@ -22,7 +25,7 @@ php artisan optimize
 # Install node depencencies
 npm install --legacy-peer-deps
 
-# Compile npm assets
+# Compile frontend assets
 npm run prod
 
 # Run database migrations
