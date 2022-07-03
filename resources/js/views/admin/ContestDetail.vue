@@ -248,6 +248,7 @@ import {
   minLength,
 } from "vuelidate/lib/validators";
 import moment from "moment";
+import isEmpty from "lodash.isempty";
 
 import SalesFormVue from "@/components/Contests/Admin/SalesForm.vue";
 import GalleryFormVue from "@/components/Contests/Admin/GalleryForm.vue";
@@ -325,6 +326,16 @@ export default {
               duration: 3000,
             }
           );
+          return;
+        }
+
+        if (isEmpty(full_description)) {
+          this.$toasted.show("Informe a descrição completa para o sorteio", {
+            type: "error",
+            theme: "toasted-primary",
+            position: "top-right",
+            duration: 3000,
+          });
           return;
         }
 

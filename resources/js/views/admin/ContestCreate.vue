@@ -242,13 +242,14 @@ import {
   minLength,
 } from "vuelidate/lib/validators";
 import { validationMixin } from "vuelidate";
+import moment from "moment";
+import isEmpty from "lodash.isempty";
 
 import SalesFormVue from "@/components/Contests/Admin/SalesForm.vue";
 import GalleryFormVue from "@/components/Contests/Admin/GalleryForm.vue";
 
 import { createContest } from "@/services/contests";
 import { listBankAccounts } from "@/services/bankAccounts";
-import moment from "moment";
 
 export default {
   name: "AdminContestCreate",
@@ -302,7 +303,7 @@ export default {
   methods: {
     async onSubmit() {
       try {
-        const { bank_accounts, gallery, price } = this.contest;
+        const { bank_accounts, gallery, full_description } = this.contest;
 
         this.$v.contest.$touch();
 
@@ -316,6 +317,16 @@ export default {
               duration: 3000,
             }
           );
+          return;
+        }
+
+        if (isEmpty(full_description)) {
+          this.$toasted.show("Informe a descrição completa para o sorteio", {
+            type: "error",
+            theme: "toasted-primary",
+            position: "top-right",
+            duration: 3000,
+          });
           return;
         }
 

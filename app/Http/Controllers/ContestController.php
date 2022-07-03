@@ -154,7 +154,7 @@ class ContestController extends Controller
             'start_date'        => $request->start_date,
             'contest_date'      => $request->contest_date ?? null,
             'max_reserve_days'  => $request->max_reserve_days ?? 1,
-            'price'             => $request->price / 100,
+            'price'             => $request->price,
             'quantity'          => $request->quantity,
             'short_description' => $request->short_description,
             'full_description'  => $request->full_description,
@@ -171,7 +171,7 @@ class ContestController extends Controller
             Sale::create([
                 'contest_id'    => $contest_created->id,
                 'quantity'      => $sale['quantity'],
-                'price'         => $sale['price'] / 100,
+                'price'         => $sale['price'],
             ]);
         }
 
