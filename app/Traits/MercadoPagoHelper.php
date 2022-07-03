@@ -6,6 +6,7 @@ use App\Models\Contest;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 use MercadoPago;
 
 // TODO: Gerenciar comissões para aplicação no Mercado Pago e contas dos vendedores.
@@ -22,8 +23,7 @@ trait MercadoPagoHelper
    */
   protected function createPayment(Order $order, User $user, Contest $contest)
   {
-    // MercadoPago\SDK::setAccessToken(env('MERCADO_PAGO_PUBLIC'));
-    MercadoPago\SDK::setAccessToken("APP_USR-2306247977509923-042715-d807d8e7e04369b64d2258788140bfc5-1111566559");
+    MercadoPago\SDK::setAccessToken(Config::get('ps.MERCADO_PAGO_PUBLIC'));
 
     $payment = new MercadoPago\Payment();
 
@@ -34,7 +34,7 @@ trait MercadoPagoHelper
     $payment->external_reference = $order->id;
     $payment->payment_method_id = "pix";
     $payment->date_of_expiration = $expiration;
-    $payment->notification_url = env('MERCADO_PAGO_WEBHOOK');
+    $payment->notification_url = Config::get('ps.MERCADO_PAGO_WEBHOOK');
     $payment->payer = [
       'first_name' => $user->name,
       'last_name' => 'ps',
@@ -66,7 +66,7 @@ trait MercadoPagoHelper
   {
     if (empty($data)) return false;
 
-    MercadoPago\SDK::setAccessToken(env('MERCADO_PAGO_PUBLIC'));
+    MercadoPago\SDK::setAccessToken(Config::get('ps.MERCADO_PAGO_PUBLIC'));
 
     $payment = MercadoPago\Payment::find_by_id($data['data']['id']);
 

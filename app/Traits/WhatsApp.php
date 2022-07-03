@@ -5,6 +5,7 @@ namespace App\Traits;
 use App\Models\Contest;
 use App\Models\Order;
 use App\Models\User;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 
 // TODO: Estudar possibilidade de trocar para o Twilio
@@ -95,7 +96,7 @@ trait WhatsApp
    */
   protected function sendRecoveryMessage(User $user, string $code)
   {
-    $verify_link = getenv('APP_URL') . "/verificar-codigo";
+    $verify_link = env('APP_URL') . "/verificar-codigo";
 
     $message = "Olá *{$user->name}*, tudo bem?\n\n";
     $message .= "Utilize o código abaixo para recuperar sua senha no *Presente Sincero*.\n\n";
@@ -116,9 +117,9 @@ trait WhatsApp
    */
   protected function sendMessage(User $user, string $message)
   {
-    $api =  getenv('API_CHATPRO_URL') . '/api/v1/send_message';
+    $api =  Config::get('ps.API_CHATPRO_URL') . '/api/v1/send_message';
     $headers = [
-      'Authorization' =>  getenv('API_CHATPRO_TOKEN'),
+      'Authorization' =>  Config::get('ps.API_CHATPRO_TOKEN'),
       'Content-Type' =>  'application/json'
     ];
 
