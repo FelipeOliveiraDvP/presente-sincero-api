@@ -201,6 +201,13 @@ export default {
       return isCurrentUser && isCurrentOrder && isConfirmed;
     },
   },
+  watch: {
+    paymentConfirmed(newVal, oldVal) {
+      if (newVal === true) {
+        this.leaving = false;
+      }
+    },
+  },
   methods: {
     async getQRCode() {
       try {
