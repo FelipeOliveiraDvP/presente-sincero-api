@@ -53,7 +53,6 @@ const app = new Vue({
           confirmed: e.confirmed,
         };
 
-        console.log(payment);
         await this.$store.dispatch("payment/confirmPayment", payment);
       }
     );
