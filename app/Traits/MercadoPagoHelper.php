@@ -2,10 +2,10 @@
 
 namespace App\Traits;
 
+use App\Events\PaymentProcessing;
 use App\Models\Contest;
 use App\Models\Order;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use MercadoPago;
@@ -38,7 +38,7 @@ trait MercadoPagoHelper
     $payment->notification_url = Config::get('ps.MERCADO_PAGO_WEBHOOK');
     $payment->payer = [
       'first_name' => $user->name,
-      'last_name' => 'ps',
+      'last_name' => "Cliente-{$user->id}",
       'email' => $user->email ?? 'test@email.com',
       'identification' => [
         'type' => 'customer',
@@ -46,21 +46,11 @@ trait MercadoPagoHelper
       ]
     ];
 
-    Log::warning('Debugar Mercado Pago', array(
-      'payment' => $payment,
-      'exp'     => $expiration,
-      'access'  => Config::get('ps.MERCADO_PAGO_PUBLIC'),
-      'webhook'  => Config::get('ps.MERCADO_PAGO_WEBHOOK'),
-    ));
-
     $payment->save();
-
-
-
-    // return $payment;
 
     return [
       'payment_id' => $payment->id,
+      'order_id' => $order->id,
       'qrcode_base64' => $payment->point_of_interaction->transaction_data->qr_code_base64,
       'ticket_url' => $payment->point_of_interaction->transaction_data->ticket_url,
       'qr_code' => $payment->point_of_interaction->transaction_data->qr_code,

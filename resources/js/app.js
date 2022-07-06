@@ -1,3 +1,7 @@
+require("./bootstrap");
+
+window.Vue = require("vue");
+
 import Vue from "vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueFormulate from "@braid/vue-formulate";
@@ -39,4 +43,19 @@ const app = new Vue({
   router: router,
   store: store,
   render: (h) => h(App),
+  created() {
+    window.Echo.channel("payment.confirmed").listen(
+      "PaymentConfirmed",
+      async (e) => {
+        const payment = {
+          userId: e.user_id,
+          orderId: e.order_id,
+          confirmed: e.confirmed,
+        };
+
+        console.log(payment);
+        await this.$store.dispatch("payment/confirmPayment", payment);
+      }
+    );
+  },
 });

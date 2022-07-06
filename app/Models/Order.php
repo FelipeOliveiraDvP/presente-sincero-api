@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\PaymentProcessing;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -54,6 +55,12 @@ class Order extends Model
   protected $casts = [
     'total' => 'double'
   ];
+
+  // protected $guarded = [];
+
+  // protected $dispatchesEvents = [
+  //   'created' => PaymentProcessing::class,
+  // ];
 
   public function contest()
   {

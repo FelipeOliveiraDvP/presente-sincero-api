@@ -166,14 +166,14 @@ export default {
         price: 0,
       },
       payment: {
+        order_id: null,
         qrcode_base64: "",
         qr_code: "",
       },
-      paymentConfirmed: false,
     };
   },
   created() {
-    const { numbers, total, details } = this.$router.history.current.params;
+    const { numbers, total, details } = this.$route.params;
 
     if (!numbers || !total || !details) {
       this.$router.push({
@@ -188,9 +188,18 @@ export default {
     this.leaving = true;
 
     window.addEventListener("beforeunload", this.showLeaveConfirmation);
-  },
-  mounted() {
+
     this.getQRCode();
+  },
+  computed: {
+    paymentConfirmed() {
+      const { auth, payment } = this.$store.state;
+      const isCurrentUser = auth.user.id === payment.userId;
+      const isCurrentOrder = payment.orderId === this.payment.order_id;
+      const isConfirmed = payment.confirmed === true;
+
+      return isCurrentUser && isCurrentOrder && isConfirmed;
+    },
   },
   methods: {
     async getQRCode() {

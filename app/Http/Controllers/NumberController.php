@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Enums\NumberStatus;
 use App\Enums\OrderStatus;
+use App\Events\PaymentConfirmed;
+use App\Events\PaymentProcessing;
 use App\Models\Contest;
 use App\Models\Order;
 use App\Models\User;
@@ -145,8 +147,6 @@ class NumberController extends Controller
         $contest->update();
 
         $payment = $this->createPayment($order, $user, $contest);
-
-        // return response()->json(['debug' => $payment]);
 
         if (getenv('APP_ENV') != 'local') {
             $this->sendReservationMessage($user, $contest, $order, $payment);
@@ -342,8 +342,11 @@ class NumberController extends Controller
             $order->confirmed_at = Carbon::now();
             $order->update();
 
+            broadcast(new PaymentConfirmed($user->id, $order->id));
+            event(new PaymentConfirmed($user->id, $order->id));
+
             $this->sendConfirmationMessage($user, $contest, $order);
-            // TODO: Chamar o WebSocket para atualizar a página de pedido
+
             return response()->json(['message' => 'Pagamento dos números confirmado com sucesso'], 200);
         }
 
