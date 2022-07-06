@@ -376,6 +376,7 @@ export default {
             title: this.contest.title,
             slug: this.contest.slug,
             short_description: this.contest.short_description,
+            whatsapp_group: this.contest.whatsapp_group,
             price: this.contest.price,
             sale: this.currentSale,
           },

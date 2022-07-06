@@ -17,7 +17,15 @@
 
           <div>
             <p><strong>Meus números</strong></p>
-            <p>
+            <p v-if="numbers.length > 100">
+              {{
+                numbers
+                  .map((n) => n.number)
+                  .splice(0, 10)
+                  .join(", ")
+              }}
+            </p>
+            <p v-else>
               <b-row style="max-height: 120px; overflow-y: auto">
                 <b-col
                   :key="number.number"
@@ -78,7 +86,26 @@
             <div class="icon text-success">
               <i class="fas fa-check-circle"></i>
             </div>
-            <p>Pagamento recebido com sucesso. Boa sorte!</p>
+            <p class="fs-3">Recebemos o seu pagamento. Obrigado!</p>
+            <p class="fs-5">
+              Seus números: {{ numbers.map((n) => n.number).join(", ") }}
+            </p>
+            <p>
+              Para acompanhar o sorteio, você deve entrar no grupo do WhatsApp
+              abaixo:
+            </p>
+            <a
+              :href="details.whatsapp_group"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ details.whatsapp_group }}
+            </a>
+            <p class="mt-2">
+              <strong>IMPORTANTE:</strong> É obrigatório permanecer no grupo até
+              o término do sorteio
+            </p>
+
             <router-link :to="`/sorteios/${this.details.slug}`">
               <b-button variant="primary">Escolher mais números</b-button>
             </router-link>
