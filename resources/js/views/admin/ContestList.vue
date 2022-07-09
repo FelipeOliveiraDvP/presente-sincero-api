@@ -76,7 +76,7 @@
 
 <script>
 import moneyFormat from "@/utils/moneyFormat";
-import { listContests } from "@/services/contests";
+import { listContestsByUser } from "@/services/contests";
 
 export default {
   name: "AdminContestList",
@@ -136,7 +136,7 @@ export default {
       try {
         this.loading = true;
 
-        const result = await listContests(this.params);
+        const result = await listContestsByUser(this.params);
 
         this.items = result.data;
         this.pager = {
