@@ -3,74 +3,83 @@
     <h2>Pedidos</h2>
 
     <div class="my-4 d-flex justify-content-end">
-      <b-form-input
+      <input
+        class="form-control"
         v-model="params.search"
         placeholder="Pesquisar cliente por nome, WhatsApp ou e-mail"
-      ></b-form-input>
+        @input="handleSearch"
+      />
     </div>
 
-    <b-table
-      id="contest-list"
-      class="text-white"
-      :fields="fields"
-      :items="items"
-      :busy.sync="loading"
-    >
-      <template #cell(contest)="data">
-        {{ data.item.contest.title }}
-      </template>
+    <div class="table-responsive">
+      <b-table
+        id="contest-list"
+        class="text-white"
+        :fields="fields"
+        :items="items"
+        :busy.sync="loading"
+      >
+        <template v-slot:head()="scope">
+          <div style="width: 150px">{{ scope.label }}</div>
+        </template>
 
-      <template #cell(customer)="data">
-        {{ data.item.user.name }}
-      </template>
+        <template #cell(customer)="data">
+          {{ data.item.user.name }}
+        </template>
 
-      <template #cell(total)="data">
-        {{ formatMoney(data.item.total) }}
-      </template>
+        <template #cell(whatsapp)="data">
+          {{ data.item.user.whatsapp }}
+          <a
+            :href="whatsAppLink(data.item)"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <b-button
+              variant="success"
+              class="rounded-circle ml-1"
+              :title="`Conversar com ${data.item.user.name}`"
+              v-b-tooltip.hover.top
+            >
+              <font-awesome-icon icon="fa-brands fa-whatsapp" />
+            </b-button>
+          </a>
+        </template>
 
-      <template #cell(numbers)="data">
-        <span :title="contestNumbers(data.item)" v-b-tooltip.hover.bottom>
-          {{ contestNumbers(data.item, 10) }}
-        </span>
-      </template>
+        <template #cell(total)="data">
+          {{ formatMoney(data.item.total) }}
+        </template>
 
-      <template #cell(created_at)="data">
-        {{ formatDate(data.item.created_at) }}
-      </template>
+        <template #cell(numbers)="data">
+          <span :title="contestNumbers(data.item)" v-b-tooltip.hover.bottom>
+            {{ contestNumbers(data.item, 10) }}
+          </span>
+        </template>
 
-      <template #cell(actions)="data">
-        <b-button
-          variant="primary"
-          title="Marcar como pago"
-          @click="openConfirmationModal(data.item)"
-          v-b-tooltip.hover.top
-        >
-          <i class="fa-solid fa-money-bill-1"></i>
-        </b-button>
+        <template #cell(created_at)="data">
+          {{ formatDate(data.item.created_at) }}
+        </template>
 
-        <a
-          :href="whatsAppLink(data.item)"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <template #cell(actions)="data">
           <b-button
-            variant="success"
-            :title="`Conversar com ${data.item.user.name}`"
+            variant="primary"
+            title="Marcar como pago"
+            @click="openConfirmationModal(data.item)"
             v-b-tooltip.hover.top
           >
-            <font-awesome-icon icon="fa-brands fa-whatsapp" />
+            <i class="fa-solid fa-money-bill-1"></i>
           </b-button>
-        </a>
 
-        <b-button
-          variant="danger"
-          title="Cancelar e liberar números"
-          v-b-tooltip.hover.top
-        >
-          <i class="fa-regular fa-trash-can"></i>
-        </b-button>
-      </template>
-    </b-table>
+          <b-button
+            variant="danger"
+            title="Cancelar pedido"
+            v-b-tooltip.hover.top
+            @click="openCancelOrderModal(data.item)"
+          >
+            <i class="fa-regular fa-trash-can"></i>
+          </b-button>
+        </template>
+      </b-table>
+    </div>
 
     <b-pagination
       :v-model="params.page"
@@ -106,14 +115,34 @@
         <p><strong>Deseja confirmar o pagamento?</strong></p>
       </div>
     </b-modal>
+
+    <!-- Modal confirmar liberação de números -->
+    <b-modal
+      id="cancel-order-modal"
+      ok-variant="danger"
+      ok-title="Sim, desejo cancelar o pedido"
+      cancel-title="Não"
+      @ok="handleCancelOrder"
+    >
+      <template #modal-title> Cancelar pedido </template>
+      <div>
+        <p>
+          Ao clicar no botão sim, o pedido será cancelado e os números vão ser
+          disponibilizados novamente.
+        </p>
+        <p><strong>Deseja realmente cancelar o pedido?</strong></p>
+      </div>
+    </b-modal>
   </b-container>
 </template>
 
 <script>
+import debounce from "lodash.debounce";
 import moment from "moment";
 import moneyFormat from "@/utils/moneyFormat";
+
 import { listContestOrders } from "@/services/contests";
-import { adminPaidNumbers } from "@/services/numbers";
+import { adminPaidNumbers, adminCancelOrder } from "@/services/numbers";
 
 export default {
   name: "AdminContestOrders",
@@ -135,14 +164,14 @@ export default {
       },
       fields: [
         {
-          key: "contest",
-          sortable: true,
-          label: "Sorteio",
-        },
-        {
           key: "customer",
           sortable: true,
           label: "Cliente",
+        },
+        {
+          key: "whatsapp",
+          sortable: false,
+          label: "WhatsApp",
         },
         {
           key: "total",
@@ -208,6 +237,13 @@ export default {
         this.loading = false;
       }
     },
+    handleSearch: debounce(async function (e) {
+      const { value } = e.target;
+
+      this.params.search = value;
+
+      await this.getContestOrders();
+    }, 500),
     async handlePaginate(page) {
       this.params.page = page;
       await this.getContestOrders();
@@ -220,6 +256,14 @@ export default {
       this.$bvModal.hide("confirmation-payment");
       this.order = {};
     },
+    openCancelOrderModal(item) {
+      this.$bvModal.show("cancel-order-modal");
+      this.order = { ...item, numbers: JSON.parse(item.numbers) };
+    },
+    closeCancelOrderModal() {
+      this.$bvModal.hide("cancel-order-modal");
+      this.order = {};
+    },
     async handleConfirmationPayment() {
       try {
         const { id } = this.$route.params;
@@ -229,6 +273,31 @@ export default {
         const result = await adminPaidNumbers(id, {
           customer_id: this.order.user.id,
         });
+
+        this.getContestOrders();
+
+        this.$toasted.show(result.message, {
+          type: "success",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
+      } catch (error) {
+        this.$toasted.show(error.message, {
+          type: "error",
+          theme: "toasted-primary",
+          position: "top-right",
+          duration: 3000,
+        });
+      } finally {
+        this.loading = false;
+      }
+    },
+    async handleCancelOrder() {
+      try {
+        this.loading = true;
+
+        const result = await adminCancelOrder(this.order.id);
 
         this.getContestOrders();
 

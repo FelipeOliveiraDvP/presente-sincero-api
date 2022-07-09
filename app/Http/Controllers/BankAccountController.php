@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BankAccount;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -143,5 +144,21 @@ class BankAccountController extends Controller
         $bank_account->delete();
 
         return response()->json(['message' => 'Conta removida com sucesso!'], 200);
+    }
+
+    /**
+     * Salva o token de acesso do Mercado Pago do cliente
+     * 
+     * @param Request $request
+     * 
+     * @return JsonResponse
+     */
+    public function saveMPAccessToken(Request $request)
+    {
+        $user = User::find(auth('sanctum')->user()->id);
+        $user->mp_access_token = $request->mp_access_token;
+        $user->update();
+
+        return response()->json(['message' => 'Token salvo com sucesso!'], 200);
     }
 }

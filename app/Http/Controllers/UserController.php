@@ -24,7 +24,6 @@ class UserController extends Controller
                 'id',
                 'name',
                 'whatsapp',
-                'role',
                 'email',
                 'avatar',
                 'created_at',

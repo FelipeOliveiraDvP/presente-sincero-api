@@ -104,16 +104,16 @@ class ContestController extends Controller
     {
         $search = $request->query('search');
 
-        $customer = User::whereOr('name', 'LIKE', "%{$search}%")
-            ->whereOr('whatsapp', 'LIKE', "%{$search}%")
-            ->whereOr('email', 'LIKE', "%{$search}%")
-            ->first();
-
-        $orders = Order::with('user:id,name,whatsapp')
+        $orders = Order::with('user')
             ->with('contest:id,title,price')
             ->where('contest_id', '=', $id)
             ->where('status', '=', OrderStatus::PENDING)
-            ->whereOr('user_id', '=', $customer ? $customer->id : null)
+            ->whereIn('user_id', function ($query) use ($search) {
+                $query->select('id')
+                    ->from('users')
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhere('whatsapp', 'like', "%{$search}%");
+            })
             ->orderBy('created_at', 'desc')
             ->paginate(20, [
                 'id',

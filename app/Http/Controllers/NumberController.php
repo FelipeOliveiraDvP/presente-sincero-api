@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Enums\NumberStatus;
 use App\Enums\OrderStatus;
 use App\Events\PaymentConfirmed;
-use App\Events\PaymentProcessing;
 use App\Models\Contest;
 use App\Models\Order;
 use App\Models\User;
@@ -181,7 +180,7 @@ class NumberController extends Controller
         $user = auth('sanctum')->user();
         $reserved_numbers = $this->getContestNumbersByStatus($contest_id, NumberStatus::RESERVED);
 
-        $mapped_numbers = collect($reserved_numbers)->map(function ($item, $key) {
+        $mapped_numbers = collect($reserved_numbers)->map(function ($item) {
             return $item->number;
         })->all();
 
@@ -256,6 +255,44 @@ class NumberController extends Controller
         $this->sendConfirmationMessage($customer, $contest, $order);
 
         return response()->json(['message' => 'Pagamento dos números confirmado com sucesso'], 200);
+    }
+
+    /**
+     * Cancela um pedido e libera os números reservados
+     *      
+     * @param int $order_id     
+     * 
+     * @return JsonResponse
+     */
+    public function adminCancelOrder(int $order_id)
+    {
+        $order = Order::find($order_id);
+
+        if (empty($order)) {
+            return response()->json([
+                'message' => 'O pedido informado não está mais disponível'
+            ], 404);
+        }
+
+        $user = auth('sanctum')->user();
+        $order_numbers = json_decode($order->numbers);
+        $contest = Contest::find($order->contest_id);
+
+        $numbers = $this->setContestNumbersAsFree($contest->id, $order_numbers, $user);
+
+        if ($numbers == false || empty($contest)) {
+            return response()->json([
+                'message' => 'Ocorreu um erro ao cancelar o pedido',
+            ], 400);
+        }
+
+        $contest->numbers = $numbers;
+        $contest->update();
+
+        $order->status = OrderStatus::CANCELED;
+        $order->update();
+
+        return response()->json(['message' => 'O pedido foi cancelado com sucesso'], 200);
     }
 
     /**

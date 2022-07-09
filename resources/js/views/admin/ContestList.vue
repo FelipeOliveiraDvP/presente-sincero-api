@@ -1,61 +1,67 @@
 <template>
   <div>
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex justify-content-between align-items-center mb-3">
       <h2>Sorteios</h2>
       <router-link class="btn btn-primary" to="/admin/sorteios/novo-sorteio">
         Novo sorteio
       </router-link>
     </div>
 
-    <div class="my-4 d-flex justify-content-between">
-      <div>
+    <b-row>
+      <b-col sm="12" md="6" lg="4" class="mb-3">
         <b-form-datepicker
           placeholder="Pesquisar por data"
           v-model="params.date"
-          style="width: 300px"
         ></b-form-datepicker>
-      </div>
+      </b-col>
 
-      <b-form-input
-        v-model="params.title"
-        placeholder="Pesquisar sorteio"
-        style="width: 300px"
-      ></b-form-input>
+      <b-col sm="12" md="6" lg="4">
+        <b-form-input
+          v-model="params.title"
+          placeholder="Pesquisar sorteio"
+        ></b-form-input>
+      </b-col>
+    </b-row>
+
+    <div class="table-responsive">
+      <b-table
+        id="contest-list"
+        class="text-white"
+        :fields="fields"
+        :items="items"
+        :busy.sync="loading"
+      >
+        <template v-slot:head()="scope">
+          <div style="width: 150px">{{ scope.label }}</div>
+        </template>
+
+        <template #cell(price)="data">
+          {{ formatMoney(data.item.price) }}
+        </template>
+
+        <template #cell(paid_percentage)="data">
+          {{ `${data.item.paid_percentage * 100}%` }}
+        </template>
+
+        <template #cell(actions)="data">
+          <router-link :to="`/admin/sorteios/${data.item.id}`">
+            <b-button variant="primary">
+              <i class="fas fa-solid fa-pen"></i>
+            </b-button>
+          </router-link>
+          <router-link :to="`/admin/sorteios/${data.item.id}/gerenciar`">
+            <b-button variant="primary">
+              <font-awesome-icon :icon="['fas', 'gear']" class="icon alt" />
+            </b-button>
+          </router-link>
+          <router-link :to="`/admin/sorteios/${data.item.id}/pedidos`">
+            <b-button variant="primary">
+              <i class="fa-solid fa-file-invoice-dollar"></i>
+            </b-button>
+          </router-link>
+        </template>
+      </b-table>
     </div>
-
-    <b-table
-      id="contest-list"
-      class="text-white"
-      :fields="fields"
-      :items="items"
-      :busy.sync="loading"
-    >
-      <template #cell(price)="data">
-        {{ formatMoney(data.item.price) }}
-      </template>
-
-      <template #cell(paid_percentage)="data">
-        {{ `${data.item.paid_percentage * 100}%` }}
-      </template>
-
-      <template #cell(actions)="data">
-        <router-link :to="`/admin/sorteios/${data.item.id}`">
-          <b-button variant="primary">
-            <i class="fas fa-solid fa-pen"></i>
-          </b-button>
-        </router-link>
-        <router-link :to="`/admin/sorteios/${data.item.id}/gerenciar`">
-          <b-button variant="primary">
-            <font-awesome-icon :icon="['fas', 'gear']" class="icon alt" />
-          </b-button>
-        </router-link>
-        <router-link :to="`/admin/sorteios/${data.item.id}/pedidos`">
-          <b-button variant="primary">
-            <i class="fa-solid fa-file-invoice-dollar"></i>
-          </b-button>
-        </router-link>
-      </template>
-    </b-table>
 
     <b-pagination
       :v-model="params.page"

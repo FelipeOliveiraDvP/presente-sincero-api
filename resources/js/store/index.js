@@ -8,7 +8,7 @@ import payment from "./payment";
 Vue.use(Vuex);
 
 export default new Vuex.Store({
-  plugins: [createPersistedState({ key: "PS-APP" })],
+  plugins: [createPersistedState({ key: "PS-APP", paths: ["auth"] })],
   modules: {
     auth,
     payment,

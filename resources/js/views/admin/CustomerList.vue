@@ -5,24 +5,27 @@
     </div>
 
     <div class="my-4 d-flex justify-content-between">
-      <div></div>
-
       <b-form-input
         v-model="params.name"
         placeholder="Pesquisar cliente"
-        style="width: 300px"
       ></b-form-input>
     </div>
 
-    <b-table
-      id="customer-list"
-      class="text-white"
-      :fields="fields"
-      :items="items"
-      :per-page="params.perPage"
-      :current-page="params.currentPage"
-      :busy.sync="loading"
-    ></b-table>
+    <div class="table-responsive">
+      <b-table
+        id="customer-list"
+        class="text-white"
+        :fields="fields"
+        :items="items"
+        :per-page="params.perPage"
+        :current-page="params.currentPage"
+        :busy.sync="loading"
+      >
+        <template v-slot:head()="scope">
+          <div style="width: 150px">{{ scope.label }}</div>
+        </template>
+      </b-table>
+    </div>
 
     <b-pagination
       :v-model="params.page"

@@ -78,6 +78,7 @@ Route::controller(NumberController::class)->group(function () {
             Route::middleware(['auth.admin'])->group(function () {
                 Route::post('/{contest_id}/manage/paid', 'adminPaidNumbers');
                 Route::post('/{contest_id}/manage/free', 'adminFreeNumbers');
+                Route::delete('/{contest_id}/manage/cancel-order', 'adminCancelOrder');
             });
         });
 
@@ -93,6 +94,7 @@ Route::controller(BankAccountController::class)->group(function () {
      */
     Route::prefix('bank-accounts')->group(function () {
         Route::middleware(['auth.token', 'auth.admin'])->group(function () {
+            Route::put('/mercado-pago', 'saveMPAccessToken');
             Route::get('/', 'index');
             Route::post('/', 'create');
             Route::put('/{id}', 'edit');

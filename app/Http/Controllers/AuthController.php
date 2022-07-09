@@ -51,7 +51,7 @@ class AuthController extends Controller
             ], 400);
         }
 
-        $user = User::find($exists->id);
+        $user = User::find($exists->id)->makeHidden(['mp_access_token']);
 
         $token = $user->createToken('auth_token', $this->getUserAbilities($user->role))->plainTextToken;
 
@@ -115,7 +115,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token', $this->simpleCustomerAbilities())->plainTextToken;
 
         return response()->json([
-            'user'  => $user,
+            'user'  => $user->makeHidden(['mp_access_token'])->toArray(),
             'token' => $token
         ]);
     }
@@ -154,7 +154,7 @@ class AuthController extends Controller
         $token = $created->createToken('auth_token', $this->simpleCustomerAbilities())->plainTextToken;
 
         return response()->json([
-            'user'  => $created,
+            'user'  => $created->makeHidden(['mp_access_token'])->toArray(),
             'token' => $token
         ], 201);
     }
@@ -257,7 +257,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token', $this->getUserAbilities($user->role))->plainTextToken;
 
         return response()->json([
-            'user'  => $user,
+            'user'  => $user->makeHidden(['mp_access_token'])->toArray(),
             'token' => $token
         ]);
     }

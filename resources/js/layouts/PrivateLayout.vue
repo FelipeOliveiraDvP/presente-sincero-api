@@ -16,7 +16,7 @@
           <header
             class="w-100 p-2 d-flex justify-content-between align-items-center"
           >
-            <h1>LOGO</h1>
+            <div></div>
             <b-button variant="outline-danger" @click="logout">Sair</b-button>
           </header>
         </b-navbar>
@@ -43,7 +43,7 @@ export default {
   data() {
     return {
       initialShow: false,
-      header: "<h3>LOGO</h3>",
+      header: "<h3 class='mb-0'>LOGO</h3>",
       links: [
         {
           name: "Sorteios",
@@ -90,5 +90,11 @@ export default {
 };
 </script>
 
-<style>
+<style lang="scss">
+div#sidebarButton.sidebar-button.default-theme.cross.visible {
+  margin-top: 0 !important;
+}
+#content.sidebar {
+  margin-left: 0;
+}
 </style>

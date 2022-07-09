@@ -15,7 +15,9 @@ class CreateUsersTable extends Migration
     public function up()
     {
         Schema::create('users', function (Blueprint $table) {
-            DB::statement('SET SESSION sql_require_primary_key=0');
+            if (env('APP_ENV') == 'production') {
+                DB::statement('SET SESSION sql_require_primary_key=0');
+            }
 
             $table->id();
             $table->string('name');

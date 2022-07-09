@@ -14,7 +14,6 @@ return [
   /**
    * Mercado Pago Config
    */
-  'MERCADO_PAGO_PUBLIC' => env('MERCADO_PAGO_PUBLIC'),
   'MERCADO_PAGO_WEBHOOK' => env('MERCADO_PAGO_WEBHOOK'),
 
   /**

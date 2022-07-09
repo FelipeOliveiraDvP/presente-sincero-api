@@ -15,3 +15,7 @@ export async function editBankAccount(id, bankAccount) {
 export async function removeBankAccount(id) {
   return api.remove(`bank-accounts/${id}`);
 }
+
+export async function saveMPAccessToken(data) {
+  return api.update(`bank-accounts/mercado-pago`, data);
+}

@@ -3,7 +3,7 @@
     <h3>Promoções</h3>
 
     <b-row v-for="(sale, index) in contest.sales" :key="`sale-${index}`">
-      <b-col md="4">
+      <b-col sm="12" md="4">
         <b-form-group label="Números" label-for="sale_quantity">
           <b-form-input
             id="sale_quantity"
@@ -12,13 +12,8 @@
           ></b-form-input>
         </b-form-group>
       </b-col>
-      <b-col md="6">
+      <b-col cols="10" md="6">
         <b-form-group id="sale_price" label="Valor R$" label-for="sale_price">
-          <!-- <b-form-input
-            id="sale_price"
-            v-model="sale.price"
-            type="number"
-          ></b-form-input> -->
           <the-mask
             :mask="['#,##', '##,##', '###,##', '#.###,##']"
             class="form-control"
@@ -27,7 +22,7 @@
           ></the-mask>
         </b-form-group>
       </b-col>
-      <b-col md="2" class="d-flex align-items-end">
+      <b-col cols="2" md="2" class="d-flex align-items-end">
         <b-button variant="danger" @click="removeSale(index)">
           <font-awesome-icon icon="fa-solid fa-trash" />
         </b-button>
