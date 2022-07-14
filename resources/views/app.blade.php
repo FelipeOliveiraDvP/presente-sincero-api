@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="{{ mix('css/app.css') }}">
-    <title>{{ env('APP_NAME') }}</title>
+    <title>Rifandos</title>
+    <meta name="description" content="Realize seu sorteio ou rifa online com a Rifandos" />
 </head>
 
 <body>
