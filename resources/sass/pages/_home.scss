@@ -1,0 +1,37 @@
+.home-banner {
+  height: 600px;
+  max-height: 600px;
+  overflow-y: hidden;
+  background-position: center;
+  position: relative;
+  @media (max-width: 414px) {
+    & {
+      height: auto;
+    }
+  }
+  & .banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 600px;
+    width: 100%;
+    background: rgb(0, 0, 0);
+    background: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.8491771708683473) 0%,
+      rgba(255, 255, 255, 0.12648809523809523) 93%
+    );
+    padding: 4rem;
+    display: flex;
+    align-items: center;
+    @media (max-width: 414px) {
+      & {
+        padding: 1rem;
+        align-items: flex-start;
+        justify-content: center;
+        text-align: center;
+      }
+    }
+  }
+}

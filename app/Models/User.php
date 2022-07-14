@@ -36,9 +36,12 @@ class User extends Authenticatable
         'whatsapp',
         'email',
         'password',
+        'username',
         'avatar',
         'role',
-        'mp_access_token'
+        'mp_access_token',
+        'seller_approved',
+        'blocked',
     ];
 
     /**
@@ -49,6 +52,16 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'deleted_at',
+    ];
+
+    /**
+     * Cast attributes into other types.
+     * 
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'seller_approved' => 'boolean',
+        'blocked' => 'boolean',
     ];
 
     public function role()

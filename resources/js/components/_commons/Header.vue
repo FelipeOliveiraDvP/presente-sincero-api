@@ -7,7 +7,14 @@
   >
     <b-container>
       <b-navbar-brand class="logo">
-        <router-link to="/"> LOGO </router-link>
+        <router-link to="/">
+          <img
+            src="/img/logo.png"
+            alt="Rifandos"
+            class="img-fluid"
+            style="max-width: 200px"
+          />
+        </router-link>
       </b-navbar-brand>
 
       <b-navbar-toggle target="nav-collapse">
@@ -15,11 +22,12 @@
       </b-navbar-toggle>
 
       <b-collapse id="nav-collapse" is-nav class="justify-content-between">
-        <b-navbar-nav>
+        <div></div>
+        <!-- <b-navbar-nav>
           <b-nav-item>
             <router-link to="/sorteios">SORTEIOS</router-link>
           </b-nav-item>
-        </b-navbar-nav>
+        </b-navbar-nav> -->
 
         <b-navbar-nav class="account" v-if="authenticated">
           <b-nav-item>
