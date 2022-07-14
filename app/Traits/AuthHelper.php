@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Models\Role;
+use App\Models\User;
 
 trait AuthHelper
 {
@@ -68,5 +69,35 @@ trait AuthHelper
     $role = Role::where('identifier', '=', 'customer')->first();
 
     return $role->id;
+  }
+
+  /**
+   * Verifiy if a user is an "Admin"
+   * 
+   * @return boolean
+   */
+  protected function isAdmin(User $user)
+  {
+    return $user->role == $this->getAdminRole();
+  }
+
+  /**
+   * Verifiy if a user is an "Seller"
+   * 
+   * @return boolean
+   */
+  protected function isSeller(User $user)
+  {
+    return $user->role == $this->getSellerRole();
+  }
+
+  /**
+   * Verifiy if a user is an "Customer"
+   * 
+   * @return boolean
+   */
+  protected function isCustomer(User $user)
+  {
+    return $user->role == $this->getCustomerRole();
   }
 }

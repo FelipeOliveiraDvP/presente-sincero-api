@@ -43,7 +43,7 @@ export default {
     return {
       loading: false,
       params: {
-        limit: 4,
+        limit: 8,
       },
       contests: [],
     };

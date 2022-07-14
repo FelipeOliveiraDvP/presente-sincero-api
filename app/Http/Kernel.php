@@ -59,6 +59,8 @@ class Kernel extends HttpKernel
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'auth.token' => \App\Http\Middleware\HasToken::class,
         'auth.admin' => \App\Http\Middleware\IsAdmin::class,
+        'auth.blocked' => \App\Http\Middleware\IsBlocked::class,
+        'seller.approved' => \App\Http\Middleware\SellerApproved::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
         'can' => \Illuminate\Auth\Middleware\Authorize::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,

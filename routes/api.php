@@ -49,7 +49,7 @@ Route::controller(ContestController::class)->group(function () {
          * Route: /contests/manage
          */
         Route::prefix('manage')->group(function () {
-            Route::middleware(['auth.token', 'auth.admin'])->group(function () {
+            Route::middleware(['auth.token', 'auth.admin', 'auth.blocked', 'seller.approved'])->group(function () {
                 Route::get('/', 'getContestsByUser');
                 Route::get('/{id}', 'details');
                 Route::get('/{id}/orders', 'getContestOrders');
@@ -75,7 +75,7 @@ Route::controller(NumberController::class)->group(function () {
             Route::post('/{contest_id}/free', 'free');
             Route::post('/{contest_id}/reserve', 'reserve');
 
-            Route::middleware(['auth.admin'])->group(function () {
+            Route::middleware(['auth.admin', 'auth.blocked', 'seller.approved'])->group(function () {
                 Route::post('/{contest_id}/manage/paid', 'adminPaidNumbers');
                 Route::post('/{contest_id}/manage/free', 'adminFreeNumbers');
                 Route::delete('/{contest_id}/manage/cancel-order', 'adminCancelOrder');
@@ -93,7 +93,7 @@ Route::controller(BankAccountController::class)->group(function () {
      * Route: /bank-accounts
      */
     Route::prefix('bank-accounts')->group(function () {
-        Route::middleware(['auth.token', 'auth.admin'])->group(function () {
+        Route::middleware(['auth.token', 'auth.admin', 'auth.blocked', 'seller.approved'])->group(function () {
             Route::put('/mercado-pago', 'saveMPAccessToken');
             Route::get('/', 'index');
             Route::post('/', 'create');
@@ -126,3 +126,6 @@ Route::controller(UploadController::class)->group(function () {
         });
     });
 });
+
+// TODO: Endpoint para listar somente os customers do sorteio
+// TODO: Endpoint para listar os vendedores
