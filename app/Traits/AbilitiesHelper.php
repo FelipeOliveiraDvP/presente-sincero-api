@@ -47,10 +47,10 @@ trait AbilitiesHelper
       'create.contests',
       'edit.contests',
       'manage.contests',
-      'list.bank_accounts',
-      'create.bank_accounts',
-      'edit.bank_accounts',
-      'remove.bank_accounts',
+      'view.bank_accounts',
+      'manage.bank_accounts',
+      'view.customers',
+      'manage.customers',
       'upload.images'
     ];
   }
@@ -70,11 +70,13 @@ trait AbilitiesHelper
       'create.contests',
       'edit.contests',
       'manage.contests',
-      'list.bank_accounts',
-      'create.bank_accounts',
-      'edit.bank_accounts',
-      'remove.bank_accounts',
-      'upload.images'
+      'view.bank_accounts',
+      'manage.bank_accounts',
+      'view.customers',
+      'manage.customers',
+      'view.sellers',
+      'manage.sellers',
+      'upload.images',
     ];
   }
 }

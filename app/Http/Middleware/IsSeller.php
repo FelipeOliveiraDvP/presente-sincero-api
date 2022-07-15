@@ -2,11 +2,14 @@
 
 namespace App\Http\Middleware;
 
+use App\Traits\AbilitiesHelper;
 use Closure;
 use Illuminate\Http\Request;
 
-class IsBlocked
+class IsSeller
 {
+    use AbilitiesHelper;
+
     /**
      * Handle an incoming request.
      *
@@ -18,8 +21,12 @@ class IsBlocked
     {
         $user = auth('sanctum')->user();
 
-        if ($user->blocked) {
-            return response()->json(['message' => 'Sua conta está bloqueada! Entre em contato com o suporte.'], 403);
+        $abilities = $this->sellerAbilities();
+
+        foreach ($abilities as $ability) {
+            if (!$user->tokenCan($ability)) {
+                return response()->json(['message' => 'Você não tem permissão para essa ação'], 403);
+            }
         }
 
         return $next($request);

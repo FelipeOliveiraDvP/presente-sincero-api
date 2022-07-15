@@ -31,7 +31,7 @@ class ContestController extends Controller
     public function index(Request $request)
     {
         $title = $request->query('title');
-        $limit = $request->query('limit') ?? 10;
+        $limit = $request->query('limit') ?? 12;
 
         $contests = Contest::with('gallery')
             ->where('title', 'LIKE', "%{$title}%")
@@ -51,15 +51,67 @@ class ContestController extends Controller
     }
 
     /**
-     * Retorna os detalhes de um sorteio através do slug
+     * Retorna todos os sorteios do vendedor.
      * 
+     * @param Request $request
+     * 
+     * @return JsonResponse
+     */
+    public function getContestsByUsername(string $username, Request $request)
+    {
+        $title = $request->query('title');
+        $limit = $request->query('limit') ?? 12;
+        $user = User::where('username', '=', $username)->first();
+
+        if (empty($user)) {
+            return response()->json([
+                'message' => 'O vendedor informado não existe!'
+            ], 404);
+        }
+
+        $contests = Contest::with('gallery')
+            ->where('title', 'LIKE', "%{$title}%")
+            ->where('user_id', '=', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate($limit, [
+                'id',
+                'title',
+                'slug',
+                'short_description',
+                'start_date',
+                'price',
+                'quantity',
+                'paid_percentage'
+            ]);
+
+        return response()->json($contests);
+    }
+
+    /**
+     * Retorna os detalhes de um sorteio do vendedor a partir de um slug
+     * 
+     * @param string $username
      * @param string $slug
      * 
      * @return JsonResponse
      */
-    public function getContestBySlug(string $slug)
+    public function getContestBySlug(string $username, string $slug)
     {
+        $user = User::where('username', '=', $username)->first();
+
+        if (empty($user)) {
+            return response()->json([
+                'message' => 'O vendedor informado não existe!'
+            ], 404);
+        }
+
         $contest = Contest::where('slug', '=', $slug)->first();
+
+        if (empty($contest)) {
+            return response()->json([
+                'message' => 'O sorteio informado não existe.'
+            ], 404);
+        }
 
         return $this->details($contest->id);
     }

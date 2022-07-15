@@ -3,9 +3,10 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\ContestController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\NumberController;
+use App\Http\Controllers\SellerController;
 use App\Http\Controllers\UploadController;
-use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -49,7 +50,7 @@ Route::controller(ContestController::class)->group(function () {
          * Route: /contests/manage
          */
         Route::prefix('manage')->group(function () {
-            Route::middleware(['auth.token', 'auth.admin', 'auth.blocked', 'seller.approved'])->group(function () {
+            Route::middleware(['auth.token', 'auth.blocked', 'auth.seller', 'seller.approved'])->group(function () {
                 Route::get('/', 'getContestsByUser');
                 Route::get('/{id}', 'details');
                 Route::get('/{id}/orders', 'getContestOrders');
@@ -58,9 +59,12 @@ Route::controller(ContestController::class)->group(function () {
                 Route::put('/{id}/finished', 'finishContest');
             });
         });
-
+        /**
+         * Route: /contests/{username}
+         */
         Route::get('/', 'index');
-        Route::get('/{slug}', 'getContestBySlug');
+        Route::get('/{username}', 'getContestsByUsername');
+        Route::get('/{username}/{slug}', 'getContestBySlug');
     });
 });
 
@@ -75,7 +79,7 @@ Route::controller(NumberController::class)->group(function () {
             Route::post('/{contest_id}/free', 'free');
             Route::post('/{contest_id}/reserve', 'reserve');
 
-            Route::middleware(['auth.admin', 'auth.blocked', 'seller.approved'])->group(function () {
+            Route::middleware(['auth.blocked', 'auth.seller', 'seller.approved'])->group(function () {
                 Route::post('/{contest_id}/manage/paid', 'adminPaidNumbers');
                 Route::post('/{contest_id}/manage/free', 'adminFreeNumbers');
                 Route::delete('/{contest_id}/manage/cancel-order', 'adminCancelOrder');
@@ -93,7 +97,7 @@ Route::controller(BankAccountController::class)->group(function () {
      * Route: /bank-accounts
      */
     Route::prefix('bank-accounts')->group(function () {
-        Route::middleware(['auth.token', 'auth.admin', 'auth.blocked', 'seller.approved'])->group(function () {
+        Route::middleware(['auth.token', 'auth.blocked', 'auth.seller', 'seller.approved'])->group(function () {
             Route::put('/mercado-pago', 'saveMPAccessToken');
             Route::get('/', 'index');
             Route::post('/', 'create');
@@ -103,14 +107,28 @@ Route::controller(BankAccountController::class)->group(function () {
     });
 });
 
-// Users
-Route::controller(UserController::class)->group(function () {
+// Customers
+Route::controller(CustomerController::class)->group(function () {
     /**
-     * Route: /users
+     * Route: /customers
      */
-    Route::prefix('users')->group(function () {
-        Route::middleware(['auth.token', 'auth.admin'])->group(function () {
+    Route::prefix('customers')->group(function () {
+        Route::middleware(['auth.token', 'auth.blocked', 'auth.seller', 'seller.approved'])->group(function () {
             Route::get('/', 'index');
+        });
+    });
+});
+
+// Sellers
+Route::controller(SellerController::class)->group(function () {
+    /**
+     * Route: /sellers
+     */
+    Route::prefix('sellers')->group(function () {
+        Route::middleware(['auth.token', 'auth.blocked', 'auth.admin'])->group(function () {
+            Route::get('/', 'index');
+            Route::put('/{id}/approve', 'approveSeller');
+            Route::patch('/{id}/toggle', 'toggleSeller');
         });
     });
 });
@@ -121,11 +139,8 @@ Route::controller(UploadController::class)->group(function () {
      * Route: /upload
      */
     Route::prefix('upload')->group(function () {
-        Route::middleware(['auth.token', 'auth.admin'])->group(function () {
+        Route::middleware(['auth.token', 'auth.blocked', 'auth.seller'])->group(function () {
             Route::post('image', 'uploadImage');
         });
     });
 });
-
-// TODO: Endpoint para listar somente os customers do sorteio
-// TODO: Endpoint para listar os vendedores
