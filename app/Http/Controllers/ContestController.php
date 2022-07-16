@@ -63,7 +63,7 @@ class ContestController extends Controller
         $limit = $request->query('limit') ?? 12;
         $user = User::where('username', '=', $username)->first();
 
-        if (empty($user)) {
+        if (empty($user) || $user->blocked) {
             return response()->json([
                 'message' => 'O vendedor informado não existe!'
             ], 404);
@@ -99,7 +99,7 @@ class ContestController extends Controller
     {
         $user = User::where('username', '=', $username)->first();
 
-        if (empty($user)) {
+        if (empty($user) || $user->blocked) {
             return response()->json([
                 'message' => 'O vendedor informado não existe!'
             ], 404);
@@ -156,6 +156,14 @@ class ContestController extends Controller
     {
         $search = $request->query('search');
 
+        $contest = Contest::find($id);
+
+        if (empty($contest) || $contest->user_id != auth('sanctum')->id()) {
+            return response()->json([
+                'message' => 'O sorteio informado não existe.'
+            ], 404);
+        }
+
         $orders = Order::with('user')
             ->with('contest:id,title,price')
             ->where('contest_id', '=', $id)
@@ -196,7 +204,7 @@ class ContestController extends Controller
             ->with('sales')
             ->find($id);
 
-        if (empty($contest)) {
+        if (empty($contest) || $contest->user_id != auth('sanctum')->id()) {
             return response()->json([
                 'message' => 'O sorteio informado não existe.'
             ], 404);
@@ -219,14 +227,14 @@ class ContestController extends Controller
             'start_date'        => 'required|date|after:now',
             'contest_date'      => 'nullable|date|after:now',
             'max_reserve_days'  => 'gte:1|lte:30',
-            'price'             => 'required|gte:0.5',
+            'price'             => 'required|gte:0.1',
             'quantity'          => 'required|gte:1',
             'short_description' => 'required|string',
             'full_description'  => 'required|string',
             'whatsapp_number'   => 'required|string',
             'whatsapp_group'    => 'url',
             'sales.*.quantity'  => 'required|gte:1',
-            'sales.*.price'     => 'required|gte:0.5',
+            'sales.*.price'     => 'required|gte:0.1',
             'bank_accounts.*'   => 'exists:bank_accounts,id',
             'gallery.*'         => 'string',
         ]);
@@ -294,7 +302,7 @@ class ContestController extends Controller
     {
         $contest = Contest::find($id);
 
-        if (empty($contest)) {
+        if (empty($contest) || $contest->user_id != auth('sanctum')->id()) {
             return response()->json([
                 'message' => 'O sorteio informado não existe.'
             ], 404);
@@ -303,13 +311,13 @@ class ContestController extends Controller
         $validator = Validator::make($request->all(), [
             'contest_date'      => 'nullable|date|after:now',
             'max_reserve_days'  => 'gte:1|lte:30',
-            'price'             => 'gte:0.5',
+            'price'             => 'gte:0.1',
             'short_description' => 'string',
             'full_description'  => 'string',
             'whatsapp_number'   => 'string',
             'whatsapp_group'    => 'url',
             'sales.*.quantity'  => 'gte:1',
-            'sales.*.price'     => 'gte:0.5',
+            'sales.*.price'     => 'gte:0.1',
             'bank_accounts.*'   => 'exists:bank_accounts,id',
             'gallery.*'         => 'string',
         ]);
@@ -373,24 +381,24 @@ class ContestController extends Controller
     }
 
     /**
-     * Editar as informações do sorteio
+     * Finaliza um sorteio e define o vencedor.
      * 
      * @param int $id.
      * @param Request $request.
      * 
      * @return JsonResponse
      */
-    public function finishContest(int $id, Request $request)
+    public function finishContest(int $id, string $number, Request $request)
     {
         $contest = Contest::find($id);
 
-        if (empty($contest)) {
+        if (empty($contest) || $contest->user_id != auth('sanctum')->id()) {
             return response()->json([
                 'message' => 'O sorteio informado não existe.'
             ], 404);
         }
 
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make(['number' => $number], [
             'number' => 'required|numeric'
         ]);
 
@@ -418,6 +426,6 @@ class ContestController extends Controller
 
         $this->sendWinContestMessage($winner, $contest);
 
-        return response()->json($winner_number, 200);
+        return response()->json(['message' => 'O sorteio foi finalizado com sucesso!'], 200);
     }
 }

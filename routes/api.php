@@ -56,7 +56,7 @@ Route::controller(ContestController::class)->group(function () {
                 Route::get('/{id}/orders', 'getContestOrders');
                 Route::post('/', 'create');
                 Route::put('/{id}', 'edit');
-                Route::put('/{id}/finished', 'finishContest');
+                Route::put('/{id}/finish/{number}', 'finishContest');
             });
         });
         /**
