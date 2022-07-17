@@ -102,7 +102,7 @@ class AuthController extends Controller
             $user_exists_token = $user_exists->createToken('auth_token', $this->simpleCustomerAbilities())->plainTextToken;
 
             return response()->json([
-                'user'  => $user_exists,
+                'user'  => $user_exists->makeHidden(['mp_access_token', 'blocked', 'seller_approved'])->toArray(),
                 'token' => $user_exists_token
             ]);
         }

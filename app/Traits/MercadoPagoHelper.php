@@ -16,46 +16,54 @@ trait MercadoPagoHelper
    * Create a Mercado Pago PIX payment.
    * 
    * @param Order $order, 
-   * @param User $user, 
+   * @param User $customer, 
    * @param Contest $contest
    * 
    * @return array
    */
-  protected function createPayment(Order $order, User $user, Contest $contest)
+  protected function createPayment(Order $order, User $customer, Contest $contest)
   {
-    $user = User::find($contest->user_id);
+    try {
+      $contest_owner = User::find($contest->user_id);
 
-    MercadoPago\SDK::setAccessToken($user->mp_access_token);
+      MercadoPago\SDK::setAccessToken($contest_owner->mp_access_token);
 
-    $payment = new MercadoPago\Payment();
+      $payment = new MercadoPago\Payment();
 
-    $expiration = date('Y-m-d\TH:i:s.vP', strtotime("+{$contest->max_reserve_days} days"));
+      if (!empty($payment->error)) {
+        return false;
+      }
 
-    $payment->transaction_amount = $order->total;
-    $payment->description = $contest->title;
-    $payment->external_reference = $order->id;
-    $payment->payment_method_id = "pix";
-    $payment->date_of_expiration = $expiration;
-    $payment->notification_url = Config::get('ps.MERCADO_PAGO_WEBHOOK');
-    $payment->payer = [
-      'first_name' => $user->name,
-      'last_name' => "cliente-{$user->id}",
-      'email' => $user->email ?? 'test@email.com',
-      'identification' => [
-        'type' => 'customer',
-        'number' => $user->whatsapp,
-      ]
-    ];
+      $expiration = date('Y-m-d\TH:i:s.vP', strtotime("+{$contest->max_reserve_days} days"));
 
-    $payment->save();
+      $payment->transaction_amount = $order->total;
+      $payment->description = $contest->title;
+      $payment->external_reference = $order->id;
+      $payment->payment_method_id = "pix";
+      $payment->date_of_expiration = $expiration;
+      $payment->notification_url = Config::get('ps.MERCADO_PAGO_WEBHOOK');
+      $payment->payer = [
+        'first_name' => $customer->name,
+        'last_name' => "cliente-{$customer->id}",
+        'email' => $customer->email ?? 'test@email.com',
+        'identification' => [
+          'type' => 'customer',
+          'number' => $customer->whatsapp,
+        ]
+      ];
 
-    return [
-      'payment_id' => $payment->id,
-      'order_id' => $order->id,
-      'qrcode_base64' => $payment->point_of_interaction->transaction_data->qr_code_base64,
-      'ticket_url' => $payment->point_of_interaction->transaction_data->ticket_url,
-      'qr_code' => $payment->point_of_interaction->transaction_data->qr_code,
-    ];
+      $payment->save();
+
+      return [
+        'payment_id' => $payment->id,
+        'order_id' => $order->id,
+        'qrcode_base64' => $payment->point_of_interaction->transaction_data->qr_code_base64,
+        'ticket_url' => $payment->point_of_interaction->transaction_data->ticket_url,
+        'qr_code' => $payment->point_of_interaction->transaction_data->qr_code,
+      ];
+    } catch (\Throwable $th) {
+      return false;
+    }
   }
 
   /**
@@ -67,20 +75,27 @@ trait MercadoPagoHelper
    */
   protected function callback($data)
   {
-    if (empty($data) || is_null($data)) return false;
+    try {
+      if (empty($data) || is_null($data)) return false;
 
-    $order = Order::where('transaction_code', '=', $data['data']['id'])->first();
-    $contest = Contest::find($order->contest_id);
-    $user = User::find($contest->user_id);
+      $order = Order::where('transaction_code', '=', $data['data']['id'])->first();
 
-    MercadoPago\SDK::setAccessToken($user->mp_access_token);
+      if (empty($order)) return false;
 
-    $payment = MercadoPago\Payment::find_by_id($order->transaction_code);
+      $contest = Contest::find($order->contest_id);
+      $user = User::find($contest->user_id);
 
-    if ($data['type'] == 'payment' && $payment->status == 'approved') {
-      return $payment->external_reference;
+      MercadoPago\SDK::setAccessToken($user->mp_access_token);
+
+      $payment = MercadoPago\Payment::find_by_id($order->transaction_code);
+
+      if ($data['type'] == 'payment' && $payment->status == 'approved') {
+        return $payment->external_reference;
+      }
+
+      return false;
+    } catch (\Throwable $th) {
+      return false;
     }
-
-    return false;
   }
 }

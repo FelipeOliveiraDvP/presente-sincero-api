@@ -7,11 +7,13 @@ use App\Enums\OrderStatus;
 use App\Events\PaymentConfirmed;
 use App\Models\Contest;
 use App\Models\Order;
+use App\Models\Sale;
 use App\Models\User;
 use App\Traits\MercadoPagoHelper;
 use App\Traits\NumbersHelper;
 use App\Traits\WhatsApp;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 
@@ -20,18 +22,29 @@ class NumberController extends Controller
     use NumbersHelper, WhatsApp, MercadoPagoHelper;
 
     /**
-     * Visualizar os números do sorteio
+     * Visualizar todos os números de um cliente específico.
      * 
      * @param int $contest_id     
-     * @param Request $request
+     * @param int $customer_id          
      * 
      * @return JsonResponse
      */
-    public function index(int $contest_id, Request $request)
+    public function index(int $contest_id, int $customer_id)
     {
-        $customer_id = $request->query('customer_id');
+        $contest = Contest::find($contest_id);
+
+        if (empty($contest) || $contest->user_id != auth('sanctum')->id()) {
+            return response()->json([
+                'message' => 'O sorteio informado não existe',
+            ], 404);
+        }
 
         $customer = User::find($customer_id);
+
+        if (empty($customer)) {
+            return response()->json(['customer' => $customer], 200);
+        }
+
         $orders = Order::where('contest_id', '=', $contest_id)
             ->where('user_id', '=', $customer->id)
             ->get();
@@ -44,6 +57,99 @@ class NumberController extends Controller
 
         return response()->json($this->getContestNumbersByNumbers($contest_id, array_merge_recursive(...$numbers)));
     }
+
+    /**
+     * Marca os números como RESERVED
+     * 
+     * @param int $contest_id
+     * @param Request $request
+     * 
+     * @return JsonResponse
+     */
+    public function reserve(int $contest_id, Request $request)
+    {
+        $contest = Contest::find($contest_id);
+
+        if (empty($contest)) {
+            return response()->json([
+                'message' => 'O sorteio informado não está mais disponível'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'numbers'   => 'array|min:1',
+            'numbers.*' => 'required|numeric'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Ocorreu um erro ao reservar os números',
+                'errors'  => $validator->errors()
+            ], 400);
+        }
+
+        $user = auth('sanctum')->user();
+
+        // Deletar todos os sorteios em aberto do usuário.
+        Order::where('user_id', '=', $user->id)
+            ->where('contest_id', '=', $contest_id)
+            ->where('status', '=', OrderStatus::PENDING)
+            ->delete();
+
+        // Calcular o valor total do pedido com base nas promoções do sorteio.
+        $partial = 0;
+        $length = count($request->numbers);
+        $sales = Sale::where('contest_id', $contest_id)->get();
+        $current_sale = Arr::first($sales, function ($value) use ($length) {
+            return $length >= $value->quantity;
+        });
+
+        for ($i = 0; $i < $length; $i++) {
+            if (!empty($current_sale)) {
+                $partial += $current_sale->price;
+            } else {
+                $partial += $contest->price;
+            }
+        }
+
+        // Cria um novo pedido.
+        $order = Order::create([
+            'contest_id' => $contest_id,
+            'user_id'    => $user->id,
+            'total'      => $partial,
+            'numbers'    => json_encode($request->numbers)
+        ]);
+
+        $reserved_numbers = $this->setContestNumbersAsReserved($contest_id, $request->numbers, $order, $user);
+
+        $contest->numbers = $reserved_numbers;
+        $contest->update();
+
+        // Cria um novo pagamento no Mercado Pago.
+        $payment = $this->createPayment($order, $user, $contest);
+
+        // Caso aconteça algum erro no Mercado Pago, o checkout deve ser manual.
+        if ($payment == false) {
+            return response()->json([
+                'message'       => 'Números reservados com sucesso',
+                'mercado_pago'  => false,
+            ], 200);
+        }
+
+        if (getenv('APP_ENV') != 'local') {
+            $this->sendReservationMessage($user, $contest, $order, $payment);
+        }
+
+        $order->transaction_code = $payment['payment_id'];
+        $order->update();
+
+        return response()->json([
+            'message'       => 'Números reservados com sucesso',
+            'mercado_pago'  => true,
+            'payment'       => $payment
+        ], 200);
+    }
+
 
     /**
      * Marca os números como FREE
@@ -95,70 +201,6 @@ class NumberController extends Controller
         return response()->json(['message' => 'Números liberados com sucesso'], 200);
     }
 
-    /**
-     * Marca os números como RESERVED
-     * 
-     * @param int $contest_id
-     * @param Request $request
-     * 
-     * @return JsonResponse
-     */
-    public function reserve(int $contest_id, Request $request)
-    {
-        $contest = Contest::find($contest_id);
-
-        if (empty($contest)) {
-            return response()->json([
-                'message' => 'O sorteio informado não está mais disponível'
-            ], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'total'     => 'required|gte:0.5',
-            'numbers.*' => 'required|numeric'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Ocorreu um erro ao reservar os números',
-                'errors'  => $validator->errors()
-            ], 400);
-        }
-
-        $user = auth('sanctum')->user();
-
-        Order::where('user_id', '=', $user->id)
-            ->where('contest_id', '=', $contest_id)
-            ->where('status', '=', OrderStatus::PENDING)
-            ->delete();
-
-        $order = Order::create([
-            'contest_id' => $contest_id,
-            'user_id' => $user->id,
-            'total' => $request->total,
-            'numbers' => json_encode($request->numbers)
-        ]);
-
-        $reserved_numbers = $this->setContestNumbersAsReserved($contest_id, $request->numbers, $order, $user);
-
-        $contest->numbers = $reserved_numbers;
-
-        $contest->update();
-
-        $payment = $this->createPayment($order, $user, $contest);
-
-        if (getenv('APP_ENV') != 'local') {
-            $this->sendReservationMessage($user, $contest, $order, $payment);
-        }
-
-        $order->transaction_code = $payment['payment_id'];
-        $order->update();
-
-        return response()->json([
-            'message' => 'Números reservados com sucesso',
-            'payment' => $payment
-        ], 200);
-    }
 
     /**
      * Marca todos os números RESERVED como FREE
@@ -171,7 +213,7 @@ class NumberController extends Controller
     {
         $contest = Contest::find($contest_id);
 
-        if (empty($contest)) {
+        if (empty($contest) || $contest->user_id != auth('sanctum')->id()) {
             return response()->json([
                 'message' => 'O sorteio informado não está mais disponível'
             ], 404);
@@ -193,7 +235,6 @@ class NumberController extends Controller
         }
 
         $contest->numbers = $numbers;
-
         $contest->update();
 
         return response()->json(['message' => 'Números liberados com sucesso'], 200);
@@ -211,7 +252,7 @@ class NumberController extends Controller
     {
         $contest = Contest::find($contest_id);
 
-        if (empty($contest)) {
+        if (empty($contest) || $contest->user_id != auth('sanctum')->id()) {
             return response()->json([
                 'message' => 'O sorteio informado não está mais disponível'
             ], 404);
@@ -296,7 +337,7 @@ class NumberController extends Controller
     }
 
     /**
-     * Retorna os números do cliente no sorteio através do WhatsApp.
+     * Recebe o WhatsApp do cliente e retorna todos os números comprados por ele. 
      * 
      * @param int $contest_id
      * @param Request $request

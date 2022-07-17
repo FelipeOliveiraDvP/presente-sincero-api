@@ -75,7 +75,7 @@ Route::controller(NumberController::class)->group(function () {
      */
     Route::prefix('numbers')->group(function () {
         Route::middleware(['auth.token'])->group(function () {
-            Route::get('/{contest_id}', 'index');
+            Route::get('/{contest_id}/customer/{customer_id}', 'index');
             Route::post('/{contest_id}/free', 'free');
             Route::post('/{contest_id}/reserve', 'reserve');
 
