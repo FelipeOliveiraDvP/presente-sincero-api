@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BankTypes;
 use App\Models\BankAccount;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -38,12 +39,12 @@ class BankAccountController extends Controller
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'type'   => ['required', Rule::in(['PIX', 'BANK'])],
+            'type'   => ['required', Rule::in([BankTypes::PIX, BankTypes::BANK])],
             "name"   => 'required|string',
-            "cc"     => 'required_unless:type,PIX',
+            "cc"     => 'required_unless:type,PIX|unique:bank_accounts,cc',
             "agency" => 'required_unless:type,PIX',
             "dv"     => 'required_unless:type,PIX',
-            "key"    => 'required_unless:type,BANK',
+            "key"    => 'required_unless:type,BANK|unique:bank_accounts,key',
             "main"   => 'boolean'
         ]);
 
@@ -54,17 +55,21 @@ class BankAccountController extends Controller
             ], 400);
         }
 
-        $has_main = BankAccount::exists('main', '=', true);
+        if ($request->input('main') == 1) {
+            BankAccount::where('user_id', auth('sanctum')->id())
+                ->where('main', 1)
+                ->update(['main' => 0]);
+        }
 
         $bank_account = BankAccount::create([
             'user_id' => $request->user->id,
             'type'   => $request->type,
             "name"   => $request->name,
-            "cc"     => $request->cc ?? null,
-            "agency" => $request->agency ?? null,
-            "dv"     => $request->dv ?? null,
-            "key"    => $request->key ?? null,
-            "main"   => $request->main && !$has_main ? true : false
+            "cc"     => $request->type == BankTypes::BANK ? $request->cc ?? null : null,
+            "agency" => $request->type == BankTypes::BANK ? $request->agency ?? null : null,
+            "dv"     => $request->type == BankTypes::BANK ? $request->dv ?? null : null,
+            "key"    => $request->type == BankTypes::PIX ? $request->key ?? null : null,
+            "main"   => $request->input('main'),
         ]);
 
         return response()->json([
@@ -83,13 +88,21 @@ class BankAccountController extends Controller
      */
     public function edit(int $id, Request $request)
     {
+        $bank_account = BankAccount::find($id);
+
+        if (empty($bank_account)) {
+            return response()->json([
+                'message' => 'A conta informada não existe',
+            ], 404);
+        }
+
         $validator = Validator::make($request->all(), [
-            'type'   => ['required', Rule::in(['PIX', 'BANK'])],
+            'type'   => ['required', Rule::in([BankTypes::PIX, BankTypes::BANK])],
             "name"   => 'required|string',
-            "cc"     => 'required_unless:type,PIX',
+            "cc"     => 'sometimes|required_unless:type,PIX|unique:bank_accounts,cc',
             "agency" => 'required_unless:type,PIX',
             "dv"     => 'required_unless:type,PIX',
-            "key"    => 'required_unless:type,BANK',
+            "key"    => 'sometimes|required_unless:type,BANK|unique:bank_accounts,key',
             "main"   => 'boolean'
         ]);
 
@@ -100,12 +113,10 @@ class BankAccountController extends Controller
             ], 400);
         }
 
-        $bank_account = BankAccount::find($id);
-
-        if (empty($bank_account)) {
-            return response()->json([
-                'message' => 'A conta informada não existe',
-            ], 404);
+        if ($request->input('main') == 1) {
+            BankAccount::where('user_id', auth('sanctum')->id())
+                ->where('main', 1)
+                ->update(['main' => 0]);
         }
 
         $bank_account->type = $request->type;
@@ -114,7 +125,7 @@ class BankAccountController extends Controller
         $bank_account->agency = $request->agency ?? null;
         $bank_account->dv   = $request->dv ?? null;
         $bank_account->key  = $request->key ?? null;
-        $bank_account->main = $request->main ?? $bank_account->main;
+        $bank_account->main = $bank_account->main == 1 ? 1 : $request->input('main');
 
         $bank_account->update();
 
@@ -155,6 +166,17 @@ class BankAccountController extends Controller
      */
     public function saveMPAccessToken(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'mp_access_token' => 'required|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Informe todas as informações necessárias',
+                'errors'  => $validator->errors()
+            ], 400);
+        }
+
         $user = User::find(auth('sanctum')->user()->id);
         $user->mp_access_token = $request->mp_access_token;
         $user->update();
