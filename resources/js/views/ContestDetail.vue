@@ -291,12 +291,13 @@ export default {
         paid_percentage,
         custom_percentage,
       } = this.contest;
+      let total = 0;
 
-      if (use_custom_percentage) return custom_percentage * 100;
+      if (use_custom_percentage) total = custom_percentage * 100;
 
-      if (show_percentage) return paid_percentage * 100;
+      if (show_percentage) total = paid_percentage * 100;
 
-      return 0;
+      return total.toFixed(2);
     },
   },
   methods: {
@@ -376,6 +377,7 @@ export default {
             title: this.contest.title,
             slug: this.contest.slug,
             short_description: this.contest.short_description,
+            whatsapp_group: this.contest.whatsapp_group,
             price: this.contest.price,
             sale: this.currentSale,
           },

@@ -67,10 +67,11 @@ trait NumbersHelper
     foreach ($contest_numbers as $number) {
       $number_exists = in_array($number->number, $numbers);
       $is_reserved = $number->status == NumberStatus::RESERVED;
-      $out_reserve_interval = $is_reserved ? Carbon::make($number->reserved_at)->diff(Carbon::now())->d > $contest->max_reserve_days : false;
+      // $out_reserve_interval = $is_reserved ? Carbon::make($number->reserved_at)->diff(Carbon::now())->d > $contest->max_reserve_days : false;
       $is_owner = $customer->id == $number->customer->id;
+      $is_admin = $customer->role == $this->getAdminRole();
 
-      $can_free_number = $number_exists && $is_reserved && ($is_owner || $out_reserve_interval);
+      $can_free_number = $number_exists && $is_reserved && ($is_owner || $is_admin);
 
       if ($can_free_number) {
         $number->status = NumberStatus::FREE;

@@ -1,6 +1,6 @@
 <template>
   <b-container fluid>
-    <div class="p-4">
+    <div class="p-1">
       <h2>Novo sorteio</h2>
 
       <b-form @submit.stop.prevent="onSubmit">
@@ -140,7 +140,7 @@
           >
         </b-form-group>
 
-        <h3>Contas bancárias</h3>
+        <!-- <h3>Contas bancárias</h3>
         <b-form-group
           label="Contas disponíveis"
           description="Selecione as contas para receber o pagamento dos números"
@@ -163,7 +163,7 @@
               </router-link>
             </b-alert>
           </div>
-        </b-form-group>
+        </b-form-group> -->
 
         <b-row>
           <b-col md="6">
@@ -223,7 +223,7 @@
             type="submit"
             block
             variant="primary"
-            class="mt-4"
+            class="my-4"
             :disabled="loading"
             >Cadastrar sorteio</b-button
           >
@@ -330,15 +330,15 @@ export default {
           return;
         }
 
-        if (this.validateArray(bank_accounts)) {
-          this.$toasted.show("Selecione uma conta para receber o pagamento", {
-            type: "error",
-            theme: "toasted-primary",
-            position: "top-right",
-            duration: 3000,
-          });
-          return;
-        }
+        // if (this.validateArray(bank_accounts)) {
+        //   this.$toasted.show("Selecione uma conta para receber o pagamento", {
+        //     type: "error",
+        //     theme: "toasted-primary",
+        //     position: "top-right",
+        //     duration: 3000,
+        //   });
+        //   return;
+        // }
 
         if (this.validateArray(gallery)) {
           this.$toasted.show("Selecione ao menos uma imagem para o sorteio", {
@@ -411,5 +411,11 @@ export default {
 };
 </script>
 
-<style>
+<style lang="scss">
+.editr {
+  border: 1px solid #e4e4e4;
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
 </style>

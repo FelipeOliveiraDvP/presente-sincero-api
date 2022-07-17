@@ -2,12 +2,11 @@
 
 namespace App\Traits;
 
-use App\Events\PaymentProcessing;
 use App\Models\Contest;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Log;
+
 use MercadoPago;
 
 // TODO: Gerenciar comissões para aplicação no Mercado Pago e contas dos vendedores.
@@ -24,7 +23,9 @@ trait MercadoPagoHelper
    */
   protected function createPayment(Order $order, User $user, Contest $contest)
   {
-    MercadoPago\SDK::setAccessToken(Config::get('ps.MERCADO_PAGO_PUBLIC'));
+    $user = User::find($contest->user_id);
+
+    MercadoPago\SDK::setAccessToken($user->mp_access_token);
 
     $payment = new MercadoPago\Payment();
 
@@ -38,7 +39,7 @@ trait MercadoPagoHelper
     $payment->notification_url = Config::get('ps.MERCADO_PAGO_WEBHOOK');
     $payment->payer = [
       'first_name' => $user->name,
-      'last_name' => "Cliente-{$user->id}",
+      'last_name' => "cliente-{$user->id}",
       'email' => $user->email ?? 'test@email.com',
       'identification' => [
         'type' => 'customer',
@@ -68,9 +69,13 @@ trait MercadoPagoHelper
   {
     if (empty($data) || is_null($data)) return false;
 
-    MercadoPago\SDK::setAccessToken(Config::get('ps.MERCADO_PAGO_PUBLIC'));
+    $order = Order::where('transaction_code', '=', $data['data']['id'])->first();
+    $contest = Contest::find($order->contest_id);
+    $user = User::find($contest->user_id);
 
-    $payment = MercadoPago\Payment::find_by_id($data['data']['id']);
+    MercadoPago\SDK::setAccessToken($user->mp_access_token);
+
+    $payment = MercadoPago\Payment::find_by_id($order->transaction_code);
 
     if ($data['type'] == 'payment' && $payment->status == 'approved') {
       return $payment->external_reference;

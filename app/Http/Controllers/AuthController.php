@@ -10,6 +10,7 @@ use App\Traits\WhatsApp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -51,7 +52,13 @@ class AuthController extends Controller
             ], 400);
         }
 
-        $user = User::find($exists->id);
+        if ($exists->blocked) {
+            return response()->json([
+                'message' => 'Sua conta está bloqueada. Por favor, entre em contato com o suporte.'
+            ], 403);
+        }
+
+        $user = User::find($exists->id)->makeHidden(['mp_access_token', 'blocked', 'seller_approved']);
 
         $token = $user->createToken('auth_token', $this->getUserAbilities($user->role))->plainTextToken;
 
@@ -71,7 +78,7 @@ class AuthController extends Controller
     public function simpleLogin(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'whatsapp'    => 'required|numeric|min:10',
+            'whatsapp'    => 'required|alpha_num|min:10|max:11',
             'new_account' => 'boolean'
         ]);
 
@@ -115,13 +122,13 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token', $this->simpleCustomerAbilities())->plainTextToken;
 
         return response()->json([
-            'user'  => $user,
+            'user'  => $user->makeHidden(['mp_access_token', 'blocked', 'seller_approved'])->toArray(),
             'token' => $token
         ]);
     }
 
     /**
-     * Realiza o cadastro de um novo usuário e retorna um token de acesso
+     * Realiza o cadastro de um novo vendedor e retorna um token de acesso
      * 
      * @param Request $request Corpo da requisição.
      * 
@@ -131,9 +138,10 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name'      => 'required',
-            'whatsapp'  => 'required|alpha_num|numeric|unique:users,whatsapp',
-            'email'     => 'email',
-            'password'  => 'confirmed'
+            'username'  => 'required|alpha_num|unique:users,username',
+            'whatsapp'  => 'required|alpha_num|unique:users,whatsapp|min:10|max:11',
+            'email'     => 'required|email|unique:users,email',
+            'password'  => 'required|confirmed'
         ]);
 
         if ($validator->fails()) {
@@ -146,15 +154,16 @@ class AuthController extends Controller
         $created = User::create([
             'name'      => $request->name,
             'whatsapp'  => $request->whatsapp,
+            'username'  => $request->username,
             'email'     => $request->email,
             'password'  => $request->password ? Hash::make($request->password) : null,
-            'role'      => $this->getCustomerRole(),
+            'role'      => $this->getSellerRole(),
         ]);
 
-        $token = $created->createToken('auth_token', $this->simpleCustomerAbilities())->plainTextToken;
+        $token = $created->createToken('auth_token', $this->sellerAbilities())->plainTextToken;
 
         return response()->json([
-            'user'  => $created,
+            'user'  => $created->makeHidden(['mp_access_token', 'blocked', 'seller_approved'])->toArray(),
             'token' => $token
         ], 201);
     }
@@ -174,7 +183,7 @@ class AuthController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Informe todas as informações necessárias',
+                'message' => 'Informe seu usuário para recuperar a senha',
                 'errors'  => $validator->errors()
             ], 400);
         }
@@ -257,7 +266,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token', $this->getUserAbilities($user->role))->plainTextToken;
 
         return response()->json([
-            'user'  => $user,
+            'user'  => $user->makeHidden(['mp_access_token', 'blocked', 'seller_approved'])->toArray(),
             'token' => $token
         ]);
     }
@@ -271,9 +280,12 @@ class AuthController extends Controller
      */
     public function getProfile(Request $request)
     {
-        $user = $request->user;
+        $user = User::find(auth('sanctum')->id());
 
-        return response()->json(['message' => 'Ok', 'user' => $user], 200);
+        return response()->json([
+            'message' => 'Ok',
+            'user' => $user->makeHidden(['mp_access_token', 'blocked', 'seller_approved'])->toArray()
+        ], 200);
     }
 
     /**
@@ -287,8 +299,20 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name'      => 'string',
-            'whatsapp'  => 'alpha_num|numeric',
-            'email'     => 'email',
+            'whatsapp'  => [
+                'alpha_num',
+                'min:10',
+                'max:11',
+                Rule::unique('users')->ignore(auth('sanctum')->id()),
+            ],
+            'username'  => [
+                'alpha_num',
+                Rule::unique('users')->ignore(auth('sanctum')->id()),
+            ],
+            'email'     => [
+                'email',
+                Rule::unique('users')->ignore(auth('sanctum')->id()),
+            ],
             'password'  => 'confirmed',
         ]);
 
@@ -304,6 +328,7 @@ class AuthController extends Controller
         $user->name = $request->name ?? $user->name;
         $user->whatsapp = $request->whatsapp ?? $user->whatsapp;
         $user->email = $request->email ?? $user->email;
+        $user->username = $request->username ?? $user->username;
         $user->password = $request->password ? Hash::make($request->password) : $user->password;
         $user->avatar = $request->avatar ?? $user->avatar;
 
@@ -311,7 +336,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Perfil atualizado com sucesso!',
-            'user' => $user
+            'user' => $user->makeHidden(['mp_access_token', 'blocked', 'seller_approved'])->toArray()
         ], 200);
     }
 }

@@ -54,7 +54,11 @@ export default {
       commit("SET_AUTHENTICATED", true);
       commit("SET_TOKEN", token);
 
-      if (user.role === process.env.MIX_ADMIN_ROLE) {
+      const { MIX_ADMIN_ROLE, MIX_SELLER_ROLE } = process.env;
+      const canManageContests =
+        user.role === MIX_ADMIN_ROLE || user.role === MIX_SELLER_ROLE;
+
+      if (canManageContests) {
         commit("SET_ADMIN", true);
         router.push({ name: "adminContestList" });
       } else {
@@ -75,7 +79,7 @@ export default {
       commit("SET_TOKEN", null);
       commit("SET_ADMIN", false);
 
-      window.localStorage.removeItem("presente-sincero-app");
+      window.localStorage.removeItem("PS_APP");
 
       router.push({ name: "login" });
     },

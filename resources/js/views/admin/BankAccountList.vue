@@ -1,31 +1,37 @@
 <template>
   <div>
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex justify-content-between align-items-center mb-3">
       <h2>Contas bancárias</h2>
       <b-button variant="primary" @click="showModal()"> Nova conta </b-button>
     </div>
 
-    <b-table
-      id="accounts-list"
-      class="text-white"
-      :fields="fields"
-      :items="items"
-      :busy.sync="loading"
-    >
-      <template #cell(type)="data">
-        {{ data.item.type === "PIX" ? "PIX" : "Conta bancária" }}
-      </template>
+    <div class="table-responsive">
+      <b-table
+        id="accounts-list"
+        class="text-white"
+        :fields="fields"
+        :items="items"
+        :busy.sync="loading"
+      >
+        <template v-slot:head()="scope">
+          <div style="width: 150px">{{ scope.label }}</div>
+        </template>
 
-      <template #cell(actions)="data">
-        <b-button variant="primary" @click="showModal(data.item)">
-          <font-awesome-icon :icon="['fas', 'pen']" class="icon alt" />
-        </b-button>
+        <template #cell(type)="data">
+          {{ data.item.type === "PIX" ? "PIX" : "Conta bancária" }}
+        </template>
 
-        <b-button variant="danger" @click="handleRemoveAccount(data.item)">
-          <font-awesome-icon :icon="['fas', 'trash']" class="icon alt" />
-        </b-button>
-      </template>
-    </b-table>
+        <template #cell(actions)="data">
+          <b-button variant="primary" @click="showModal(data.item)">
+            <font-awesome-icon :icon="['fas', 'pen']" class="icon alt" />
+          </b-button>
+
+          <b-button variant="danger" @click="handleRemoveAccount(data.item)">
+            <font-awesome-icon :icon="['fas', 'trash']" class="icon alt" />
+          </b-button>
+        </template>
+      </b-table>
+    </div>
 
     <b-pagination
       :v-model="params.page"
@@ -35,6 +41,42 @@
       align="end"
       @change="handlePaginate"
     ></b-pagination>
+
+    <div class="my-4 row">
+      <div class="col-12 col-lg-8">
+        <h3>Mercado Pago</h3>
+        <p>
+          Adicione o seu token do Mercado Pago para receber o pagamento dos
+          números do sorteio. Para conseguir o token, você vai precisar de uma
+          conta verificada e aprovada no Mercado Pago. Na sua conta, você deve
+          acessar
+          <a
+            href="https://www.mercadopago.com.br/settings/account/credentials"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Seu negócio > Configurações > Credenciais > Credenciais de produção.
+          </a>
+          e copiar o "Access Token".
+        </p>
+      </div>
+      <div class="col-12">
+        <b-form @submit.stop.prevent="onSaveMPToken">
+          <b-form-input
+            id="mpAccessToken"
+            v-model="mpAccessToken"
+          ></b-form-input>
+          <b-button
+            type="submit"
+            block
+            variant="primary"
+            class="my-4"
+            :disabled="loading"
+            >Salvar</b-button
+          >
+        </b-form>
+      </div>
+    </div>
 
     <account-modal
       :account="selectedAccount"
@@ -51,7 +93,9 @@ import {
   createBankAccount,
   editBankAccount,
   removeBankAccount,
+  saveMPAccessToken,
 } from "@/services/bankAccounts";
+import { getProfile } from "@/services/auth";
 
 export default {
   name: "AdminBankAccountList",
@@ -113,10 +157,18 @@ export default {
         },
       ],
       items: [],
+      mpAccessToken: null,
     };
   },
-  mounted() {
+  async mounted() {
+    this.loading = true;
+
+    const result = await getProfile();
+    const { mp_access_token } = result.user;
+
+    this.mpAccessToken = mp_access_token;
     this.getContestsData();
+    this.loading = false;
   },
   methods: {
     async getContestsData() {
@@ -202,6 +254,22 @@ export default {
     async handlePaginate(page) {
       this.params.page = page;
       await this.getContestsData();
+    },
+    async onSaveMPToken() {
+      this.loading = true;
+
+      const result = await saveMPAccessToken({
+        mp_access_token: this.mpAccessToken,
+      });
+
+      this.$toasted.show(result.message, {
+        type: "success",
+        theme: "toasted-primary",
+        position: "top-right",
+        duration: 3000,
+      });
+
+      this.loading = false;
     },
     showModal(account = null) {
       if (account !== null) {

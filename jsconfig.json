@@ -1,9 +1,4 @@
 {
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {      
-      "@/*": ["./resources/js/*"],      
-    }
-  },
+  "compilerOptions": {},
   "exclude": ["node_modules", ".nuxt", "dist"]
 }

@@ -30,7 +30,7 @@
     </b-form-group>
 
     <div v-if="selected === 'use_custom'">
-      <label for="contest-percentage">{{ percentage * 100 }}%</label>
+      <label for="contest-percentage">{{ fixedPercentage }}%</label>
       <b-form-input
         id="contest-percentage"
         class="d-block w-100 mb-4"
@@ -59,6 +59,13 @@ export default {
   },
   created() {
     this.setPercentageDefaults(this.percentageInfo);
+  },
+  computed: {
+    fixedPercentage() {
+      const total = this.percentage * 100;
+
+      return total.toFixed(2);
+    },
   },
   methods: {
     handleChangePercentage() {

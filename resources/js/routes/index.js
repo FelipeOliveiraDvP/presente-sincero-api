@@ -5,58 +5,38 @@ import store from "../store";
 
 Vue.use(VueRouter);
 
-// Layouts
-import PublicLayout from "../layouts/PublicLayout";
-import PrivateLayout from "../layouts/PrivateLayout";
-
-// Public
-import Home from "../views/Home";
-import ContestList from "../views/ContestList";
-import ContestDetail from "../views/ContestDetail";
-import Checkout from "../views/Checkout";
-import Profile from "../views/Profile";
-import Login from "../views/Login";
-import Register from "../views/Register";
-import Recovery from "../views/Recovery";
-import Verify from "../views/Verify";
-import Reset from "../views/Reset";
-
-// Admin
-import AdminContestList from "../views/admin/ContestList";
-import AdminContestCreate from "../views/admin/ContestCreate";
-import AdminContestDetail from "../views/admin/ContestDetail";
-import AdminContestManage from "../views/admin/ContestManage";
-import AdminContestOrders from "../views/admin/ContestOrders";
-import AdminCustomerList from "../views/admin/CustomerList";
-import AdminCustomerDetail from "../views/admin/CustomerDetail";
-import AdminBankAccountList from "../views/admin/BankAccountList";
-
 const routes = [
   // Public
   {
     name: "public",
     path: "/",
-    component: PublicLayout,
+    component: () =>
+      import(/* webpackChunkName: "PublicLayout" */ "@/layouts/PublicLayout"),
     children: [
       {
         name: "home",
         path: "/",
-        component: Home,
+        component: () => import(/* webpackChunkName: "Home" */ "@/views/Home"),
       },
       {
         name: "contests",
         path: "/sorteios",
-        component: ContestList,
+        component: () =>
+          import(/* webpackChunkName: "ContestList" */ "@/views/ContestList"),
       },
       {
         name: "contestDetail",
         path: "/sorteios/:slug",
-        component: ContestDetail,
+        component: () =>
+          import(
+            /* webpackChunkName: "ContestDetail" */ "@/views/ContestDetail"
+          ),
       },
       {
         name: "checkout",
         path: "/finalizar-compra",
-        component: Checkout,
+        component: () =>
+          import(/* webpackChunkName: "Checkout" */ "@/views/Checkout"),
         meta: {
           checkout: true,
         },
@@ -64,7 +44,8 @@ const routes = [
       {
         name: "login",
         path: "/login",
-        component: Login,
+        component: () =>
+          import(/* webpackChunkName: "Login" */ "@/views/Login"),
         meta: {
           restricted: true,
         },
@@ -72,7 +53,8 @@ const routes = [
       {
         name: "register",
         path: "/cadastre-se",
-        component: Register,
+        component: () =>
+          import(/* webpackChunkName: "Register" */ "@/views/Register"),
         meta: {
           restricted: true,
         },
@@ -80,7 +62,8 @@ const routes = [
       {
         name: "recovery",
         path: "/recuperar-senha",
-        component: Recovery,
+        component: () =>
+          import(/* webpackChunkName: "Recovery" */ "@/views/Recovery"),
         meta: {
           restricted: true,
         },
@@ -88,7 +71,8 @@ const routes = [
       {
         name: "verify",
         path: "/verificar-codigo",
-        component: Verify,
+        component: () =>
+          import(/* webpackChunkName: "Verify" */ "@/views/Verify"),
         meta: {
           restricted: true,
         },
@@ -96,7 +80,8 @@ const routes = [
       {
         name: "reset",
         path: "/nova-senha",
-        component: Reset,
+        component: () =>
+          import(/* webpackChunkName: "Reset" */ "@/views/Reset"),
         meta: {
           restricted: true,
         },
@@ -104,7 +89,8 @@ const routes = [
       {
         name: "profile",
         path: "/minha-conta",
-        component: Profile,
+        component: () =>
+          import(/* webpackChunkName: "Profile" */ "@/views/Profile"),
         meta: {
           logged: true,
         },
@@ -115,7 +101,8 @@ const routes = [
   {
     name: "admin",
     path: "/admin",
-    component: PrivateLayout,
+    component: () =>
+      import(/* webpackChunkName: "PrivateLayout" */ "@/layouts/PrivateLayout"),
     meta: {
       adminRoute: true,
     },
@@ -123,7 +110,10 @@ const routes = [
       {
         name: "adminContestList",
         path: "/admin/sorteios",
-        component: AdminContestList,
+        component: () =>
+          import(
+            /* webpackChunkName: "AdminContestList" */ "@/views/admin/ContestList"
+          ),
         meta: {
           adminRoute: true,
         },
@@ -131,7 +121,10 @@ const routes = [
       {
         name: "adminContestCreate",
         path: "/admin/sorteios/novo-sorteio",
-        component: AdminContestCreate,
+        component: () =>
+          import(
+            /* webpackChunkName: "AdminContestCreate" */ "@/views/admin/ContestCreate"
+          ),
         meta: {
           adminRoute: true,
         },
@@ -139,7 +132,10 @@ const routes = [
       {
         name: "adminContestDetail",
         path: "/admin/sorteios/:id",
-        component: AdminContestDetail,
+        component: () =>
+          import(
+            /* webpackChunkName: "AdminContestDetail" */ "@/views/admin/ContestDetail"
+          ),
         meta: {
           adminRoute: true,
         },
@@ -147,7 +143,10 @@ const routes = [
       {
         name: "adminContestManage",
         path: "/admin/sorteios/:id/gerenciar",
-        component: AdminContestManage,
+        component: () =>
+          import(
+            /* webpackChunkName: "AdminContestManage" */ "@/views/admin/ContestManage"
+          ),
         meta: {
           adminRoute: true,
         },
@@ -155,7 +154,10 @@ const routes = [
       {
         name: "adminContestOrders",
         path: "/admin/sorteios/:id/pedidos",
-        component: AdminContestOrders,
+        component: () =>
+          import(
+            /* webpackChunkName: "AdminContestOrders" */ "@/views/admin/ContestOrders"
+          ),
         meta: {
           adminRoute: true,
         },
@@ -163,7 +165,10 @@ const routes = [
       {
         name: "adminCustomerList",
         path: "/admin/clientes",
-        component: AdminCustomerList,
+        component: () =>
+          import(
+            /* webpackChunkName: "AdminCustomerList" */ "@/views/admin/CustomerList"
+          ),
         meta: {
           adminRoute: true,
         },
@@ -171,7 +176,10 @@ const routes = [
       {
         name: "adminCustomerDetail",
         path: "/admin/clientes/:id",
-        component: AdminCustomerDetail,
+        component: () =>
+          import(
+            /* webpackChunkName: "AdminCustomerDetail" */ "@/views/admin/CustomerDetail"
+          ),
         meta: {
           adminRoute: true,
         },
@@ -179,7 +187,10 @@ const routes = [
       {
         name: "adminBankAccountList",
         path: "/admin/contas",
-        component: AdminBankAccountList,
+        component: () =>
+          import(
+            /* webpackChunkName: "AdminBankAccountList" */ "@/views/admin/BankAccountList"
+          ),
         meta: {
           adminRoute: true,
         },
@@ -187,7 +198,8 @@ const routes = [
       {
         name: "adminAccountManage",
         path: "/admin/minha-conta",
-        component: Profile,
+        component: () =>
+          import(/* webpackChunkName: "Profile" */ "@/views/Profile"),
         meta: {
           adminRoute: true,
         },

@@ -20,6 +20,10 @@ export async function adminFreeNumbers(contestId) {
   return api.post(`numbers/${contestId}/manage/free`, {});
 }
 
+export async function adminCancelOrder(orderId) {
+  return api.remove(`numbers/${orderId}/manage/cancel-order`, {});
+}
+
 export async function adminPaidNumbers(contestId, customer) {
   return api.post(`numbers/${contestId}/manage/paid`, customer);
 }

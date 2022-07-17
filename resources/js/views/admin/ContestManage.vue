@@ -2,19 +2,19 @@
   <b-container fluid>
     <h2>Gerenciar sorteio</h2>
     <b-row class="text-center" style="font-size: 32px">
-      <b-col md="4"
+      <b-col md="4" class="mb-2"
         ><b-card bg-variant="success">
           <h3>Disponível</h3>
           {{ countNumbersByStatus("FREE") }}
         </b-card></b-col
       >
-      <b-col md="4"
+      <b-col md="4" class="mb-2"
         ><b-card bg-variant="warning"
           ><h3>Reservado</h3>
           {{ countNumbersByStatus("RESERVED") }}</b-card
         ></b-col
       >
-      <b-col md="4"
+      <b-col md="4" class="mb-2"
         ><b-card bg-variant="danger"
           ><h3>Pago</h3>
           {{ countNumbersByStatus("PAID") }}</b-card
@@ -24,7 +24,7 @@
 
     <div class="mt-4">
       <b-row>
-        <b-col md="6">
+        <b-col cols="12" md="6" class="mb-3">
           <b-button-group class="w-100">
             <b-button @click="handleFilterNumbers('ALL')" variant="light"
               >Todos ({{ numbers.length }})</b-button
@@ -40,7 +40,7 @@
             >
           </b-button-group>
         </b-col>
-        <b-col md="6">
+        <b-col cols="12" md="6">
           <!-- TODO: Filtros de nome e whatsapp -->
           <users-select
             @select="handleFilterByCustomer"
@@ -108,14 +108,15 @@
           >
             Marcar selecionados como pago
           </b-button> -->
-          <b-button
+
+          <!-- <b-button
             variant="success"
             size="lg"
             class="w-100"
             @click="$bvModal.show('confirmation-free-modal')"
           >
             Marcar todos os reservados como disponível
-          </b-button>
+          </b-button> -->
         </b-col>
       </b-row>
 
@@ -152,7 +153,7 @@
     </b-modal> -->
 
     <!-- Modal confirmar liberação de números -->
-    <b-modal
+    <!-- <b-modal
       id="confirmation-free-modal"
       ok-variant="danger"
       ok-title="Sim, desejo liberar os números"
@@ -167,7 +168,7 @@
         </p>
         <p><strong>Deseja liberar todos os números reservados?</strong></p>
       </div>
-    </b-modal>
+    </b-modal> -->
   </b-container>
 </template>
 
@@ -178,7 +179,7 @@ import ContestPercentageForm from "@/components/Contests/Admin/ContestPercentage
 import UsersSelectVue from "@/components/Users/UsersSelect.vue";
 
 import {
-  adminFreeNumbers,
+  // adminFreeNumbers,
   // adminPaidNumbers,
   listNumbers,
 } from "@/services/numbers";
@@ -329,29 +330,29 @@ export default {
     //     await this.getContestData(this.contestId);
     //   }
     // },
-    async handleFreeNumbers() {
-      try {
-        this.loading = true;
+    // async handleFreeNumbers() {
+    //   try {
+    //     this.loading = true;
 
-        const result = await adminFreeNumbers(this.contestId);
+    //     const result = await adminFreeNumbers(this.contestId);
 
-        this.$toasted.show(result.message, {
-          type: "success",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
-      } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
-      } finally {
-        await this.getContestData(this.contestId);
-      }
-    },
+    //     this.$toasted.show(result.message, {
+    //       type: "success",
+    //       theme: "toasted-primary",
+    //       position: "top-right",
+    //       duration: 3000,
+    //     });
+    //   } catch (error) {
+    //     this.$toasted.show(error.message, {
+    //       type: "error",
+    //       theme: "toasted-primary",
+    //       position: "top-right",
+    //       duration: 3000,
+    //     });
+    //   } finally {
+    //     await this.getContestData(this.contestId);
+    //   }
+    // },
     handleClearFilterByCustomer() {
       this.getContestData(this.contestId);
     },
