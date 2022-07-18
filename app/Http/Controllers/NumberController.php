@@ -275,6 +275,12 @@ class NumberController extends Controller
             ->where('status', '=', OrderStatus::PENDING)
             ->first();
 
+        if (empty($order)) {
+            return response()->json([
+                'message' => 'O pedido informado não está mais disponível'
+            ], 404);
+        }
+
         $numbers = $this->setContestNumbersAsPaid($contest->id, json_decode($order->numbers), $customer);
 
         if ($numbers == false) {
@@ -301,15 +307,17 @@ class NumberController extends Controller
     /**
      * Cancela um pedido e libera os números reservados
      *      
+     * @param int $contest_id     
      * @param int $order_id     
      * 
      * @return JsonResponse
      */
-    public function adminCancelOrder(int $order_id)
+    public function adminCancelOrder(int $contest_id, int $order_id)
     {
+        $contest = Contest::find($contest_id);
         $order = Order::find($order_id);
 
-        if (empty($order)) {
+        if (empty($contest) || empty($order)) {
             return response()->json([
                 'message' => 'O pedido informado não está mais disponível'
             ], 404);
@@ -317,7 +325,6 @@ class NumberController extends Controller
 
         $user = auth('sanctum')->user();
         $order_numbers = json_decode($order->numbers);
-        $contest = Contest::find($order->contest_id);
 
         $numbers = $this->setContestNumbersAsFree($contest->id, $order_numbers, $user);
 

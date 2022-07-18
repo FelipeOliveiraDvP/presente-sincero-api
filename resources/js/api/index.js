@@ -33,12 +33,17 @@ const upload = (url, data) => {
   });
 };
 
+const patch = (url, data) => {
+  return instance.patch(url, data);
+};
+
 const api = {
   get,
   post,
   update,
   remove,
   upload,
+  patch,
 };
 
 export default api;
