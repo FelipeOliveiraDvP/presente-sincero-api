@@ -1,9 +1,6 @@
-import Vue from "vue";
-import VueRouter from "vue-router";
+import { createWebHistory, createRouter } from "vue-router";
 
 import store from "../store";
-
-Vue.use(VueRouter);
 
 const routes = [
   // Public
@@ -208,8 +205,8 @@ const routes = [
   },
 ];
 
-const router = new VueRouter({
-  mode: "history",
+const router = createRouter({
+  history: createWebHistory(),
   routes: routes,
 });
 

@@ -1,32 +1,22 @@
 require("./bootstrap");
 
-import Vue from "vue";
-
+import { createApp, h } from "vue";
 import VueClipboard from "vue-clipboard2";
+import Antd from "ant-design-vue";
 
-import App from "./App.vue";
 import router from "./routes";
 import store from "./store";
+import App from "./App.vue";
 
-Vue.use(VueClipboard);
+import "ant-design-vue/dist/antd.css";
 
-const app = new Vue({
-  el: "#app",
-  router: router,
-  store: store,
-  render: (h) => h(App),
-  created() {
-    window.Echo.channel("payment.confirmed").listen(
-      "PaymentConfirmed",
-      async (e) => {
-        const payment = {
-          userId: e.user_id,
-          orderId: e.order_id,
-          confirmed: e.confirmed,
-        };
-
-        await this.$store.dispatch("payment/confirmPayment", payment);
-      }
-    );
-  },
+const app = createApp({
+  render: () => h(App),
 });
+
+app.use(router);
+app.use(store);
+app.use(VueClipboard);
+app.use(Antd);
+
+app.mount("#app");

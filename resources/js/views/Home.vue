@@ -1,5 +1,7 @@
 <template>
-  <h1>Home</h1>
+  <div>
+    <a-button type="primary">Primary Button</a-button>
+  </div>
   <!-- <div>
     <section class="home-banner">
       <div class="banner-overlay">
