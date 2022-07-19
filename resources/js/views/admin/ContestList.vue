@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <h1>AdminContestList</h1>
+  <!-- <div>
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2>Sorteios</h2>
       <router-link class="btn btn-primary" to="/admin/sorteios/novo-sorteio">
@@ -71,7 +72,7 @@
       align="end"
       @change="handlePaginate"
     ></b-pagination>
-  </div>
+  </div> -->
 </template>
 
 <script>

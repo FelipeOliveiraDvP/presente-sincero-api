@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <h1>AdminCustomerList</h1>
+  <!-- <div>
     <div>
       <h2>Clientes</h2>
     </div>
@@ -35,7 +36,7 @@
       align="end"
       @change="handlePaginate"
     ></b-pagination>
-  </div>
+  </div> -->
 </template>
 
 <script>
@@ -94,7 +95,7 @@ export default {
     };
   },
   methods: {
-    async handlePaginate(page) {},
+    async handlePaginate(page) { },
   },
 };
 </script>

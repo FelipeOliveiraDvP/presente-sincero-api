@@ -1,5 +1,6 @@
 <template>
-  <b-container fluid>
+  <h1>AdminCustomerDetail</h1>
+  <!-- <b-container fluid>
     <b-row>
       <b-col md="6" lg="4">
         <b-avatar
@@ -21,12 +22,7 @@
       </b-col>
     </b-row>
 
-    <!-- <b-row>
-      <b-col md="4">1</b-col>
-      <b-col md="4">2</b-col>
-      <b-col md="4">3</b-col>
-    </b-row> -->
-  </b-container>
+  </b-container> -->
 </template>
 
 <script>

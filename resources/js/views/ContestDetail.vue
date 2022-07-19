@@ -1,5 +1,6 @@
 <template>
-  <b-container class="page">
+  <h1>Detalhes do sorteio</h1>
+  <!-- <b-container class="page">
     <h1>
       {{ loading ? "Carregando..." : contest && contest.title }}
     </h1>
@@ -9,28 +10,10 @@
 
     <b-row>
       <b-col md="6" style="min-height: 550px">
-        <img
-          v-if="loading"
-          class="img-fluid w-100"
-          src="/img/placeholder.jpg"
-          alt="Carregando"
-        />
-        <b-carousel
-          v-else-if="contest !== null"
-          id="contest-gallery"
-          :interval="4000"
-          controls
-          indicators
-          background="#ababab"
-          img-width="1024"
-          img-height="480"
-          style="text-shadow: 1px 1px 2px #333"
-        >
-          <b-carousel-slide
-            v-for="image in contest.gallery"
-            :key="image.id"
-            :img-src="image.path"
-          ></b-carousel-slide>
+        <img v-if="loading" class="img-fluid w-100" src="/img/placeholder.jpg" alt="Carregando" />
+        <b-carousel v-else-if="contest !== null" id="contest-gallery" :interval="4000" controls indicators
+          background="#ababab" img-width="1024" img-height="480" style="text-shadow: 1px 1px 2px #333">
+          <b-carousel-slide v-for="image in contest.gallery" :key="image.id" :img-src="image.path"></b-carousel-slide>
         </b-carousel>
       </b-col>
       <b-col md="6" class="d-flex flex-column justify-content-between">
@@ -38,18 +21,13 @@
           {{ loading ? "Carregando..." : contest && contest.full_description }}
         </div>
 
-        <div
-          v-if="
-            contest &&
-            (contest.show_percentage || contest.use_custom_percentage)
-          "
-        >
+        <div v-if="
+          contest &&
+          (contest.show_percentage || contest.use_custom_percentage)
+        ">
           <p>Números vendidos {{ contestPercentage }}%</p>
           <div class="border">
-            <div
-              class="bg-danger"
-              :style="{ width: `${contestPercentage}%`, height: '50px' }"
-            ></div>
+            <div class="bg-danger" :style="{ width: `${contestPercentage}%`, height: '50px' }"></div>
           </div>
         </div>
 
@@ -74,51 +52,28 @@
       <b-row>
         <b-col md="6">
           <b-button-group class="w-100">
-            <b-button @click="handleFilterNumbers('ALL')" variant="light"
-              >Todos ({{ numbers.length }})</b-button
-            >
-            <b-button @click="handleFilterNumbers('FREE')" variant="success"
-              >Disponível ({{ countNumbersByStatus("FREE") }})</b-button
-            >
-            <b-button @click="handleFilterNumbers('RESERVED')" variant="warning"
-              >Reservados ({{ countNumbersByStatus("RESERVED") }})</b-button
-            >
-            <b-button @click="handleFilterNumbers('PAID')" variant="danger"
-              >Pagos ({{ countNumbersByStatus("PAID") }})</b-button
-            >
+            <b-button @click="handleFilterNumbers('ALL')" variant="light">Todos ({{ numbers.length }})</b-button>
+            <b-button @click="handleFilterNumbers('FREE')" variant="success">Disponível ({{ countNumbersByStatus("FREE")
+            }})</b-button>
+            <b-button @click="handleFilterNumbers('RESERVED')" variant="warning">Reservados ({{
+                countNumbersByStatus("RESERVED")
+            }})</b-button>
+            <b-button @click="handleFilterNumbers('PAID')" variant="danger">Pagos ({{ countNumbersByStatus("PAID") }})
+            </b-button>
           </b-button-group>
         </b-col>
         <b-col md="6" lg="4">
-          <b-button
-            v-b-modal.customer-numbers
-            variant="secondary"
-            class="d-block w-100 mt-2 mt-md-0"
-            >MEUS NÚMEROS</b-button
-          >
+          <b-button v-b-modal.customer-numbers variant="secondary" class="d-block w-100 mt-2 mt-md-0">MEUS NÚMEROS
+          </b-button>
         </b-col>
       </b-row>
     </div>
 
-    <div
-      class="my-4 border border-secondary p-4"
-      style="max-height: 400px; overflow-y: auto"
-      @scroll="handleScroll"
-    >
+    <div class="my-4 border border-secondary p-4" style="max-height: 400px; overflow-y: auto" @scroll="handleScroll">
       <my-loader v-if="loading" />
       <b-row v-else>
-        <b-col
-          :key="number.number"
-          v-for="number in filteredNumbers"
-          cols="4"
-          md="2"
-          lg="1"
-          class="p-2 text-center"
-        >
-          <contest-number
-            :number="number"
-            :isSelected="isSelected(number)"
-            @select="handleSelectNumber"
-          />
+        <b-col :key="number.number" v-for="number in filteredNumbers" cols="4" md="2" lg="1" class="p-2 text-center">
+          <contest-number :number="number" :isSelected="isSelected(number)" @select="handleSelectNumber" />
         </b-col>
       </b-row>
     </div>
@@ -131,19 +86,9 @@
             <b-col cols="12" v-if="selectedNumbers.length === 0">
               Você ainda não escolheu nenhum número
             </b-col>
-            <b-col
-              :key="selected.number"
-              v-for="selected in selectedNumbers"
-              cols="6"
-              md="4"
-              lg="3"
-              class="p-2 text-center"
-            >
-              <contest-number
-                :number="selected"
-                allowRemove
-                @remove="handleRemoveSelectedNumber"
-              />
+            <b-col :key="selected.number" v-for="selected in selectedNumbers" cols="6" md="4" lg="3"
+              class="p-2 text-center">
+              <contest-number :number="selected" allowRemove @remove="handleRemoveSelectedNumber" />
             </b-col>
           </b-row>
         </b-col>
@@ -156,40 +101,29 @@
           </p>
           <b-row>
             <b-col lg="6">
-              <b-form-spinbutton
-                v-model="magicNumbers"
-                :max="countNumbersByStatus('FREE')"
-                @change="handleAddMagicNumber"
-              />
+              <b-form-spinbutton v-model="magicNumbers" :max="countNumbersByStatus('FREE')"
+                @change="handleAddMagicNumber" />
             </b-col>
             <b-col lg="6" class="d-flex justify-content-between mt-4 mt-lg-0">
-              <b-button variant="primary" @click="decrementMagicNumber(10)"
-                >-10</b-button
-              >
-              <b-button variant="primary" @click="incrementMagicNumber(10)"
-                >+10</b-button
-              >
-              <b-button variant="primary" @click="decrementMagicNumber(50)"
-                >-50</b-button
-              >
-              <b-button variant="primary" @click="incrementMagicNumber(50)"
-                >+50</b-button
-              >
+              <b-button variant="primary" @click="decrementMagicNumber(10)">-10</b-button>
+              <b-button variant="primary" @click="incrementMagicNumber(10)">+10</b-button>
+              <b-button variant="primary" @click="decrementMagicNumber(50)">-50</b-button>
+              <b-button variant="primary" @click="incrementMagicNumber(50)">+50</b-button>
             </b-col>
           </b-row>
         </b-col>
-        <b-col cols="12"> <div class="divider"></div> </b-col>
+        <b-col cols="12">
+          <div class="divider"></div>
+        </b-col>
         <b-col md="6">
           <h5>Total</h5>
-          <div
-            class="
+          <div class="
               d-flex
               flex-column
               justify-content-center
               align-items-start
               h-100
-            "
-          >
+            ">
             <p>
               {{ selectedNumbers.length }} X
               {{ formattedCartTotal }}
@@ -199,11 +133,11 @@
               <p>
                 DE
                 <del>{{
-                  contest && formatPrice(selectedNumbers.length * contest.price)
+                    contest && formatPrice(selectedNumbers.length * contest.price)
                 }}</del>
                 por
                 <strong>{{
-                  formatPrice(selectedNumbers.length * currentSale.price)
+                    formatPrice(selectedNumbers.length * currentSale.price)
                 }}</strong>
               </p>
             </div>
@@ -211,12 +145,7 @@
         </b-col>
         <b-col md="6">
           <div class="d-flex justify-content-end align-items-center h-100 mt-2">
-            <b-button
-              variant="primary"
-              size="lg"
-              @click="handleCheckout"
-              :disabled="selectedNumbers.length === 0"
-            >
+            <b-button variant="primary" size="lg" @click="handleCheckout" :disabled="selectedNumbers.length === 0">
               COMPRAR NÚMEROS
             </b-button>
           </div>
@@ -227,14 +156,14 @@
     <contest-numbers-modal :contestId="contest && contest.id" />
 
     <simple-register-modal @onsuccess="handleCheckout" />
-  </b-container>
+  </b-container> -->
 </template>
 
 <script>
 import { mapActions } from "vuex";
 
-import ContestNumberVue from "@/components/Contests/ContestNumber.vue";
 import LoaderVue from "@/components/_commons/Loader.vue";
+import ContestNumberVue from "@/components/Contests/ContestNumber.vue";
 import ContestNumbersModal from "@/components/Customers/ContestNumbersModal.vue";
 import SimpleRegisterModal from "@/components/Auth/SimpleRegisterModal.vue";
 
@@ -306,7 +235,7 @@ export default {
     }),
     async getContestData() {
       try {
-        const { slug } = this.$router.history.current.params;
+        const { slug } = this.$route.params;
 
         this.loading = true;
 
@@ -328,12 +257,7 @@ export default {
         this.magicNumbers = this.selectedNumbers.length;
         this.calcSaleDiscount();
       } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.error(error);
       } finally {
         this.loading = false;
       }
@@ -363,7 +287,7 @@ export default {
       const { authenticated } = this.$store.state.auth;
 
       if (!authenticated) {
-        this.$bvModal.show("simple-register");
+        // this.$bvModal.show("simple-register");
         return;
       }
 
@@ -462,7 +386,7 @@ export default {
     handleScroll(el) {
       if (
         el.srcElement.offsetHeight + el.srcElement.scrollTop >=
-          el.srcElement.scrollHeight &&
+        el.srcElement.scrollHeight &&
         this.current < this.quantity - this.partial
       ) {
         const filtered =

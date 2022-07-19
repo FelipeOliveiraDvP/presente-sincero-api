@@ -1,5 +1,6 @@
 <template>
-  <b-container class="page my-4">
+  <h1>Verificar código</h1>
+  <!-- <b-container class="page my-4">
     <div
       class="p-4 my-4 d-flex justify-content-center align-items-center h-100"
     >
@@ -42,18 +43,14 @@
         </b-form>
       </div>
     </div>
-  </b-container>
+  </b-container> -->
 </template>
 
 <script>
-import { validationMixin } from "vuelidate";
-import { required, minLength } from "vuelidate/lib/validators";
-
 import { verify } from "../services/auth";
 
 export default {
   name: "Verify",
-  mixins: [validationMixin],
   data() {
     return {
       loading: false,
@@ -62,43 +59,18 @@ export default {
       },
     };
   },
-  validations: {
-    form: {
-      code: { required, minLength: minLength(6) },
-    },
-  },
   methods: {
-    validateState(field) {
-      const { $dirty, $error } = this.$v.form[field];
-
-      return $dirty ? !$error : null;
-    },
     async onSubmit() {
       try {
         this.loading = true;
-        this.$v.form.$touch();
-
-        if (this.$v.form.$anyError) {
-          return;
-        }
 
         const result = await verify(this.form.code);
 
-        this.$toasted.show(result.message, {
-          type: "success",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.log(result);
 
         this.$router.push({ name: "reset", params: { code: this.form.code } });
       } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.error(error);
       } finally {
         this.loading = false;
       }

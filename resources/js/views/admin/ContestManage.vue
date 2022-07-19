@@ -1,75 +1,53 @@
 <template>
-  <b-container fluid>
+  <h1>AdminContestManage</h1>
+  <!-- <b-container fluid>
     <h2>Gerenciar sorteio</h2>
     <b-row class="text-center" style="font-size: 32px">
-      <b-col md="4" class="mb-2"
-        ><b-card bg-variant="success">
+      <b-col md="4" class="mb-2">
+        <b-card bg-variant="success">
           <h3>Disponível</h3>
           {{ countNumbersByStatus("FREE") }}
-        </b-card></b-col
-      >
-      <b-col md="4" class="mb-2"
-        ><b-card bg-variant="warning"
-          ><h3>Reservado</h3>
-          {{ countNumbersByStatus("RESERVED") }}</b-card
-        ></b-col
-      >
-      <b-col md="4" class="mb-2"
-        ><b-card bg-variant="danger"
-          ><h3>Pago</h3>
-          {{ countNumbersByStatus("PAID") }}</b-card
-        ></b-col
-      >
+        </b-card>
+      </b-col>
+      <b-col md="4" class="mb-2">
+        <b-card bg-variant="warning">
+          <h3>Reservado</h3>
+          {{ countNumbersByStatus("RESERVED") }}
+        </b-card>
+      </b-col>
+      <b-col md="4" class="mb-2">
+        <b-card bg-variant="danger">
+          <h3>Pago</h3>
+          {{ countNumbersByStatus("PAID") }}
+        </b-card>
+      </b-col>
     </b-row>
 
     <div class="mt-4">
       <b-row>
         <b-col cols="12" md="6" class="mb-3">
           <b-button-group class="w-100">
-            <b-button @click="handleFilterNumbers('ALL')" variant="light"
-              >Todos ({{ numbers.length }})</b-button
-            >
-            <b-button @click="handleFilterNumbers('FREE')" variant="success"
-              >Disponível ({{ countNumbersByStatus("FREE") }})</b-button
-            >
-            <b-button @click="handleFilterNumbers('RESERVED')" variant="warning"
-              >Reservados ({{ countNumbersByStatus("RESERVED") }})</b-button
-            >
-            <b-button @click="handleFilterNumbers('PAID')" variant="danger"
-              >Pagos ({{ countNumbersByStatus("PAID") }})</b-button
-            >
+            <b-button @click="handleFilterNumbers('ALL')" variant="light">Todos ({{ numbers.length }})</b-button>
+            <b-button @click="handleFilterNumbers('FREE')" variant="success">Disponível ({{ countNumbersByStatus("FREE")
+            }})</b-button>
+            <b-button @click="handleFilterNumbers('RESERVED')" variant="warning">Reservados ({{
+                countNumbersByStatus("RESERVED")
+            }})</b-button>
+            <b-button @click="handleFilterNumbers('PAID')" variant="danger">Pagos ({{ countNumbersByStatus("PAID") }})
+            </b-button>
           </b-button-group>
         </b-col>
-        <b-col cols="12" md="6">
-          <!-- TODO: Filtros de nome e whatsapp -->
-          <users-select
-            @select="handleFilterByCustomer"
-            @clear="handleClearFilterByCustomer"
-          />
+        <b-col cols="12" md="6">          
+          <users-select @select="handleFilterByCustomer" @clear="handleClearFilterByCustomer" />
         </b-col>
       </b-row>
     </div>
 
-    <div
-      class="my-4 border border-secondary p-4"
-      style="max-height: 400px; overflow-y: auto"
-      @scroll="handleScroll"
-    >
+    <div class="my-4 border border-secondary p-4" style="max-height: 400px; overflow-y: auto" @scroll="handleScroll">
       <my-loader v-if="loading" />
       <b-row v-else>
-        <b-col
-          :key="number.number"
-          v-for="number in filteredNumbers"
-          cols="4"
-          md="2"
-          lg="1"
-          class="p-2 text-center"
-        >
-          <contest-number
-            :number="number"
-            :isSelected="isSelected(number)"
-            @select="handleSelectNumber"
-          />
+        <b-col :key="number.number" v-for="number in filteredNumbers" cols="4" md="2" lg="1" class="p-2 text-center">
+          <contest-number :number="number" :isSelected="isSelected(number)" @select="handleSelectNumber" />
         </b-col>
       </b-row>
     </div>
@@ -82,94 +60,20 @@
             <b-col cols="12" v-if="selectedNumbers.length === 0">
               Você ainda não escolheu nenhum número
             </b-col>
-            <b-col
-              :key="selected.number"
-              v-for="selected in selectedNumbers"
-              cols="6"
-              md="4"
-              lg="3"
-              class="p-2 text-center"
-            >
-              <contest-number
-                :number="selected"
-                allowRemove
-                @remove="handleRemoveSelectedNumber"
-              />
+            <b-col :key="selected.number" v-for="selected in selectedNumbers" cols="6" md="4" lg="3"
+              class="p-2 text-center">
+              <contest-number :number="selected" allowRemove @remove="handleRemoveSelectedNumber" />
             </b-col>
           </b-row>
-        </b-col>
-        <b-col md="6" lg="4">
-          <!-- <b-button
-            variant="danger"
-            size="lg"
-            class="mb-2 w-100"
-            :disabled="customerId === null"
-            @click="$bvModal.show('confirmation-paid-modal')"
-          >
-            Marcar selecionados como pago
-          </b-button> -->
+        </b-col>        
+      </b-row> -->
 
-          <!-- <b-button
-            variant="success"
-            size="lg"
-            class="w-100"
-            @click="$bvModal.show('confirmation-free-modal')"
-          >
-            Marcar todos os reservados como disponível
-          </b-button> -->
-        </b-col>
-      </b-row>
-
-      <!-- Andamento do sorteio -->
-      <my-loader v-if="loading" />
-      <contest-percentage-form
-        v-else
-        class="my-4"
-        :percentageInfo="percentageInfo"
-        @changePercentage="handleChangePercentage"
-      />
-    </div>
-
-    <!-- Modal confirmar pagamento dos números -->
-    <!-- <b-modal
-      id="confirmation-paid-modal"
-      ok-variant="danger"
-      ok-title="Sim, confirmo o pagamento"
-      cancel-title="Não"
-      @ok="handlePaidCustomerNumbers"
-    >
-      <template #modal-title> Confirmar pagamento </template>
-      <div>
-        <p>
-          Ao clicar no botão sim, você confirma que o cliente realizou o
-          pagamento de forma manual e fez o envio do comprovante.
-        </p>
-        <p>
-          Após a confirmação, o cliente receberá a notificação via WhatsApp
-          sobre a aprovação do pagamento.
-        </p>
-        <p><strong>Deseja confirmar o pagamento?</strong></p>
-      </div>
-    </b-modal> -->
-
-    <!-- Modal confirmar liberação de números -->
-    <!-- <b-modal
-      id="confirmation-free-modal"
-      ok-variant="danger"
-      ok-title="Sim, desejo liberar os números"
-      cancel-title="Não"
-      @ok="handleFreeNumbers"
-    >
-      <template #modal-title> Liberar números reservados </template>
-      <div>
-        <p>
-          Ao clicar no botão sim, todos os números marcados como reservado serão
-          disponibilizados novamente para reserva dos clientes.
-        </p>
-        <p><strong>Deseja liberar todos os números reservados?</strong></p>
-      </div>
-    </b-modal> -->
-  </b-container>
+  <!-- Andamento do sorteio -->
+  <!-- <my-loader v-if="loading" />
+      <contest-percentage-form v-else class="my-4" :percentageInfo="percentageInfo"
+        @changePercentage="handleChangePercentage" />
+    </div>    
+  </b-container> -->
 </template>
 
 <script>
@@ -179,8 +83,6 @@ import ContestPercentageForm from "@/components/Contests/Admin/ContestPercentage
 import UsersSelectVue from "@/components/Users/UsersSelect.vue";
 
 import {
-  // adminFreeNumbers,
-  // adminPaidNumbers,
   listNumbers,
 } from "@/services/numbers";
 import { getContest, editContest } from "@/services/contests";
@@ -208,7 +110,7 @@ export default {
     };
   },
   mounted() {
-    const { id } = this.$router.history.current.params;
+    const { id } = this.$route.params;
 
     this.contestId = id;
     this.getContestData(id);
@@ -232,12 +134,7 @@ export default {
           custom_percentage: result.custom_percentage,
         };
       } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.error(error);
       } finally {
         this.loading = false;
       }
@@ -275,19 +172,9 @@ export default {
           custom_percentage: result?.custom_percentage,
         };
 
-        this.$toasted.show(result.message, {
-          type: "success",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.log(result);
       } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.error(error);
       }
     },
     async handleFilterByCustomer(customerId) {
@@ -305,54 +192,6 @@ export default {
 
       this.loading = false;
     },
-    // async handlePaidCustomerNumbers() {
-    //   try {
-    //     this.loading = true;
-
-    //     const result = await adminPaidNumbers(this.contestId, {
-    //       customer_id: this.customerId,
-    //     });
-
-    //     this.$toasted.show(result.message, {
-    //       type: "success",
-    //       theme: "toasted-primary",
-    //       position: "top-right",
-    //       duration: 3000,
-    //     });
-    //   } catch (error) {
-    //     this.$toasted.show(error.message, {
-    //       type: "error",
-    //       theme: "toasted-primary",
-    //       position: "top-right",
-    //       duration: 3000,
-    //     });
-    //   } finally {
-    //     await this.getContestData(this.contestId);
-    //   }
-    // },
-    // async handleFreeNumbers() {
-    //   try {
-    //     this.loading = true;
-
-    //     const result = await adminFreeNumbers(this.contestId);
-
-    //     this.$toasted.show(result.message, {
-    //       type: "success",
-    //       theme: "toasted-primary",
-    //       position: "top-right",
-    //       duration: 3000,
-    //     });
-    //   } catch (error) {
-    //     this.$toasted.show(error.message, {
-    //       type: "error",
-    //       theme: "toasted-primary",
-    //       position: "top-right",
-    //       duration: 3000,
-    //     });
-    //   } finally {
-    //     await this.getContestData(this.contestId);
-    //   }
-    // },
     handleClearFilterByCustomer() {
       this.getContestData(this.contestId);
     },
@@ -393,7 +232,7 @@ export default {
     handleScroll(el) {
       if (
         el.srcElement.offsetHeight + el.srcElement.scrollTop >=
-          el.srcElement.scrollHeight &&
+        el.srcElement.scrollHeight &&
         this.current < this.quantity - this.partial
       ) {
         const filtered =

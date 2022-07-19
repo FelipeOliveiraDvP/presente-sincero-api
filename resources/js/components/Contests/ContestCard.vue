@@ -1,5 +1,6 @@
 <template>
-  <b-card no-body class="contest-card overflow-hidden mb-3">
+  <div>ContestCard</div>
+  <!-- <b-card no-body class="contest-card overflow-hidden mb-3">
     <b-row no-gutters>
       <b-col md="6">
         <b-card-img :src="thumbnail" :alt="contest.title" />
@@ -15,7 +16,7 @@
         </b-card-body>
       </b-col>
     </b-row>
-  </b-card>
+  </b-card> -->
 </template>
 
 <script>

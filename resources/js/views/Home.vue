@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <h1>Home</h1>
+  <!-- <div>
     <section class="home-banner">
       <div class="banner-overlay">
         <b-container>
@@ -24,12 +25,12 @@
         </b-col>
       </b-row>
     </b-container>
-  </div>
+  </div> -->
 </template>
 
 <script>
-import ContestCardVue from "@/components/Contests/ContestCard.vue";
 import LoaderVue from "@/components/_commons/Loader.vue";
+import ContestCardVue from "@/components/Contests/ContestCard.vue";
 
 import { listContests } from "@/services/contests";
 
@@ -43,7 +44,7 @@ export default {
     return {
       loading: false,
       params: {
-        limit: 8,
+        limit: 12,
       },
       contests: [],
     };

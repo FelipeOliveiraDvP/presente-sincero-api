@@ -1,8 +1,7 @@
 <template>
-  <b-container class="page my-4">
-    <div
-      class="p-4 my-4 d-flex justify-content-center align-items-center h-100"
-    >
+  <h1>Recuperar senha</h1>
+  <!-- <b-container class="page my-4">
+    <div class="p-4 my-4 d-flex justify-content-center align-items-center h-100">
       <div class="p-3 border rounded" style="width: 400px">
         <h3>Recuperação de senha</h3>
         <p class="text-muted">
@@ -10,27 +9,15 @@
         </p>
         <b-form @submit.stop.prevent="onSubmit">
           <b-form-group label="WhatsApp ou E-mail" label-for="user">
-            <b-form-input
-              id="user"
-              name="user"
-              v-model="$v.form.user.$model"
-              :state="validateState('user')"
-            ></b-form-input>
+            <b-form-input id="user" name="user" v-model="$v.form.user.$model" :state="validateState('user')">
+            </b-form-input>
 
-            <b-form-invalid-feedback v-if="!$v.form.user.required"
-              >Campo obrigatório</b-form-invalid-feedback
-            >
+            <b-form-invalid-feedback v-if="!$v.form.user.required">Campo obrigatório</b-form-invalid-feedback>
           </b-form-group>
 
           <div>
-            <b-button
-              type="submit"
-              block
-              variant="primary"
-              class="w-100 mt-4"
-              :disabled="loading"
-              >Recuperar senha</b-button
-            >
+            <b-button type="submit" block variant="primary" class="w-100 mt-4" :disabled="loading">Recuperar senha
+            </b-button>
           </div>
 
           <div class="my-2 d-flex justify-content-between">
@@ -39,18 +26,14 @@
         </b-form>
       </div>
     </div>
-  </b-container>
+  </b-container> -->
 </template>
 
 <script>
-import { validationMixin } from "vuelidate";
-import { required } from "vuelidate/lib/validators";
-
 import { forgot } from "../services/auth";
 
 export default {
   name: "Recovery",
-  mixins: [validationMixin],
   data() {
     return {
       loading: false,
@@ -59,43 +42,18 @@ export default {
       },
     };
   },
-  validations: {
-    form: {
-      user: { required },
-    },
-  },
   methods: {
-    validateState(user) {
-      const { $dirty, $error } = this.$v.form[user];
-
-      return $dirty ? !$error : null;
-    },
     async onSubmit() {
       try {
         this.loading = true;
-        this.$v.form.$touch();
-
-        if (this.$v.form.$anyError) {
-          return;
-        }
 
         const result = await forgot(this.form);
 
-        this.$toasted.show(result.message, {
-          type: "success",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.log(result);
 
         this.$router.push({ name: "verify" });
       } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.error(error);
       } finally {
         this.loading = false;
       }

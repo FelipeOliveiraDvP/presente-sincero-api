@@ -1,19 +1,7 @@
 <template>
-  <b-container class="page">
-    <!-- TODO: Filtros de sorteios -->
-    <!-- <div class="my-4 d-flex flex-column flex-md-row justify-content-between">
-      <b-button-group class="mb-3">
-        <b-button variant="success">Em andamento</b-button>
-        <b-button variant="warning">Próximos</b-button>
-        <b-button variant="danger">Encerrados</b-button>
-      </b-button-group>
-
-      <b-form-select
-        class="custom-form-select"
-        v-model="order"
-        :options="options"
-      ></b-form-select>
-    </div> -->
+  <h1>Sorteios</h1>
+  <!-- <b-container class="page">
+    
 
     <h2 class="text-center">Sorteios em andamento</h2>
 
@@ -23,14 +11,14 @@
         <contest-card :contest="contest" />
       </b-col>
     </b-row>
-  </b-container>
+  </b-container> -->
 </template>
 
 <script>
-import ContestCardVue from "../components/Contests/ContestCard.vue";
-import LoaderVue from "../components/_commons/Loader.vue";
+import LoaderVue from "@/components/_commons/Loader.vue";
+import ContestCardVue from "@/components/Contests/ContestCard.vue";
 
-import { listContests } from "../services/contests";
+import { listContests } from "@/services/contests";
 
 export default {
   name: "ContestList",
@@ -40,12 +28,6 @@ export default {
   },
   data() {
     return {
-      order: null,
-      options: [
-        { value: null, text: "Ordenar sorteios por" },
-        { value: "a", text: "Maior prêmiação" },
-        { value: "b", text: "Menor valor do número" },
-      ],
       loading: false,
       params: {
         limit: 12,

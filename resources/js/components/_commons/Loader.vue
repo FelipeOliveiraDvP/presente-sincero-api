@@ -1,10 +1,10 @@
 <template>
   <div class="loader">
-    <b-spinner
+    <!-- <b-spinner
       class="spinner"
       label="Carregando..."
       variant="primary"
-    ></b-spinner>
+    ></b-spinner> -->
   </div>
 </template>
 

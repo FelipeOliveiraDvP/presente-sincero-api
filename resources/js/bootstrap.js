@@ -1,6 +1,7 @@
 import Echo from "laravel-echo";
 
 window.Pusher = require("pusher-js");
+window.Vue = require("vue");
 
 window.Echo = new Echo({
   broadcaster: "pusher",

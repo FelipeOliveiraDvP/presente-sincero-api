@@ -1,8 +1,9 @@
 <template>
-  <b-container class="page">
+  <h1>Checkout</h1>
+  <!-- <b-container class="page">
     <div class="border p-4 my-4 rounded">
-      <b-row>
-        <b-col md="7" class="p-1">
+      <b-row> -->
+  <!-- <b-col md="7" class="p-1">
           <h2>Finalizar compra</h2>
 
           <div class="">
@@ -19,31 +20,21 @@
             <p><strong>Meus números</strong></p>
             <p v-if="numbers.length > 100">
               {{
-                numbers
-                  .map((n) => n.number)
-                  .splice(0, 10)
-                  .join(", ")
+                  numbers
+                    .map((n) => n.number)
+                    .splice(0, 10)
+                    .join(", ")
               }}
             </p>
             <p v-else>
               <b-row style="max-height: 120px; overflow-y: auto">
-                <b-col
-                  :key="number.number"
-                  v-for="number in numbers"
-                  cols="4"
-                  md="3"
-                  lg="2"
-                  class="p-1 text-center"
-                >
+                <b-col :key="number.number" v-for="number in numbers" cols="4" md="3" lg="2" class="p-1 text-center">
                   <contest-number :number="number" />
                 </b-col>
               </b-row>
             </p>
             <p>
-              <b-button
-                variant="link"
-                @click="$bvModal.show('confirmation-leave-modal')"
-              >
+              <b-button variant="link" @click="$bvModal.show('confirmation-leave-modal')">
                 Gostaria de trocar ou escolher mais números? Clique aqui
               </b-button>
             </p>
@@ -79,10 +70,11 @@
           <p>
             Após o pagamento, permaneça na página para aguardar a confirmação.
           </p>
-        </b-col>
-        <b-col md="5" class="d-flex justify-content-center align-items-center">
-          <!-- Pagamento confirmado -->
-          <div v-if="paymentConfirmed" class="payment-success">
+        </b-col> -->
+
+  <!-- <b-col md="5" class="d-flex justify-content-center align-items-center"> -->
+  <!-- Pagamento confirmado -->
+  <!-- <div v-if="paymentConfirmed" class="payment-success">
             <div class="icon text-success">
               <i class="fas fa-check-circle"></i>
             </div>
@@ -94,11 +86,7 @@
               Para acompanhar o sorteio, você deve entrar no grupo do WhatsApp
               abaixo:
             </p>
-            <a
-              :href="details.whatsapp_group"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a :href="details.whatsapp_group" target="_blank" rel="noopener noreferrer">
               {{ details.whatsapp_group }}
             </a>
             <p class="mt-2">
@@ -109,52 +97,31 @@
             <router-link :to="`/sorteios/${this.details.slug}`">
               <b-button variant="primary">Escolher mais números</b-button>
             </router-link>
-          </div>
-          <!-- QRCode e código para copiar -->
-          <div v-else>
+          </div> -->
+  <!-- QRCode e código para copiar -->
+  <!-- <div v-else>
             <my-loader v-if="loading" />
             <div class="text-center" v-else>
-              <img
-                src="/img/mercado-pago.png"
-                class="w-50 mb-2"
-                alt="Mercado Pago"
-              />
-              <img
-                :src="`data:image/jpeg;base64,${payment.qrcode_base64}`"
-                alt="qrcode"
-                class="img-fluid mb-2 rounded"
-              />
+              <img src="/img/mercado-pago.png" class="w-50 mb-2" alt="Mercado Pago" />
+              <img :src="`data:image/jpeg;base64,${payment.qrcode_base64}`" alt="qrcode"
+                class="img-fluid mb-2 rounded" />
               <b-input-group>
-                <b-form-input
-                  type="text"
-                  v-model="payment.qr_code"
-                  readonly
-                ></b-form-input>
+                <b-form-input type="text" v-model="payment.qr_code" readonly></b-form-input>
 
                 <b-input-group-append>
-                  <b-button
-                    variant="primary"
-                    v-clipboard:copy="payment.qr_code"
-                    v-clipboard:success="onCopySuccess"
-                    v-clipboard:error="onCopyError"
-                    ><i class="fas fa-copy"></i
-                  ></b-button>
+                  <b-button variant="primary" v-clipboard:copy="payment.qr_code" v-clipboard:success="onCopySuccess"
+                    v-clipboard:error="onCopyError"><i class="fas fa-copy"></i></b-button>
                 </b-input-group-append>
               </b-input-group>
             </div>
-          </div>
-        </b-col>
-      </b-row>
-    </div>
+          </div> -->
+  <!-- </b-col> -->
+  <!-- </b-row>
+    </div> -->
 
-    <!-- Confirmation modal -->
-    <b-modal
-      id="confirmation-leave-modal"
-      ok-variant="danger"
-      ok-title="Sim, desejo sair"
-      cancel-title="Não"
-      @ok="freeReservedNumbers"
-    >
+  <!-- Confirmation modal -->
+  <!-- <b-modal id="confirmation-leave-modal" ok-variant="danger" ok-title="Sim, desejo sair" cancel-title="Não"
+      @ok="freeReservedNumbers">
       <template #modal-title> Deseja realmente sair da página? </template>
       <div>
         <p>
@@ -164,8 +131,8 @@
         <p>Recomendamos finalizar a compra para garantir seus números.</p>
         <p><strong>Ainda sim deseja sair?</strong></p>
       </div>
-    </b-modal>
-  </b-container>
+    </b-modal> -->
+  <!-- </b-container> -->
 </template>
 
 <script>
@@ -250,12 +217,7 @@ export default {
 
         this.payment = { ...payment };
       } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.error(error);
 
         this.$router.push({
           name: "contests",
@@ -277,12 +239,7 @@ export default {
 
         this.addMoreNumbers();
       } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.error(error);
 
         this.$router.push({
           name: "contests",
@@ -329,7 +286,7 @@ export default {
   },
   beforeRouteLeave(to, from, next) {
     if (this.leaving) {
-      this.$bvModal.show("confirmation-leave-modal");
+      // this.$bvModal.show("confirmation-leave-modal");
       return;
     }
 

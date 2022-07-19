@@ -1,5 +1,6 @@
 <template>
-  <footer class="footer">
+  <div>Footer</div>
+  <!-- <footer class="footer">
     <b-container>
       <b-row>
         <b-col md="6" lg="3">
@@ -42,7 +43,7 @@
     <p class="copyright bg-dark text-white text-center p-3">
       <b-container> 2022 - Todos os direitos reservados </b-container>
     </p>
-  </footer>
+  </footer> -->
 </template>
 
 <script>

@@ -1,24 +1,15 @@
 <template>
-  <b-container fluid>
+  <h1>AdminContestOrders</h1>
+  <!-- <b-container fluid>
     <h2>Pedidos</h2>
 
     <div class="my-4 d-flex justify-content-end">
-      <input
-        class="form-control"
-        v-model="params.search"
-        placeholder="Pesquisar cliente por nome, WhatsApp ou e-mail"
-        @input="handleSearch"
-      />
+      <input class="form-control" v-model="params.search" placeholder="Pesquisar cliente por nome, WhatsApp ou e-mail"
+        @input="handleSearch" />
     </div>
 
     <div class="table-responsive">
-      <b-table
-        id="contest-list"
-        class="text-white"
-        :fields="fields"
-        :items="items"
-        :busy.sync="loading"
-      >
+      <b-table id="contest-list" class="text-white" :fields="fields" :items="items" :busy.sync="loading">
         <template v-slot:head()="scope">
           <div style="width: 150px">{{ scope.label }}</div>
         </template>
@@ -29,17 +20,9 @@
 
         <template #cell(whatsapp)="data">
           {{ data.item.user.whatsapp }}
-          <a
-            :href="whatsAppLink(data.item)"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <b-button
-              variant="success"
-              class="rounded-circle ml-1"
-              :title="`Conversar com ${data.item.user.name}`"
-              v-b-tooltip.hover.top
-            >
+          <a :href="whatsAppLink(data.item)" target="_blank" rel="noopener noreferrer">
+            <b-button variant="success" class="rounded-circle ml-1" :title="`Conversar com ${data.item.user.name}`"
+              v-b-tooltip.hover.top>
               <font-awesome-icon icon="fa-brands fa-whatsapp" />
             </b-button>
           </a>
@@ -60,45 +43,25 @@
         </template>
 
         <template #cell(actions)="data">
-          <b-button
-            variant="primary"
-            title="Marcar como pago"
-            @click="openConfirmationModal(data.item)"
-            v-b-tooltip.hover.top
-          >
+          <b-button variant="primary" title="Marcar como pago" @click="openConfirmationModal(data.item)"
+            v-b-tooltip.hover.top>
             <i class="fa-solid fa-money-bill-1"></i>
           </b-button>
 
-          <b-button
-            variant="danger"
-            title="Cancelar pedido"
-            v-b-tooltip.hover.top
-            @click="openCancelOrderModal(data.item)"
-          >
+          <b-button variant="danger" title="Cancelar pedido" v-b-tooltip.hover.top
+            @click="openCancelOrderModal(data.item)">
             <i class="fa-regular fa-trash-can"></i>
           </b-button>
         </template>
       </b-table>
     </div>
 
-    <b-pagination
-      :v-model="params.page"
-      :per-page="pager.per_page"
-      :total-rows="pager.total"
-      pills
-      align="end"
-      @change="handlePaginate"
-    ></b-pagination>
+    <b-pagination :v-model="params.page" :per-page="pager.per_page" :total-rows="pager.total" pills align="end"
+      @change="handlePaginate"></b-pagination> -->
 
-    <!-- Modal confirmar pagamento dos números -->
-    <b-modal
-      id="confirmation-payment"
-      ok-variant="danger"
-      ok-title="Sim, confirmar o pagamento"
-      cancel-title="Não"
-      @ok="handleConfirmationPayment"
-      @hide="closeConfirmationModal"
-    >
+  <!-- Modal confirmar pagamento dos números -->
+  <!-- <b-modal id="confirmation-payment" ok-variant="danger" ok-title="Sim, confirmar o pagamento" cancel-title="Não"
+      @ok="handleConfirmationPayment" @hide="closeConfirmationModal">
       <template #modal-title> Confirmar pagamento </template>
       <div>
         <p>
@@ -114,16 +77,11 @@
         </p>
         <p><strong>Deseja confirmar o pagamento?</strong></p>
       </div>
-    </b-modal>
+    </b-modal> -->
 
-    <!-- Modal confirmar liberação de números -->
-    <b-modal
-      id="cancel-order-modal"
-      ok-variant="danger"
-      ok-title="Sim, desejo cancelar o pedido"
-      cancel-title="Não"
-      @ok="handleCancelOrder"
-    >
+  <!-- Modal confirmar liberação de números -->
+  <!-- <b-modal id="cancel-order-modal" ok-variant="danger" ok-title="Sim, desejo cancelar o pedido" cancel-title="Não"
+      @ok="handleCancelOrder">
       <template #modal-title> Cancelar pedido </template>
       <div>
         <p>
@@ -133,7 +91,7 @@
         <p><strong>Deseja realmente cancelar o pedido?</strong></p>
       </div>
     </b-modal>
-  </b-container>
+  </b-container> -->
 </template>
 
 <script>
@@ -249,19 +207,19 @@ export default {
       await this.getContestOrders();
     },
     openConfirmationModal(item) {
-      this.$bvModal.show("confirmation-payment");
+      // this.$bvModal.show("confirmation-payment");
       this.order = { ...item, numbers: JSON.parse(item.numbers) };
     },
     closeConfirmationModal() {
-      this.$bvModal.hide("confirmation-payment");
+      // this.$bvModal.hide("confirmation-payment");
       this.order = {};
     },
     openCancelOrderModal(item) {
-      this.$bvModal.show("cancel-order-modal");
+      // this.$bvModal.show("cancel-order-modal");
       this.order = { ...item, numbers: JSON.parse(item.numbers) };
     },
     closeCancelOrderModal() {
-      this.$bvModal.hide("cancel-order-modal");
+      // this.$bvModal.hide("cancel-order-modal");
       this.order = {};
     },
     async handleConfirmationPayment() {
@@ -276,19 +234,9 @@ export default {
 
         this.getContestOrders();
 
-        this.$toasted.show(result.message, {
-          type: "success",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.log(result);
       } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.error(error);
       } finally {
         this.loading = false;
       }
@@ -301,19 +249,9 @@ export default {
 
         this.getContestOrders();
 
-        this.$toasted.show(result.message, {
-          type: "success",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.log(result);
       } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.error(error);
       } finally {
         this.loading = false;
       }

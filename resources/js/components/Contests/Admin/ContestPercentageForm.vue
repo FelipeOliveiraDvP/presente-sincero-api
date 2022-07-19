@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div>Form de porcentagem do sorteio</div>
+  <!-- <div>
     <h3>Andamento do concurso</h3>
     <p class="text-muted">
       Aqui você pode editar a porcentagem do concurso, e escolher se vai exibir
@@ -42,7 +43,7 @@
         @change="handleChangePercentage"
       ></b-form-input>
     </div>
-  </div>
+  </div> -->
 </template>
 
 <script>

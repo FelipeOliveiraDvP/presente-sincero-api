@@ -1,5 +1,6 @@
 <template>
-  <div class="relative">
+  <div>UsersSelect</div>
+  <!-- <div class="relative">
     <div class="input-group">
       <input
         class="form-control"
@@ -36,13 +37,13 @@
         </b-list-group-item>
       </b-list-group>
     </div>
-  </div>
+  </div> -->
 </template>
 
 <script>
 import debounce from "lodash.debounce";
 import LoaderVue from "@/components/_commons/Loader.vue";
-import { listUsers } from "@/services/users";
+// import { listUsers } from "@/services/users";
 
 export default {
   name: "UsersSelect",
@@ -59,35 +60,35 @@ export default {
     };
   },
   mounted() {
-    this.getUsersData();
+    // this.getUsersData();
   },
   methods: {
-    async getUsersData() {
-      this.loading = true;
+    // async getUsersData() {
+    //   this.loading = true;
 
-      const result = await listUsers({ search: this.search });
+    //   const result = await listUsers({ search: this.search });
 
-      this.users = result.data;
-      this.loading = false;
-    },
-    handleSelectUser(user) {
-      this.selectedUser = { ...user };
-      this.showResults = false;
-      this.$emit("select", user.id);
-    },
-    handleClearFilter() {
-      this.selectedUser = null;
-      this.showResults = false;
-      this.$emit("clear");
-    },
-    handleSearch: debounce(async function (e) {
-      const { value } = e.target;
+    //   this.users = result.data;
+    //   this.loading = false;
+    // },
+    // handleSelectUser(user) {
+    //   this.selectedUser = { ...user };
+    //   this.showResults = false;
+    //   this.$emit("select", user.id);
+    // },
+    // handleClearFilter() {
+    //   this.selectedUser = null;
+    //   this.showResults = false;
+    //   this.$emit("clear");
+    // },
+    // handleSearch: debounce(async function (e) {
+    //   const { value } = e.target;
 
-      this.search = value;
-      this.showResults = true;
+    //   this.search = value;
+    //   this.showResults = true;
 
-      await this.getUsersData();
-    }, 500),
+    //   await this.getUsersData();
+    // }, 500),
   },
 };
 </script>

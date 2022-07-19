@@ -1,5 +1,6 @@
 <template>
-  <b-navbar
+  <div>Header</div>
+  <!-- <b-navbar
     class="site-header d-flex justify-content-between p-4"
     toggleable="lg"
     type="light"
@@ -23,11 +24,6 @@
 
       <b-collapse id="nav-collapse" is-nav class="justify-content-between">
         <div></div>
-        <!-- <b-navbar-nav>
-          <b-nav-item>
-            <router-link to="/sorteios">SORTEIOS</router-link>
-          </b-nav-item>
-        </b-navbar-nav> -->
 
         <b-navbar-nav class="account" v-if="authenticated">
           <b-nav-item>
@@ -58,7 +54,7 @@
         </b-navbar-nav>
       </b-collapse>
     </b-container>
-  </b-navbar>
+  </b-navbar> -->
 </template>
 
 <script>

@@ -1,6 +1,8 @@
 <template>
   <div>
-    <bootstrap-sidebar
+    <h2>PrivateLayout</h2>
+    <router-view />
+    <!-- <bootstrap-sidebar
       :initial-show="initialShow"
       :links="links"
       :header="header"
@@ -27,19 +29,15 @@
           <router-view />
         </b-container>
       </template>
-    </bootstrap-sidebar>
+    </bootstrap-sidebar> -->
   </div>
 </template>
 
 <script>
-import BootstrapSidebar from "vue-bootstrap-sidebar";
 import { mapActions } from "vuex";
 
 export default {
   name: "PrivateLayout",
-  components: {
-    "bootstrap-sidebar": BootstrapSidebar,
-  },
   data() {
     return {
       initialShow: false,
@@ -91,10 +89,4 @@ export default {
 </script>
 
 <style lang="scss">
-div#sidebarButton.sidebar-button.default-theme.cross.visible {
-  margin-top: 0 !important;
-}
-#content.sidebar {
-  margin-left: 0;
-}
 </style>

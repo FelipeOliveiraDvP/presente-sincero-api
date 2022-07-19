@@ -1,18 +1,13 @@
 <template>
-  <div>
+  <h1>AdminBankAccountList</h1>
+  <!-- <div>
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2>Contas bancárias</h2>
       <b-button variant="primary" @click="showModal()"> Nova conta </b-button>
     </div>
 
     <div class="table-responsive">
-      <b-table
-        id="accounts-list"
-        class="text-white"
-        :fields="fields"
-        :items="items"
-        :busy.sync="loading"
-      >
+      <b-table id="accounts-list" class="text-white" :fields="fields" :items="items" :busy.sync="loading">
         <template v-slot:head()="scope">
           <div style="width: 150px">{{ scope.label }}</div>
         </template>
@@ -33,14 +28,8 @@
       </b-table>
     </div>
 
-    <b-pagination
-      :v-model="params.page"
-      :per-page="pager.per_page"
-      :total-rows="pager.total"
-      pills
-      align="end"
-      @change="handlePaginate"
-    ></b-pagination>
+    <b-pagination :v-model="params.page" :per-page="pager.per_page" :total-rows="pager.total" pills align="end"
+      @change="handlePaginate"></b-pagination>
 
     <div class="my-4 row">
       <div class="col-12 col-lg-8">
@@ -50,11 +39,8 @@
           números do sorteio. Para conseguir o token, você vai precisar de uma
           conta verificada e aprovada no Mercado Pago. Na sua conta, você deve
           acessar
-          <a
-            href="https://www.mercadopago.com.br/settings/account/credentials"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href="https://www.mercadopago.com.br/settings/account/credentials" target="_blank"
+            rel="noopener noreferrer">
             Seu negócio > Configurações > Credenciais > Credenciais de produção.
           </a>
           e copiar o "Access Token".
@@ -62,28 +48,14 @@
       </div>
       <div class="col-12">
         <b-form @submit.stop.prevent="onSaveMPToken">
-          <b-form-input
-            id="mpAccessToken"
-            v-model="mpAccessToken"
-          ></b-form-input>
-          <b-button
-            type="submit"
-            block
-            variant="primary"
-            class="my-4"
-            :disabled="loading"
-            >Salvar</b-button
-          >
+          <b-form-input id="mpAccessToken" v-model="mpAccessToken"></b-form-input>
+          <b-button type="submit" block variant="primary" class="my-4" :disabled="loading">Salvar</b-button>
         </b-form>
       </div>
     </div>
 
-    <account-modal
-      :account="selectedAccount"
-      :onSubmit="handleSaveAccount"
-      @reset="hideModal"
-    />
-  </div>
+    <account-modal :account="selectedAccount" :onSubmit="handleSaveAccount" @reset="hideModal" />
+  </div> -->
 </template>
 
 <script>
@@ -203,25 +175,15 @@ export default {
           result = await editBankAccount(account.id, account);
         }
 
-        this.$toasted.show(result.message, {
-          type: "success",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.log(result);
       } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.error(error);
       } finally {
         this.loading = false;
         this.selectedAccount = null;
         this.getContestsData();
 
-        this.$bvModal.hide("bank-account-modal");
+        // this.$bvModal.hide("bank-account-modal");
       }
     },
     async handleRemoveAccount(account) {
@@ -230,19 +192,9 @@ export default {
 
         const result = await removeBankAccount(account.id);
 
-        this.$toasted.show(result.message, {
-          type: "success",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.log(result);
       } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
+        console.error(error);
       } finally {
         this.loading = false;
         this.selectedAccount = null;
@@ -262,12 +214,7 @@ export default {
         mp_access_token: this.mpAccessToken,
       });
 
-      this.$toasted.show(result.message, {
-        type: "success",
-        theme: "toasted-primary",
-        position: "top-right",
-        duration: 3000,
-      });
+      console.log(result);
 
       this.loading = false;
     },
@@ -276,12 +223,12 @@ export default {
         this.selectedAccount = account;
       }
 
-      this.$bvModal.show("bank-account-modal");
+      // this.$bvModal.show("bank-account-modal");
     },
     hideModal() {
       this.selectedAccount = null;
 
-      this.$bvModal.hide("bank-account-modal");
+      // this.$bvModal.hide("bank-account-modal");
     },
   },
 };
