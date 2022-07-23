@@ -59,8 +59,6 @@ trait NumbersHelper
     // $contest = Contest::find($contest_id);
     $contest_numbers = $this->getContestNumbers($contest_id);
     $updated_numbers = [];
-    $free_count = 0;
-    $max_free_numbers = count($numbers);
 
     foreach ($contest_numbers as $number) {
       $number_exists = in_array($number->number, $numbers);
@@ -79,15 +77,9 @@ trait NumbersHelper
         $number->customer->id = null;
         $number->customer->name = null;
         $number->customer->whatsapp = null;
-
-        $free_count++;
       }
 
       $updated_numbers[] = json_encode($number);
-
-      if ($free_count == $max_free_numbers) {
-        break;
-      }
     }
 
     return json_encode($updated_numbers);
@@ -108,8 +100,6 @@ trait NumbersHelper
   {
     $contest_numbers = $this->getContestNumbers($contest_id);
     $updated_numbers = [];
-    $reserve_count = 0;
-    $max_reserve_numbers = $random > 0 ? $random : count($numbers);
 
     if ($random > 0) {
       shuffle($contest_numbers);
@@ -129,15 +119,9 @@ trait NumbersHelper
         $number->customer->id = $customer->id;
         $number->customer->name = $customer->name;
         $number->customer->whatsapp = $customer->whatsapp;
-
-        $reserve_count++;
       }
 
       $updated_numbers[] = json_encode($number);
-
-      if ($reserve_count == $max_reserve_numbers) {
-        break;
-      }
     }
 
     return json_encode($updated_numbers);
@@ -156,8 +140,6 @@ trait NumbersHelper
   {
     $contest_numbers = $this->getContestNumbers($contest_id);
     $updated_numbers = [];
-    $paid_numbers = 0;
-    $max_paid_numbers = count($numbers);
 
     foreach ($contest_numbers as $number) {
       $number_exists = in_array($number->number, $numbers);
@@ -173,15 +155,9 @@ trait NumbersHelper
         $number->customer->id = $customer->id;
         $number->customer->name = $customer->name;
         $number->customer->whatsapp = $customer->whatsapp;
-
-        $paid_numbers++;
       }
 
       $updated_numbers[] = json_encode($number);
-
-      if ($paid_numbers == $max_paid_numbers) {
-        break;
-      }
     }
 
     return json_encode($updated_numbers);
