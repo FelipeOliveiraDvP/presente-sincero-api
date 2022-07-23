@@ -1,70 +1,94 @@
 <template>
-  <a-page-header style="border: 1px solid rgb(235, 237, 240)" title="Sorteios"
-    sub-title="Escolha o sorteio ao qual deseja participar" />
+  <container>
+    <a-skeleton-input
+      v-if="loading"
+      size="large"
+      active
+      block
+      style="height: 40px; width: 100%"
+    />
+    <h1 v-else>
+      {{ seller && seller.name }} - {{ seller && seller.username }}
+    </h1>
 
-  <Container>
-    <a-spin :spinning="loading" style="min-height: 400px;">
+    <a-spin :spinning="loading" style="min-height: 400px">
       <a-row :gutter="[16, 16]">
-        <a-col v-for="contest in contests" :key="contest.id" :xs="24" :sm="12" :md="8" :lg="6">
-          <ContestCard :contest="contest" />
+        <a-col
+          v-for="contest in contests"
+          :key="contest.id"
+          :xs="24"
+          :sm="12"
+          :md="8"
+          :lg="6"
+        >
+          <contest-card :contest="contest" />
         </a-col>
       </a-row>
-      <Pagination :pager="pager" />
+      <pagination :pager="pager" />
     </a-spin>
-  </Container>
+  </container>
 </template>
 
 <script>
+import { computed, defineComponent, onMounted, reactive, ref } from "vue";
+import { notification } from "ant-design-vue";
+import { useRoute } from "vue-router";
+
+import Container from "@/components/_commons/Container.vue";
+import Pagination from "@/components/_commons/Pagination.vue";
+import ContestCard from "@/components/Contests/ContestCard.vue";
+
 import { listContestsBySeller } from "@/services/contests";
-import { defineComponent } from 'vue';
-import { notification } from 'ant-design-vue';
-import Pagination from '@/components/_commons/Pagination.vue';
-import Container from '@/components/_commons/Container.vue';
-import ContestCard from '@/components/Contests/ContestCard.vue';
 
 export default defineComponent({
+  components: { Container, ContestCard, Pagination },
   name: "ContestList",
-  components: {
-    Pagination,
-    Container,
-    ContestCard
-  },
-  data() {
-    return {
-      loading: false,
-      params: {
-        limit: 12,
-      },
-      pager: {
-        current_page: 1,
-        total: 1
-      },
-      contests: [],
-    };
-  },
-  mounted() {
-    const { username } = this.$route.params;
+  setup() {
+    const loading = ref(false);
+    const contests = ref([]);
+    const seller = ref(null);
 
-    this.getContests(username);
-  },
-  methods: {
-    async getContests(username) {
+    const params = reactive({
+      limit: 12,
+    });
+
+    const pager = reactive({
+      current_page: 1,
+      total: 1,
+    });
+
+    const route = useRoute();
+    const { username } = route.params;
+
+    async function getSellerContests() {
       try {
-        this.loading = true;
+        loading.value = true;
 
-        const result = await listContestsBySeller(username, this.params);
+        const result = await listContestsBySeller(username, params);
 
-        this.contests = result.data;
-        this.pager.current_page = result.current_page;
-        this.pager.total = result.total;
+        contests.value = result.data;
+        seller.value = result.data[0].seller;
+        pager.current_page = result.current_page;
+        pager.total = result.total;
       } catch (error) {
         notification.warning({
-          message: error.message
+          message: error.message,
         });
       } finally {
-        this.loading = false;
+        loading.value = false;
       }
-    },
+    }
+
+    onMounted(async () => {
+      await getSellerContests();
+    });
+
+    return {
+      loading,
+      contests,
+      pager,
+      seller,
+    };
   },
 });
 </script>

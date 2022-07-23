@@ -16,28 +16,41 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
+import { computed, defineComponent, toRefs } from "vue";
+import { useRoute } from "vue-router";
+
 import { moneyFormat } from "@/utils/moneyFormat";
 
 export default defineComponent({
+  name: "ContestCard",
   props: {
     contest: Object,
   },
-  name: "ContestCard",
-  computed: {
-    thumbnail() {
-      const { gallery } = this.contest;
+  setup(props) {
+    const route = useRoute();
+    const { contest } = toRefs(props);
+
+    const price = computed(() => moneyFormat(contest.value.price));
+
+    const thumbnail = computed(() => {
+      const { gallery } = contest.value;
 
       return gallery[0].path;
-    },
-    price() {
-      return moneyFormat(this.contest.price);
-    },
-    contestLink() {
-      const { username } = this.$route.params;
+    });
 
-      return `/${username}/${this.contest.slug}`;
-    },
+    const contestLink = computed(() => {
+      const { username } = route.params;
+      const { seller, slug } = contest.value;
+
+      return `/${username || seller.username}/${slug}`;
+    });
+
+    return {
+      contest,
+      price,
+      thumbnail,
+      contestLink,
+    };
   },
 });
 </script>

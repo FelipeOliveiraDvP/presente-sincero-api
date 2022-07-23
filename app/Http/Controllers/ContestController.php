@@ -34,12 +34,14 @@ class ContestController extends Controller
         $title = $request->query('title');
         $limit = $request->query('limit') ?? 12;
 
-        $contests = Contest::with('gallery')
+        $contests = Contest::with('seller:id,name,username')
+            ->with('gallery')
             ->where('title', 'LIKE', "%{$title}%")
             ->orderBy('created_at', 'desc')
             ->paginate($limit, [
                 'id',
                 'title',
+                'user_id',
                 'slug',
                 'short_description',
                 'start_date',
@@ -70,13 +72,15 @@ class ContestController extends Controller
             ], 404);
         }
 
-        $contests = Contest::with('gallery')
+        $contests = Contest::with('seller:id,name,username')
+            ->with('gallery')
             ->where('title', 'LIKE', "%{$title}%")
             ->where('user_id', '=', $user->id)
             ->orderBy('created_at', 'desc')
             ->paginate($limit, [
                 'id',
                 'title',
+                'user_id',
                 'slug',
                 'short_description',
                 'start_date',
@@ -243,7 +247,6 @@ class ContestController extends Controller
             'price'             => 'required|gte:0.1',
             'quantity'          => 'required|gte:1',
             'short_description' => 'required|string',
-            'full_description'  => 'required|string',
             'whatsapp_number'   => 'required|string',
             'whatsapp_group'    => 'url',
             'sales.*.quantity'  => 'required|gte:1',
@@ -271,7 +274,6 @@ class ContestController extends Controller
             'price'             => $request->price,
             'quantity'          => $request->quantity,
             'short_description' => $request->short_description,
-            'full_description'  => $request->full_description,
             'whatsapp_number'   => $request->whatsapp_number,
             'whatsapp_group'    => $request->whatsapp_group,
             'numbers'           => $numbers
@@ -328,7 +330,6 @@ class ContestController extends Controller
             'max_reserve_days'  => 'gte:1|lte:30',
             'price'             => 'gte:0.1',
             'short_description' => 'string',
-            'full_description'  => 'string',
             'whatsapp_number'   => 'string',
             'whatsapp_group'    => 'url',
             'sales.*.quantity'  => 'gte:1',
@@ -345,16 +346,15 @@ class ContestController extends Controller
         }
 
         $update = [
-            'title' => $request->title ?? $contest->title,
-            'contest_date' => $request->contest_date ?? $contest->contest_date,
-            'max_reserve_days' => $request->max_reserve_days ?? $contest->max_reserve_days,
-            'show_percentage' => $request->show_percentage ?? $contest->show_percentage,
+            'title'                 => $request->title ?? $contest->title,
+            'contest_date'          => $request->contest_date ?? $contest->contest_date,
+            'max_reserve_days'      => $request->max_reserve_days ?? $contest->max_reserve_days,
+            'show_percentage'       => $request->show_percentage ?? $contest->show_percentage,
             'use_custom_percentage' => $request->use_custom_percentage ?? $contest->use_custom_percentage,
-            'custom_percentage' => $request->custom_percentage ?? $contest->custom_percentage,
-            'short_description' => $request->short_description ?? $contest->short_description,
-            'full_description' => $request->full_description ?? $contest->full_description,
-            'whatsapp_number' => $request->whatsapp_number ?? $contest->whatsapp_number,
-            'whatsapp_group' => $request->whatsapp_group ?? $contest->whatsapp_group,
+            'custom_percentage'     => $request->custom_percentage ?? $contest->custom_percentage,
+            'short_description'     => $request->short_description ?? $contest->short_description,
+            'whatsapp_number'       => $request->whatsapp_number ?? $contest->whatsapp_number,
+            'whatsapp_group'        => $request->whatsapp_group ?? $contest->whatsapp_group,
         ];
 
         $can_change_price = count($this->getContestNumbersByStatus($id, NumberStatus::PAID)) <= 0;

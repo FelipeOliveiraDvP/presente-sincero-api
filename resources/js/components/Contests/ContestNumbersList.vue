@@ -59,7 +59,7 @@ export default defineComponent({
     const { numbers, filter } = toRefs(props);
     const split = ref(10);
     const partial = ref(numbers.value.splice(0, split.value));
-    const 
+    // const
     const scrollComponent = ref(null);
 
     console.log("ContestList: ", numbers, filter);
@@ -77,7 +77,7 @@ export default defineComponent({
       let element = scrollComponent.value;
       if (element.getBoundingClientRect().bottom < window.innerHeight) {
         split.value += 10;
-        partial.value = numbers.value.splice(0, split.value)
+        partial.value = numbers.value.splice(0, split.value);
       }
     }
 

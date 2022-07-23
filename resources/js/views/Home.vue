@@ -1,88 +1,54 @@
 <template>
-  <div>
-    home
-    <!-- <a-carousel autoplay>
-      <ContestSlide v-for="contest in contests" :contest="contest" :key="contest.id" />
-    </a-carousel> -->
-  </div>
-  <!-- <div>
-    <section class="home-banner">
-      <div class="banner-overlay">
-        <b-container>
-          <h1 class="fs-1">Bem vindo a Rifandos</h1>
-          <p class="fs-4">A melhor plataforma de rifas online</p>
-          <router-link to="/cadastre-se">
-            <b-button variant="primary" size="lg">
-              Comece a vender
-            </b-button>
-          </router-link>
-        </b-container>
-      </div>
-      <img src="/img/banner.jpg" class="img-fluid w-100" />
-    </section>
+  <container>
+    <h1>Bem vindo a Rifandos</h1>
 
-    <b-container class="page">
-      <h2>Últimos Sorteios</h2>
-      <my-loader v-if="loading" />
-      <b-row v-else>
-        <b-col v-for="contest in contests" :key="contest.id" md="6">
+    <a-spin :spinning="loading" style="min-height: 400px">
+      <a-row :gutter="[16, 16]">
+        <a-col
+          v-for="contest in contests"
+          :key="contest.id"
+          :xs="24"
+          :sm="12"
+          :md="8"
+          :lg="6"
+        >
           <contest-card :contest="contest" />
-        </b-col>
-      </b-row>
-    </b-container>
-  </div> -->
+        </a-col>
+      </a-row>
+    </a-spin>
+  </container>
 </template>
 
 <script>
-import LoaderVue from "@/components/_commons/Loader.vue";
-import ContestCardVue from "@/components/Contests/ContestCard.vue";
+import { defineComponent, onMounted, ref } from "vue";
+
+import Container from "@/components/_commons/Container.vue";
+import ContestCard from "@/components/Contests/ContestCard.vue";
 
 import { listContests } from "@/services/contests";
-import ContestSlide from "@/components/Home/ContestSlide.vue";
 
-export default {
+export default defineComponent({
+  components: { Container, ContestCard },
   name: "Home",
-  components: {
-    "contest-card": ContestCardVue,
-    "my-loader": LoaderVue,
-    ContestSlide,
-  },
-  data() {
+  setup() {
+    const loading = ref(false);
+    const contests = ref([]);
+
+    async function getContests() {
+      loading.value = true;
+      const result = await listContests();
+      contests.value = result.data;
+      loading.value = false;
+    }
+
+    onMounted(async () => {
+      await getContests();
+    });
+
     return {
-      loading: false,
-      params: {
-        limit: 12,
-      },
-      contests: [],
+      loading,
+      contests,
     };
   },
-  mounted() {
-    this.getContests();
-  },
-  methods: {
-    async getContests() {
-      this.loading = true;
-
-      const result = await listContests(this.params);
-
-      this.contests = result.data;
-      this.loading = false;
-    },
-  },
-};
+});
 </script>
-
-<style scoped>
-/* For demo */
-/* .ant-carousel :deep(.slick-slide) {
-  text-align: center;
-  height: 300px;
-  line-height: 160px;
-  background: #364d79;
-  overflow: hidden;
-}
-
-.ant-carousel :deep(.slick-slide h3) {
-  color: #fff;
-} */
-</style>
