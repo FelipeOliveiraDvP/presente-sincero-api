@@ -1,64 +1,6 @@
 <template>
-  <Container>
-    <div v-if="loading || contest === null">
-      <a-skeleton-input
-        size="large"
-        active
-        block
-        style="height: 40px; width: 100%"
-      />
-      <a-row :gutter="[16, 16]">
-        <a-col :xs="24" :md="12" :lg="8">
-          <a-skeleton-image />
-        </a-col>
-        <a-col :xs="24" :md="12" :lg="16">
-          <a-skeleton-input
-            size="large"
-            active
-            block
-            style="height: 30px; width: 100%"
-          />
-          <a-skeleton-input
-            size="large"
-            active
-            block
-            style="height: 30px; width: 100%"
-          />
-          <a-skeleton-input
-            size="large"
-            active
-            block
-            style="height: 30px; width: 100%"
-          />
-          <a-skeleton-input
-            size="large"
-            active
-            block
-            style="height: 30px; width: 100%"
-          />
-          <a-skeleton-input
-            size="large"
-            active
-            block
-            style="height: 30px; width: 100%"
-          />
-          <a-skeleton-input
-            size="large"
-            active
-            block
-            style="height: 80px; width: 100%"
-          />
-        </a-col>
-      </a-row>
-      <a-skeleton-input
-        size="large"
-        active
-        block
-        style="height: 80px; width: 100%"
-      />
-    </div>
-
-    <div v-else>
+  <container>
+    <contest-detail-skeleton :loading="loading || contest === null">
       <a-breadcrumb>
         <a-breadcrumb-item>
           <router-link to="/"> Home </router-link>
@@ -69,6 +11,7 @@
           </router-link>
         </a-breadcrumb-item>
       </a-breadcrumb>
+
       <a-typography-title>{{ contest && contest.title }}</a-typography-title>
 
       <a-row :gutter="[16, 16]">
@@ -96,12 +39,20 @@
           </div>
         </a-col>
         <a-col :xs="24" :md="12" :lg="16">
-          <p>{{ contest.full_description }}</p>
+          <a-space direction="vertical">
+            <p>{{ contest.short_description }}</p>
 
-          <div v-if="true">
-            <a-typography-title :level="4">Números vendidos</a-typography-title>
-            <a-progress :stroke-width="40" :percent="contestPercentage" />
-          </div>
+            <div
+              v-if="contest.show_percentage || contest.use_custom_percentage"
+            >
+              <a-typography-title :level="4"
+                >Números vendidos</a-typography-title
+              >
+              <a-progress :stroke-width="40" :percent="contestPercentage" />
+            </div>
+
+            <div></div>
+          </a-space>
         </a-col>
       </a-row>
 
@@ -122,39 +73,12 @@
       </contest-numbers-list>
 
       <contest-numbers-modal />
-    </div>
+    </contest-detail-skeleton>
 
-    <!-- <b-container class="page">
-    <h1>
-      {{ loading ? "Carregando..." : contest && contest.title }}
-    </h1>
-    <p>
-      {{ loading ? "Carregando..." : contest && contest.short_description }}
-    </p>
+    <!-- 
 
     <b-row>
-      <b-col md="6" style="min-height: 550px">
-        <img v-if="loading" class="img-fluid w-100" src="/img/placeholder.jpg" alt="Carregando" />
-        <b-carousel v-else-if="contest !== null" id="contest-gallery" :interval="4000" controls indicators
-          background="#ababab" img-width="1024" img-height="480" style="text-shadow: 1px 1px 2px #333">
-          <b-carousel-slide v-for="image in contest.gallery" :key="image.id" :img-src="image.path"></b-carousel-slide>
-        </b-carousel>
-      </b-col>
-      <b-col md="6" class="d-flex flex-column justify-content-between">
-        <div>
-          {{ loading ? "Carregando..." : contest && contest.full_description }}
-        </div>
-
-        <div v-if="
-          contest &&
-          (contest.show_percentage || contest.use_custom_percentage)
-        ">
-          <p>Números vendidos {{ contestPercentage }}%</p>
-          <div class="border">
-            <div class="bg-danger" :style="{ width: `${contestPercentage}%`, height: '50px' }"></div>
-          </div>
-        </div>
-
+      
         <div v-if="loading">Carregando informações...</div>
         <div v-else>
           <p>
@@ -171,27 +95,7 @@
         </div>
       </b-col>
     </b-row>
-
-    <div class="mt-4">
-      <b-row>
-        <b-col md="6">
-          <b-button-group class="w-100">
-            <b-button @click="handleFilterNumbers('ALL')" variant="light">Todos ({{ numbers.length }})</b-button>
-            <b-button @click="handleFilterNumbers('FREE')" variant="success">Disponível ({{ countNumbersByStatus("FREE")
-            }})</b-button>
-            <b-button @click="handleFilterNumbers('RESERVED')" variant="warning">Reservados ({{
-                countNumbersByStatus("RESERVED")
-            }})</b-button>
-            <b-button @click="handleFilterNumbers('PAID')" variant="danger">Pagos ({{ countNumbersByStatus("PAID") }})
-            </b-button>
-          </b-button-group>
-        </b-col>
-        <b-col md="6" lg="4">
-          <b-button v-b-modal.customer-numbers variant="secondary" class="d-block w-100 mt-2 mt-md-0">MEUS NÚMEROS
-          </b-button>
-        </b-col>
-      </b-row>
-    </div>
+   
 
     <div class="my-4 border border-secondary p-4" style="max-height: 400px; overflow-y: auto" @scroll="handleScroll">
       <my-loader v-if="loading" />
@@ -281,7 +185,7 @@
 
     <simple-register-modal @onsuccess="handleCheckout" />
   </b-container> -->
-  </Container>
+  </container>
 </template>
 
 <script>
@@ -293,6 +197,7 @@ import { useStore } from "vuex";
 import Container from "@/components/_commons/Container.vue";
 import ContestNumbersModal from "@/components/Customers/ContestNumbersModal.vue";
 import ContestNumbersList from "@/components/Contests/ContestNumbersList.vue";
+import ContestDetailSkeleton from "@/components/Contests/ContestDetailSkeleton.vue";
 import SimpleRegisterModal from "@/components/Auth/SimpleRegisterModal.vue";
 
 import { getContestBySlug } from "@/services/contests";
@@ -346,19 +251,21 @@ export default defineComponent({
       bank_accounts: [],
       sales: [],
     });
+
     const currentSale = reactive({
       quantity: 0,
       price: 0,
     });
+
     const cart = reactive({
       totals: 0,
     });
 
     const formattedCartTotal = computed(() => moneyFormat(cart.totals));
+    const contestPercentage = computed(() => percentage(contest));
     const hasSale = computed(() =>
       sales.value.find((sale) => selectedNumbers.value.length >= sale.quantity)
     );
-    const contestPercentage = computed(() => percentage(contest));
 
     const route = useRoute();
     const router = useRouter();
@@ -565,6 +472,7 @@ export default defineComponent({
     ContestNumbersList,
     ContestNumbersModal,
     SimpleRegisterModal,
+    ContestDetailSkeleton,
   },
 });
 // export default defineComponent({
