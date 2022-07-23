@@ -76,7 +76,7 @@
 </template>
 
 <script>
-import moneyFormat from "@/utils/moneyFormat";
+import { moneyFormat } from "@/utils/moneyFormat";
 import { listContestsByUser } from "@/services/contests";
 
 export default {

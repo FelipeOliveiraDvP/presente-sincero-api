@@ -60,7 +60,7 @@ Route::controller(ContestController::class)->group(function () {
             });
         });
         /**
-         * Route: /contests/{username}
+         * Route: /contests
          */
         Route::get('/', 'index');
         Route::get('/{username}', 'getContestsByUsername');

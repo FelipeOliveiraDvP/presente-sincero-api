@@ -11,6 +11,7 @@
     "/js/Verify.js": "/js/Verify.js",
     "/js/Reset.js": "/js/Reset.js",
     "/js/Profile.js": "/js/Profile.js",
+    "/js/NotFound.js": "/js/NotFound.js",
     "/js/PrivateLayout.js": "/js/PrivateLayout.js",
     "/js/AdminContestList.js": "/js/AdminContestList.js",
     "/js/AdminContestCreate.js": "/js/AdminContestCreate.js",

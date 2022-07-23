@@ -1,26 +1,25 @@
 <template>
-  <div>ContestCard</div>
-  <!-- <b-card no-body class="contest-card overflow-hidden mb-3">
-    <b-row no-gutters>
-      <b-col md="6">
-        <b-card-img :src="thumbnail" :alt="contest.title" />
-      </b-col>
-      <b-col md="6">
-        <b-card-body :title="contest.title">
-          <b-card-text>
-            {{ contest.short_description }}
-          </b-card-text>
-          <router-link :to="`sorteios/${contest.slug}`">
-            <b-button variant="primary">PARTICIPAR</b-button>
-          </router-link>
-        </b-card-body>
-      </b-col>
-    </b-row>
-  </b-card> -->
+  <a-card hoverable style="min-height: 400px">
+    <template #cover>
+      <img :alt="contest.title" :src="thumbnail" />
+    </template>
+    <template #actions>
+      <router-link :to="contestLink">
+        <a-button type="primary"> Compre agora por {{ price }} </a-button>
+      </router-link>
+    </template>
+    <a-card-meta
+      :title="contest.title"
+      :description="contest.short_description"
+    />
+  </a-card>
 </template>
 
 <script>
-export default {
+import { defineComponent } from "vue";
+import { moneyFormat } from "@/utils/moneyFormat";
+
+export default defineComponent({
   props: {
     contest: Object,
   },
@@ -31,8 +30,16 @@ export default {
 
       return gallery[0].path;
     },
+    price() {
+      return moneyFormat(this.contest.price);
+    },
+    contestLink() {
+      const { username } = this.$route.params;
+
+      return `/${username}/${this.contest.slug}`;
+    },
   },
-};
+});
 </script>
 
 <style>

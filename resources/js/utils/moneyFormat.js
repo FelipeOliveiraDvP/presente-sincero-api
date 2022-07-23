@@ -1,10 +1,8 @@
-const moneyFormat = (value) => {
-    var formatter = new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-    });
+export const moneyFormat = (value) => {
+  var formatter = new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
 
-    return formatter.format(value);
+  return formatter.format(value);
 };
-
-export default moneyFormat;

@@ -1,6 +1,9 @@
 <template>
   <div>
-    <a-button type="primary">Primary Button</a-button>
+    home
+    <!-- <a-carousel autoplay>
+      <ContestSlide v-for="contest in contests" :contest="contest" :key="contest.id" />
+    </a-carousel> -->
   </div>
   <!-- <div>
     <section class="home-banner">
@@ -35,12 +38,14 @@ import LoaderVue from "@/components/_commons/Loader.vue";
 import ContestCardVue from "@/components/Contests/ContestCard.vue";
 
 import { listContests } from "@/services/contests";
+import ContestSlide from "@/components/Home/ContestSlide.vue";
 
 export default {
   name: "Home",
   components: {
     "contest-card": ContestCardVue,
     "my-loader": LoaderVue,
+    ContestSlide,
   },
   data() {
     return {
@@ -67,5 +72,17 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+/* For demo */
+/* .ant-carousel :deep(.slick-slide) {
+  text-align: center;
+  height: 300px;
+  line-height: 160px;
+  background: #364d79;
+  overflow: hidden;
+}
+
+.ant-carousel :deep(.slick-slide h3) {
+  color: #fff;
+} */
 </style>

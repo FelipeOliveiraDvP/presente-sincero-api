@@ -17,13 +17,13 @@ const routes = [
       },
       {
         name: "contests",
-        path: "/sorteios",
+        path: "/:username",
         component: () =>
           import(/* webpackChunkName: "ContestList" */ "@/views/ContestList"),
       },
       {
         name: "contestDetail",
-        path: "/sorteios/:slug",
+        path: "/:username/:slug",
         component: () =>
           import(
             /* webpackChunkName: "ContestDetail" */ "@/views/ContestDetail"
@@ -91,6 +91,12 @@ const routes = [
         meta: {
           logged: true,
         },
+      },
+      {
+        name: "notFound",
+        path: "/404",
+        component: () =>
+          import(/* webpackChunkName: "NotFound" */ "@/views/NotFound"),
       },
     ],
   },

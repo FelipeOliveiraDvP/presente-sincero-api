@@ -14,6 +14,7 @@ use App\Traits\NumbersHelper;
 use App\Traits\WhatsApp;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -105,7 +106,15 @@ class ContestController extends Controller
             ], 404);
         }
 
-        $contest = Contest::where('slug', '=', $slug)->first();
+        $contest = Contest::with('seller:id,name,username')
+            ->with('gallery')
+            ->with('bank_accounts')
+            ->with('sales')
+            ->where('slug', '=', $slug)
+            ->first()
+            ->makeHiddenIf(function ($value) {
+                return $value->quantity >= 10000;
+            }, ['numbers']);
 
         if (empty($contest)) {
             return response()->json([
@@ -113,7 +122,7 @@ class ContestController extends Controller
             ], 404);
         }
 
-        return $this->details($contest->id);
+        return response()->json($contest);
     }
 
     /**
@@ -199,10 +208,14 @@ class ContestController extends Controller
      */
     public function details(int $id)
     {
-        $contest = Contest::with('gallery')
+        $contest = Contest::with('seller:id,name,username')
+            ->with('gallery')
             ->with('bank_accounts')
             ->with('sales')
-            ->find($id);
+            ->find($id)
+            ->makeHiddenIf(function ($value) {
+                return $value->quantity >= 10000;
+            }, ['numbers']);
 
         if (empty($contest) || $contest->user_id != auth('sanctum')->id()) {
             return response()->json([
@@ -224,7 +237,7 @@ class ContestController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title'             => 'required|unique:contests,title',
-            'start_date'        => 'required|date|after:now',
+            'start_date'        => 'required|date',
             'contest_date'      => 'nullable|date|after:now',
             'max_reserve_days'  => 'gte:1|lte:30',
             'price'             => 'required|gte:0.1',
@@ -264,29 +277,31 @@ class ContestController extends Controller
             'numbers'           => $numbers
         ];
 
-        $contest_created = Contest::create($contest);
+        Cache::lock("create-contest-{$contest['slug']}")->get(function () use ($contest, $request) {
+            $contest_created = Contest::create($contest);
 
-        $contest_created->bank_accounts()->sync($request->bank_accounts);
+            $contest_created->bank_accounts()->sync($request->bank_accounts);
 
-        foreach ($request->sales as $sale) {
-            Sale::create([
-                'contest_id'    => $contest_created->id,
-                'quantity'      => $sale['quantity'],
-                'price'         => $sale['price'],
-            ]);
-        }
-
-        foreach ($request->gallery as $image) {
-            if (!is_null($image)) {
-                Gallery::create([
-                    'contest_id' => $contest_created->id,
-                    'path' => $image,
+            foreach ($request->sales as $sale) {
+                Sale::create([
+                    'contest_id'    => $contest_created->id,
+                    'quantity'      => $sale['quantity'],
+                    'price'         => $sale['price'],
                 ]);
             }
-        }
+
+            foreach ($request->gallery as $image) {
+                if (!is_null($image)) {
+                    Gallery::create([
+                        'contest_id' => $contest_created->id,
+                        'path' => $image,
+                    ]);
+                }
+            }
+        });
 
         return response()->json([
-            'contest' => $contest_created
+            'message' => 'Sorteio criado com sucesso!'
         ], 201);
     }
 

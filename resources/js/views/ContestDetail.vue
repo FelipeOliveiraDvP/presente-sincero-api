@@ -1,6 +1,130 @@
 <template>
-  <h1>Detalhes do sorteio</h1>
-  <!-- <b-container class="page">
+  <Container>
+    <div v-if="loading || contest === null">
+      <a-skeleton-input
+        size="large"
+        active
+        block
+        style="height: 40px; width: 100%"
+      />
+      <a-row :gutter="[16, 16]">
+        <a-col :xs="24" :md="12" :lg="8">
+          <a-skeleton-image />
+        </a-col>
+        <a-col :xs="24" :md="12" :lg="16">
+          <a-skeleton-input
+            size="large"
+            active
+            block
+            style="height: 30px; width: 100%"
+          />
+          <a-skeleton-input
+            size="large"
+            active
+            block
+            style="height: 30px; width: 100%"
+          />
+          <a-skeleton-input
+            size="large"
+            active
+            block
+            style="height: 30px; width: 100%"
+          />
+          <a-skeleton-input
+            size="large"
+            active
+            block
+            style="height: 30px; width: 100%"
+          />
+          <a-skeleton-input
+            size="large"
+            active
+            block
+            style="height: 30px; width: 100%"
+          />
+          <a-skeleton-input
+            size="large"
+            active
+            block
+            style="height: 80px; width: 100%"
+          />
+        </a-col>
+      </a-row>
+      <a-skeleton-input
+        size="large"
+        active
+        block
+        style="height: 80px; width: 100%"
+      />
+    </div>
+
+    <div v-else>
+      <a-breadcrumb>
+        <a-breadcrumb-item>
+          <router-link to="/"> Home </router-link>
+        </a-breadcrumb-item>
+        <a-breadcrumb-item>
+          <router-link :to="`/${contest && contest.seller.username}`">
+            {{ contest && contest.seller.name }}
+          </router-link>
+        </a-breadcrumb-item>
+      </a-breadcrumb>
+      <a-typography-title>{{ contest && contest.title }}</a-typography-title>
+
+      <a-row :gutter="[16, 16]">
+        <a-col :xs="24" :md="12" :lg="8">
+          <a-image
+            :preview="{ visible: false }"
+            :src="
+              contest.gallery ? contest.gallery[0].path : '/img/placeholder.jpg'
+            "
+            placeholder
+            @click="visible = true"
+            width="100%"
+            height="400px"
+          />
+          <div style="display: none">
+            <a-image-preview-group
+              :preview="{ visible, onVisibleChange: (vis) => (visible = vis) }"
+            >
+              <a-image
+                v-for="image in contest.gallery"
+                :key="image.id"
+                :src="image.path"
+              />
+            </a-image-preview-group>
+          </div>
+        </a-col>
+        <a-col :xs="24" :md="12" :lg="16">
+          <p>{{ contest.full_description }}</p>
+
+          <div v-if="true">
+            <a-typography-title :level="4">Números vendidos</a-typography-title>
+            <a-progress :stroke-width="40" :percent="contestPercentage" />
+          </div>
+        </a-col>
+      </a-row>
+
+      <!-- 
+        :onSelect="handleSelectNumber"
+        :onRemove="handleRemoveSelectedNumber"
+        :onSelect="handleSelectNumber"
+        :onRemove="handleRemoveSelectedNumber"
+      -->
+      <contest-numbers-list
+        :numbers="filteredNumbers"
+        :filter="filter"
+        @onFilter="handleFilterNumbers"
+      >
+        <template #extra>
+          <a-button type="primary" size="large" block>Meus números</a-button>
+        </template>
+      </contest-numbers-list>
+
+      <contest-numbers-modal />
+    </div>
+
+    <!-- <b-container class="page">
     <h1>
       {{ loading ? "Carregando..." : contest && contest.title }}
     </h1>
@@ -157,251 +281,547 @@
 
     <simple-register-modal @onsuccess="handleCheckout" />
   </b-container> -->
+  </Container>
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { computed, defineComponent, onMounted, reactive, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { notification } from "ant-design-vue";
+import { useStore } from "vuex";
 
-import LoaderVue from "@/components/_commons/Loader.vue";
-import ContestNumberVue from "@/components/Contests/ContestNumber.vue";
+import Container from "@/components/_commons/Container.vue";
 import ContestNumbersModal from "@/components/Customers/ContestNumbersModal.vue";
+import ContestNumbersList from "@/components/Contests/ContestNumbersList.vue";
 import SimpleRegisterModal from "@/components/Auth/SimpleRegisterModal.vue";
 
 import { getContestBySlug } from "@/services/contests";
 
-import moneyFormat from "@/utils/moneyFormat";
+import { moneyFormat } from "@/utils/moneyFormat";
+import { contestPercentage as percentage } from "@/utils/contestPercentage";
 
-export default {
+export default defineComponent({
   name: "ContestDetail",
-  components: {
-    "contest-number": ContestNumberVue,
-    "my-loader": LoaderVue,
-    "contest-numbers-modal": ContestNumbersModal,
-    "simple-register-modal": SimpleRegisterModal,
-  },
-  data() {
-    return {
-      loading: false,
-      filter: "ALL",
-      contest: null,
-      numbers: [],
-      selectedNumbers: [],
-      filteredNumbers: [],
+  setup() {
+    const visible = ref(false);
+    const loading = ref(false);
+    const showNumbersModal = ref(false);
+    const filter = ref("ALL");
+    const sales = ref([]);
+    const numbers = ref([]);
+    const selectedNumbers = ref([]);
+    const filteredNumbers = ref([]);
+    const quantity = ref(0);
+    const magicNumbers = ref(0);
+    const contest = ref({
+      id: 0,
+      user_id: 0,
+      winner_id: null,
+      title: "",
+      slug: "",
+      start_date: "",
+      max_reserve_days: 1,
+      show_percentage: false,
+      use_custom_percentage: false,
+      paid_percentage: 0,
+      custom_percentage: 0,
+      contest_date: null,
+      price: 0,
       quantity: 0,
-      partial: 300,
-      current: 0,
-      magicNumbers: 0,
+      short_description: "",
+      full_description: "",
+      whatsapp_number: "",
+      whatsapp_group: "",
+      numbers: "[]",
+      status: "ACTIVE",
+      created_at: "",
+      updated_at: "",
+      deleted_at: null,
+      seller: {
+        id: 0,
+        name: "",
+        username: "",
+      },
+      gallery: null,
+      bank_accounts: [],
       sales: [],
-      currentSale: {
-        quantity: 0,
-        price: 0,
-      },
-      cart: {
-        totals: 0,
-      },
-    };
-  },
-  mounted() {
-    this.getContestData();
-  },
-  computed: {
-    formattedCartTotal() {
-      return moneyFormat(this.cart.totals);
-    },
-    hasSale() {
-      return this.sales.find(
-        (sale) => this.selectedNumbers.length >= sale.quantity
-      );
-    },
-    contestPercentage() {
-      const {
-        use_custom_percentage,
-        show_percentage,
-        paid_percentage,
-        custom_percentage,
-      } = this.contest;
-      let total = 0;
+    });
+    const currentSale = reactive({
+      quantity: 0,
+      price: 0,
+    });
+    const cart = reactive({
+      totals: 0,
+    });
 
-      if (use_custom_percentage) total = custom_percentage * 100;
+    const formattedCartTotal = computed(() => moneyFormat(cart.totals));
+    const hasSale = computed(() =>
+      sales.value.find((sale) => selectedNumbers.value.length >= sale.quantity)
+    );
+    const contestPercentage = computed(() => percentage(contest));
 
-      if (show_percentage) total = paid_percentage * 100;
+    const route = useRoute();
+    const router = useRouter();
+    const store = useStore();
 
-      return total.toFixed(2);
-    },
-  },
-  methods: {
-    ...mapActions({
-      addToCart: "cart/updateCart",
-    }),
-    async getContestData() {
+    async function getContestData() {
       try {
-        const { slug } = this.$route.params;
+        loading.value = true;
 
-        this.loading = true;
+        const { username, slug } = route.params;
 
-        const result = await getContestBySlug(slug);
+        const result = await getContestBySlug(username, slug);
         const numbersArray = result.numbers ? JSON.parse(result.numbers) : [];
 
-        this.contest = { ...result };
-        this.quantity = result.quantity;
-        this.numbers = numbersArray.map((number) => JSON.parse(number));
-        this.filteredNumbers = [...this.numbers].splice(0, this.partial);
-        this.current += this.partial;
-        this.sales = result.sales
+        contest.value = { ...result };
+        quantity.value = result.quantity;
+        numbers.value = numbersArray.map((number) => JSON.parse(number));
+        filteredNumbers.value = [...numbers.value];
+        magicNumbers.value = selectedNumbers.value.length;
+        sales.value = result.sales
           .map((sale) => ({
             price: sale.price,
             quantity: sale.quantity,
           }))
           .reverse();
 
-        this.magicNumbers = this.selectedNumbers.length;
-        this.calcSaleDiscount();
+        calcSaleDiscount();
       } catch (error) {
-        console.error(error);
+        notification.error({
+          message: error.message,
+        });
       } finally {
-        this.loading = false;
+        loading.value = false;
       }
-    },
-    handleSelectNumber(number) {
-      const isSelected = !!this.selectedNumbers.find(
-        (n) => n.number === number.number
-      );
+    }
 
-      if (!isSelected && number.status === "FREE") {
-        this.selectedNumbers.push(number);
-
-        this.calcSaleDiscount();
-      }
-    },
-    handleRemoveSelectedNumber(number) {
-      const index = this.selectedNumbers.indexOf(number);
-
-      this.selectedNumbers.splice(index, 1);
-
-      this.calcSaleDiscount();
-    },
-    formatPrice(price) {
-      return moneyFormat(price);
-    },
-    handleCheckout() {
-      const { authenticated } = this.$store.state.auth;
-
-      if (!authenticated) {
-        // this.$bvModal.show("simple-register");
-        return;
-      }
-
-      this.$router.push({
-        name: "checkout",
-        params: {
-          numbers: this.selectedNumbers,
-          total: this.cart.totals,
-          details: {
-            contestId: this.contest.id,
-            title: this.contest.title,
-            slug: this.contest.slug,
-            short_description: this.contest.short_description,
-            whatsapp_group: this.contest.whatsapp_group,
-            price: this.contest.price,
-            sale: this.currentSale,
-          },
-        },
-      });
-    },
-    handleFilterNumbers(filter) {
-      this.filter = filter;
-      this.current = 0;
-
-      if (filter === "ALL") {
-        this.filteredNumbers = [...this.numbers].splice(0, this.partial);
-      } else {
-        const filtered = this.numbers.filter((n) => n.status === filter);
-
-        this.filteredNumbers = [...filtered].splice(0, this.partial);
-      }
-    },
-    countNumbersByStatus(status) {
-      const filtered = this.numbers.filter((n) => n.status === status);
-
-      return filtered.length;
-    },
-    incrementMagicNumber(quantity) {
-      const availableNumbers = this.countNumbersByStatus("FREE");
-
-      if (this.magicNumbers + quantity > availableNumbers) {
-        this.magicNumbers = availableNumbers;
-      } else {
-        this.magicNumbers += quantity;
-      }
-
-      this.handleAddMagicNumber();
-    },
-    decrementMagicNumber(quantity) {
-      if (this.magicNumbers - quantity < 0) {
-        this.magicNumbers = 0;
-      } else {
-        this.magicNumbers -= quantity;
-      }
-
-      this.handleAddMagicNumber();
-    },
-    handleAddMagicNumber() {
-      const freeNumbers = this.filteredNumbers.filter(
-        (n) => n.status === "FREE"
-      );
-
-      this.selectedNumbers = freeNumbers.slice(0, this.magicNumbers);
-
-      this.calcSaleDiscount();
-    },
-    getFirstFreeNumber() {
-      return this.filteredNumbers.find((n) => n.status === "FREE");
-    },
-    calcSaleDiscount() {
-      const { length } = this.selectedNumbers;
+    function calcSaleDiscount() {
+      const { length } = selectedNumbers.value;
 
       if (length === 0) {
-        this.cart.totals = 0;
+        cart.totals = 0;
         return;
       }
 
       let partial = 0;
 
-      const sale = this.sales.find((s) => length >= s.quantity);
+      const sale = sales.value.find((s) => length >= s.quantity);
 
       for (let i = 0; i < length; i++) {
         if (sale !== undefined) {
           partial += sale.price;
-          this.currentSale = { ...sale };
+
+          currentSale.quantity = sale.quantity;
+          currentSale.price = sale.price;
         } else {
-          partial += this.contest.price;
+          partial += contest.value.price;
         }
       }
 
-      this.cart.totals = partial;
-    },
-    isSelected(number) {
-      return !!this.selectedNumbers.find((n) => n.number === number.number);
-    },
-    handleScroll(el) {
-      if (
-        el.srcElement.offsetHeight + el.srcElement.scrollTop >=
-        el.srcElement.scrollHeight &&
-        this.current < this.quantity - this.partial
-      ) {
-        const filtered =
-          this.filter === "ALL"
-            ? [...this.numbers]
-            : [...this.numbers].filter((n) => n.status === this.filter);
+      cart.totals = partial;
+    }
 
-        this.current += this.partial;
+    function formatPrice(value) {
+      return moneyFormat(value);
+    }
 
-        this.filteredNumbers = [...filtered].splice(this.current, this.partial);
+    // List
+    function countNumbersByStatus(status) {
+      const filtered = numbers.value.filter((n) => n.status === status);
+
+      return filtered.length;
+    }
+
+    function incrementMagicNumber(quantity) {
+      const availableNumbers = countNumbersByStatus("FREE");
+
+      if (magicNumbers.value + quantity > availableNumbers) {
+        magicNumbers.value = availableNumbers;
+      } else {
+        magicNumbers.value += quantity;
       }
-    },
+
+      addMagicNumbers();
+    }
+
+    function decrementMagicNumber(quantity) {
+      if (magicNumbers.value - quantity < 0) {
+        magicNumbers.value = 0;
+      } else {
+        magicNumbers.value -= quantity;
+      }
+
+      addMagicNumbers();
+    }
+
+    function addMagicNumbers() {
+      const freeNumbers = filteredNumbers.value.filter(
+        (n) => n.status === "FREE"
+      );
+
+      selectedNumbers.value = freeNumbers.slice(0, magicNumbers.value);
+
+      calcSaleDiscount();
+    }
+
+    // List
+    function isSelected(number) {
+      return !!selectedNumbers.value.find((n) => n.number === number.number);
+    }
+
+    function handleSelectNumber(number) {
+      const isSelected = !!selectedNumbers.value.find(
+        (n) => n.number === number.number
+      );
+
+      if (!isSelected && number.status === "FREE") {
+        selectedNumbers.value = [...selectedNumbers.value, number];
+        calcSaleDiscount();
+      }
+    }
+
+    function handleRemoveSelectedNumber(number) {
+      const index = selectedNumbers.value.indexOf(number);
+      const newArray = [...selectedNumbers.value].splice(index, 1);
+
+      selectedNumbers.value = [...newArray];
+
+      calcSaleDiscount();
+    }
+
+    function handleFilterNumbers(current) {
+      filter.value = current;
+
+      if (filter === "ALL") {
+        filteredNumbers.value = [...numbers.value];
+      } else {
+        const filtered = numbers.value.filter((n) => n.status === current);
+
+        filteredNumbers.value = [...filtered];
+      }
+    }
+
+    function handleCheckout() {
+      const { authenticated } = store.state.auth;
+
+      if (!authenticated) {
+        // TODO: Mostrar modal de login simples
+        return;
+      }
+
+      router.push({
+        name: "checkout",
+        params: {
+          numbers: selectedNumbers.value,
+          total: cart.totals,
+          details: {
+            contestId: contest.value.id,
+            title: contest.value.title,
+            slug: contest.value.slug,
+            seller: contest.value.seller,
+            price: contest.value.price,
+            short_description: contest.value.short_description,
+            whatsapp_number: contest.value.whatsapp_number,
+            whatsapp_group: contest.value.whatsapp_group,
+            sale: currentSale,
+          },
+        },
+      });
+    }
+
+    onMounted(async () => {
+      await getContestData();
+    });
+
+    return {
+      visible,
+      loading,
+      showNumbersModal,
+      filter,
+      contest,
+      sales,
+      numbers,
+      selectedNumbers,
+      filteredNumbers,
+      quantity,
+      magicNumbers,
+      currentSale,
+      cart,
+      formattedCartTotal,
+      hasSale,
+      contestPercentage,
+      formatPrice,
+      incrementMagicNumber,
+      decrementMagicNumber,
+      isSelected,
+      handleSelectNumber,
+      handleRemoveSelectedNumber,
+      handleCheckout,
+      handleFilterNumbers,
+    };
   },
-};
+  components: {
+    Container,
+    ContestNumbersList,
+    ContestNumbersModal,
+    SimpleRegisterModal,
+  },
+});
+// export default defineComponent({
+//   name: "ContestDetail",
+//   components: {
+//     ContestNumbersModal,
+//     SimpleRegisterModal,
+//     Container,
+//     ContestNumbersList,
+//   },
+//   data() {
+//     return {
+//       visible: ref(false),
+//       loading: false,
+//       filter: "ALL",
+//       contest: null,
+//       numbers: [],
+//       selectedNumbers: [],
+//       filteredNumbers: [],
+//       quantity: 0,
+//       partial: 300,
+//       current: 0,
+//       magicNumbers: 0,
+//       sales: [],
+//       currentSale: {
+//         quantity: 0,
+//         price: 0,
+//       },
+//       cart: {
+//         totals: 0,
+//       },
+//     };
+//   },
+//   mounted() {
+//     this.getContestData();
+//   },
+//   computed: {
+//     formattedCartTotal() {
+//       return moneyFormat(this.cart.totals);
+//     },
+//     hasSale() {
+//       return this.sales.find(
+//         (sale) => this.selectedNumbers.length >= sale.quantity
+//       );
+//     },
+//     contestPercentage() {
+//       const {
+//         use_custom_percentage,
+//         show_percentage,
+//         paid_percentage,
+//         custom_percentage,
+//       } = contest.value;
+//       let total = 0;
+
+//       if (use_custom_percentage) total = custom_percentage * 100;
+
+//       if (show_percentage) total = paid_percentage * 100;
+
+//       return total.toFixed(2);
+//     },
+//   },
+//   methods: {
+//     ...mapActions({
+//       addToCart: "cart/updateCart",
+//     }),
+//     async getContestData() {
+//       try {
+//         const { username, slug } = this.$route.params;
+
+//         this.loading = true;
+
+//         const result = await getContestBySlug(username, slug);
+//         const numbersArray = result.numbers ? JSON.parse(result.numbers) : [];
+
+//         this.contest = { ...result };
+//         this.quantity = result.quantity;
+//         this.numbers = numbersArray.map((number) => JSON.parse(number));
+//         this.filteredNumbers = [...this.numbers].splice(0, this.partial);
+//         this.current += this.partial;
+//         this.sales = result.sales
+//           ? result.sales
+//               .map((sale) => ({
+//                 price: sale.price,
+//                 quantity: sale.quantity,
+//               }))
+//               .reverse()
+//           : [];
+
+//         this.magicNumbers = this.selectedNumbers.length;
+//         this.calcSaleDiscount();
+//       } catch (error) {
+//         console.error(error);
+//       } finally {
+//         this.loading = false;
+//       }
+//     },
+//     handleSelectNumber(number) {
+//       const isSelected = !!this.selectedNumbers.find(
+//         (n) => n.number === number.number
+//       );
+
+//       if (!isSelected && number.status === "FREE") {
+//         this.selectedNumbers.push(number);
+
+//         this.calcSaleDiscount();
+//       }
+//     },
+//     handleRemoveSelectedNumber(number) {
+//       const index = this.selectedNumbers.indexOf(number);
+
+//       this.selectedNumbers.splice(index, 1);
+
+//       this.calcSaleDiscount();
+//     },
+//     formatPrice(price) {
+//       return moneyFormat(price);
+//     },
+//     handleCheckout() {
+//       const { authenticated } = this.$store.state.auth;
+
+//       if (!authenticated) {
+//         // this.$bvModal.show("simple-register");
+//         return;
+//       }
+
+//       this.$router.push({
+//         name: "checkout",
+//         params: {
+//           numbers: this.selectedNumbers,
+//           total: this.cart.totals,
+//           details: {
+//             contestId: this.contest.id,
+//             title: this.contest.title,
+//             slug: this.contest.slug,
+//             short_description: this.contest.short_description,
+//             whatsapp_group: this.contest.whatsapp_group,
+//             price: this.contest.price,
+//             sale: this.currentSale,
+//           },
+//         },
+//       });
+//     },
+//     handleFilterNumbers(filter) {
+//       this.filter = filter;
+//       this.current = 0;
+
+//       if (filter === "ALL") {
+//         this.filteredNumbers = [...this.numbers].splice(0, this.partial);
+//       } else {
+//         const filtered = this.numbers.filter((n) => n.status === filter);
+
+//         this.filteredNumbers = [...filtered].splice(0, this.partial);
+//       }
+//     },
+//     countNumbersByStatus(status) {
+//       const filtered = this.numbers.filter((n) => n.status === status);
+
+//       return filtered.length;
+//     },
+//     incrementMagicNumber(quantity) {
+//       const availableNumbers = this.countNumbersByStatus("FREE");
+
+//       if (this.magicNumbers + quantity > availableNumbers) {
+//         this.magicNumbers = availableNumbers;
+//       } else {
+//         this.magicNumbers += quantity;
+//       }
+
+//       this.handleAddMagicNumber();
+//     },
+//     decrementMagicNumber(quantity) {
+//       if (this.magicNumbers - quantity < 0) {
+//         this.magicNumbers = 0;
+//       } else {
+//         this.magicNumbers -= quantity;
+//       }
+
+//       this.handleAddMagicNumber();
+//     },
+//     handleAddMagicNumber() {
+//       const freeNumbers = this.filteredNumbers.filter(
+//         (n) => n.status === "FREE"
+//       );
+
+//       this.selectedNumbers = freeNumbers.slice(0, this.magicNumbers);
+
+//       this.calcSaleDiscount();
+//     },
+//     getFirstFreeNumber() {
+//       return this.filteredNumbers.find((n) => n.status === "FREE");
+//     },
+//     calcSaleDiscount() {
+//       const { length } = this.selectedNumbers;
+
+//       if (length === 0) {
+//         this.cart.totals = 0;
+//         return;
+//       }
+
+//       let partial = 0;
+
+//       const sale = this.sales.find((s) => length >= s.quantity);
+
+//       for (let i = 0; i < length; i++) {
+//         if (sale !== undefined) {
+//           partial += sale.price;
+//           this.currentSale = { ...sale };
+//         } else {
+//           partial += this.contest.price;
+//         }
+//       }
+
+//       this.cart.totals = partial;
+//     },
+//     isSelected(number) {
+//       return !!this.selectedNumbers.find((n) => n.number === number.number);
+//     },
+//     handleScroll(el) {
+//       if (
+//         el.srcElement.offsetHeight + el.srcElement.scrollTop >=
+//           el.srcElement.scrollHeight &&
+//         this.current < this.quantity - this.partial
+//       ) {
+//         const filtered =
+//           this.filter === "ALL"
+//             ? [...this.numbers]
+//             : [...this.numbers].filter((n) => n.status === this.filter);
+
+//         this.current += this.partial;
+
+//         this.filteredNumbers = [...filtered].splice(this.current, this.partial);
+//       }
+//     },
+//   },
+// });
 </script>
 
 <style>
+.ant-skeleton-element,
+.ant-skeleton-element .ant-skeleton-image {
+  width: 100%;
+}
+
+.ant-skeleton-element {
+  margin-top: 1rem;
+}
+
+.ant-skeleton-image {
+  min-height: 400px;
+}
+
+.ant-progress-inner,
+.ant-progress-bg {
+  border-radius: 0;
+}
+
+.ant-progress-inner {
+  background-color: #cfcfcf;
+}
 </style>

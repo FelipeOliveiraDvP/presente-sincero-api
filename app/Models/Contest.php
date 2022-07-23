@@ -76,15 +76,18 @@ class Contest extends Model
         return $this->belongsToMany(BankAccount::class, 'contest_bank', 'contest_id', 'bank_id');
     }
 
-
     public function gallery()
     {
         return $this->hasMany(Gallery::class, 'contest_id', 'id');
     }
 
-
     public function sales()
     {
         return $this->hasMany(Sale::class, 'contest_id', 'id');
+    }
+
+    public function seller()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 }

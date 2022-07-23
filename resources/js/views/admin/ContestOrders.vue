@@ -97,7 +97,7 @@
 <script>
 import debounce from "lodash.debounce";
 import moment from "moment";
-import moneyFormat from "@/utils/moneyFormat";
+import { moneyFormat } from "@/utils/moneyFormat";
 
 import { listContestOrders } from "@/services/contests";
 import { adminPaidNumbers, adminCancelOrder } from "@/services/numbers";

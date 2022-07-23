@@ -1,5 +1,27 @@
 <template>
-  <div>ContestNumbersModal</div>
+  <a-modal
+    v-model:visible="visible"
+    title="Meus números"
+    ok-text="Ver meus números"
+    cancel-text="Fechar"
+    @ok="handleSubmit"
+    @cancel="handleCancel"
+  >
+    <a-form
+      ref="formRef"
+      :model="formState"
+      layout="vertical"
+      name="get_user_numbers"
+    >
+      <a-form-item
+        name="whatsapp"
+        label="Informe seu WhatsApp"
+        :rules="[{ required: true, message: 'Informe seu WhatsApp' }]"
+      >
+        <a-input v-model:value="formState.whatsapp" />
+      </a-form-item>
+    </a-form>
+  </a-modal>
   <!-- <b-modal id="customer-numbers" title="Meus números" ok-title="Ver meus números" :ok-disabled="loading" @ok="handleOk"
     @hidden="handleClose">
     <p>Informe seu WhatsApp abaixo para conferir seus números nesse sorteio</p>
@@ -38,59 +60,98 @@
 </template>
 
 <script>
-import LoaderVue from "@/components/_commons/Loader.vue";
-
 import { getCustomerNumbers } from "@/services/numbers";
+import { defineComponent, reactive, ref } from "@vue/runtime-core";
 
-export default {
+export default defineComponent({
   name: "ContestNumbersModal",
-  components: {
-    "my-loader": LoaderVue,
-  },
-  props: {
-    contestId: Number,
-  },
-
-  data() {
-    return {
-      loading: false,
-      success: null,
+  setup({ contestId, visible }) {
+    const loading = ref(false);
+    const success = ref(false);
+    const numbers = ref([]);
+    const formRef = ref();
+    const formState = reactive({
       whatsapp: "",
-      numbers: [],
-    };
-  },
-  methods: {
-    async handleSubmit() {
+    });
+
+    async function handleSubmit() {
       try {
-        this.loading = true;
+        loading.value = true;
 
-        const result = await getCustomerNumbers(this.contestId, {
-          whatsapp: this.whatsapp,
-        });
-
+        const values = await formRef.value.validateFields();
+        const result = await getCustomerNumbers(contestId, values);
         const contestNumbers = result.map((r) => JSON.parse(r.numbers));
 
-        this.numbers = [].concat.apply([], contestNumbers);
+        numbers.value = [].concat.apply([], contestNumbers);
+        success.value = true;
+        loading.value = false;
 
-        this.success = true;
+        formRef.value.reset();
       } catch (error) {
-        this.success = false;
+        success.value = false;
       } finally {
-        this.loading = false;
+        loading.value = false;
       }
-    },
-    handleOk(e) {
-      e.preventDefault();
+    }
 
-      this.handleSubmit();
-    },
-    handleClose() {
-      this.whatsapp = "";
-      this.success = null;
-      this.numbers = [];
-    },
+    function handleClose() {
+      formRef.value.reset();
+    }
+
+    return {
+      visible,
+      loading,
+      success,
+      numbers,
+      formRef,
+      formState,
+      handleSubmit,
+      handleClose,
+    };
   },
-};
+});
+// export default {
+
+//   data() {
+//     return {
+//       loading: false,
+//       success: null,
+//       whatsapp: "",
+//       numbers: [],
+//     };
+//   },
+//   methods: {
+//     async handleSubmit() {
+//       try {
+//         this.loading = true;
+
+//         const result = await getCustomerNumbers(this.contestId, {
+//           whatsapp: this.whatsapp,
+//         });
+
+//         const contestNumbers = result.map((r) => JSON.parse(r.numbers));
+
+//         this.numbers = [].concat.apply([], contestNumbers);
+
+//         this.success = true;
+//       } catch (error) {
+//         this.success = false;
+//       } finally {
+//         this.loading = false;
+//       }
+//     },
+//     handleOk(e) {
+//       e.preventDefault();
+
+//       this.handleSubmit();
+//     },
+//     handleClose() {
+//       this.whatsapp = "";
+//       this.success = null;
+//       this.numbers = [];
+//     },
+//   },
+// };
 </script>
 
 <style>

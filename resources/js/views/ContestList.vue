@@ -1,30 +1,33 @@
 <template>
-  <h1>Sorteios</h1>
-  <!-- <b-container class="page">
-    
+  <a-page-header style="border: 1px solid rgb(235, 237, 240)" title="Sorteios"
+    sub-title="Escolha o sorteio ao qual deseja participar" />
 
-    <h2 class="text-center">Sorteios em andamento</h2>
-
-    <my-loader v-if="loading" />
-    <b-row v-else>
-      <b-col v-for="contest in contests" :key="contest.id" md="6">
-        <contest-card :contest="contest" />
-      </b-col>
-    </b-row>
-  </b-container> -->
+  <Container>
+    <a-spin :spinning="loading" style="min-height: 400px;">
+      <a-row :gutter="[16, 16]">
+        <a-col v-for="contest in contests" :key="contest.id" :xs="24" :sm="12" :md="8" :lg="6">
+          <ContestCard :contest="contest" />
+        </a-col>
+      </a-row>
+      <Pagination :pager="pager" />
+    </a-spin>
+  </Container>
 </template>
 
 <script>
-import LoaderVue from "@/components/_commons/Loader.vue";
-import ContestCardVue from "@/components/Contests/ContestCard.vue";
+import { listContestsBySeller } from "@/services/contests";
+import { defineComponent } from 'vue';
+import { notification } from 'ant-design-vue';
+import Pagination from '@/components/_commons/Pagination.vue';
+import Container from '@/components/_commons/Container.vue';
+import ContestCard from '@/components/Contests/ContestCard.vue';
 
-import { listContests } from "@/services/contests";
-
-export default {
+export default defineComponent({
   name: "ContestList",
   components: {
-    "contest-card": ContestCardVue,
-    "my-loader": LoaderVue,
+    Pagination,
+    Container,
+    ContestCard
   },
   data() {
     return {
@@ -32,23 +35,38 @@ export default {
       params: {
         limit: 12,
       },
+      pager: {
+        current_page: 1,
+        total: 1
+      },
       contests: [],
     };
   },
   mounted() {
-    this.getContests();
+    const { username } = this.$route.params;
+
+    this.getContests(username);
   },
   methods: {
-    async getContests() {
-      this.loading = true;
+    async getContests(username) {
+      try {
+        this.loading = true;
 
-      const result = await listContests(this.params);
+        const result = await listContestsBySeller(username, this.params);
 
-      this.contests = result.data;
-      this.loading = false;
+        this.contests = result.data;
+        this.pager.current_page = result.current_page;
+        this.pager.total = result.total;
+      } catch (error) {
+        notification.warning({
+          message: error.message
+        });
+      } finally {
+        this.loading = false;
+      }
     },
   },
-};
+});
 </script>
 
 <style>

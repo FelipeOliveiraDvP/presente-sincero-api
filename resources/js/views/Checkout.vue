@@ -138,7 +138,7 @@
 <script>
 import ContestNumberVue from "@/components/Contests/ContestNumber.vue";
 import LoaderVue from "@/components/_commons/Loader.vue";
-import moneyFormat from "@/utils/moneyFormat";
+import { moneyFormat } from "@/utils/moneyFormat";
 
 import { reserveNumbers, freeNumbers } from "@/services/numbers";
 

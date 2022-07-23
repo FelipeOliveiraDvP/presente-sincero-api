@@ -1,5 +1,5 @@
 <template>
-  <a-layout style="height: 100vh;" class="public-layout">
+  <a-layout style="min-height: 100vh;" class="public-layout">
     <a-layout-header>
       <router-link to="/">
         <a-image :preview="false" src="/img/logo.png" :width="175" />
