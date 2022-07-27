@@ -19,5 +19,5 @@ export const errorInterceptor = (error: AxiosError): Promise<AxiosError> => {
     router.push("/404");
   }
 
-  return Promise.reject(error as AxiosError<ErrorResponse>);
+  return Promise.reject(error.response?.data as ErrorResponse);
 };

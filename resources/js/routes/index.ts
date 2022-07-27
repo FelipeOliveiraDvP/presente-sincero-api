@@ -70,17 +70,8 @@ const routes = [
         },
       },
       {
-        name: "verify",
-        path: "/verificar-codigo",
-        component: () =>
-          import(/* webpackChunkName: "Verify" */ "@/views/Verify.vue"),
-        meta: {
-          restricted: true,
-        },
-      },
-      {
         name: "reset",
-        path: "/nova-senha",
+        path: "/nova-senha/:code",
         component: () =>
           import(/* webpackChunkName: "Reset" */ "@/views/Reset.vue"),
         meta: {

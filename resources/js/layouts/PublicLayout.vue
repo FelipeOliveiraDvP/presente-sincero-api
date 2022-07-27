@@ -185,6 +185,10 @@ export default defineComponent({
   display: none;
 }
 
+.ant-layout-content {
+  min-height: 600px;
+}
+
 .public-layout .ant-layout-footer {
   color: #fff;
   background: #44853c;
