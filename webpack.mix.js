@@ -18,12 +18,22 @@ mix
       children: true,
     },
     resolve: {
-      extensions: [".js", ".vue"],
+      extensions: [".ts", ".vue"],
       alias: {
         "@": path.resolve(__dirname, "./resources/js"),
       },
     },
+    module: {
+      rules: [
+        {
+          test: /\.ts$/,
+          loader: "ts-loader",
+          exclude: /node_modules/,
+          options: { appendTsSuffixTo: [/\.vue$/] },
+        },
+      ],
+    },
   })
-  .js("resources/js/app.js", "public/js")
-  .vue()
+  .vue({ version: 3 })
+  .ts("resources/js/app.ts", "public/js")
   .sass("resources/sass/app.scss", "public/css");

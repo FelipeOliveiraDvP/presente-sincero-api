@@ -1,6 +1,7 @@
 <template>
   <container>
-    <a-skeleton-input
+    <h1>Lista de sorteios</h1>
+    <!-- <a-skeleton-input
       v-if="loading"
       size="large"
       active
@@ -25,12 +26,12 @@
         </a-col>
       </a-row>
       <pagination :pager="pager" />
-    </a-spin>
+    </a-spin> -->
   </container>
 </template>
 
-<script>
-import { computed, defineComponent, onMounted, reactive, ref } from "vue";
+<script lang="ts">
+import { defineComponent, onMounted, reactive, ref } from "vue";
 import { notification } from "ant-design-vue";
 import { useRoute } from "vue-router";
 
@@ -43,53 +44,53 @@ import { listContestsBySeller } from "@/services/contests";
 export default defineComponent({
   components: { Container, ContestCard, Pagination },
   name: "ContestList",
-  setup() {
-    const loading = ref(false);
-    const contests = ref([]);
-    const seller = ref(null);
+  // setup() {
+  //   const loading = ref(false);
+  //   const contests = ref([]);
+  //   const seller = ref(null);
 
-    const params = reactive({
-      limit: 12,
-    });
+  //   const params = reactive({
+  //     limit: 12,
+  //   });
 
-    const pager = reactive({
-      current_page: 1,
-      total: 1,
-    });
+  //   const pager = reactive({
+  //     current_page: 1,
+  //     total: 1,
+  //   });
 
-    const route = useRoute();
-    const { username } = route.params;
+  //   const route = useRoute();
+  //   const { username } = route.params;
 
-    async function getSellerContests() {
-      try {
-        loading.value = true;
+  //   async function getSellerContests() {
+  //     try {
+  //       loading.value = true;
 
-        const result = await listContestsBySeller(username, params);
+  //       const result = await listContestsBySeller(username, params);
 
-        contests.value = result.data;
-        seller.value = result.data[0].seller;
-        pager.current_page = result.current_page;
-        pager.total = result.total;
-      } catch (error) {
-        notification.warning({
-          message: error.message,
-        });
-      } finally {
-        loading.value = false;
-      }
-    }
+  //       contests.value = result.data;
+  //       seller.value = result.data[0].seller;
+  //       pager.current_page = result.current_page;
+  //       pager.total = result.total;
+  //     } catch (error) {
+  //       notification.warning({
+  //         message: error.message,
+  //       });
+  //     } finally {
+  //       loading.value = false;
+  //     }
+  //   }
 
-    onMounted(async () => {
-      await getSellerContests();
-    });
+  //   onMounted(async () => {
+  //     await getSellerContests();
+  //   });
 
-    return {
-      loading,
-      contests,
-      pager,
-      seller,
-    };
-  },
+  //   return {
+  //     loading,
+  //     contests,
+  //     pager,
+  //     seller,
+  //   };
+  // },
 });
 </script>
 

@@ -1,301 +1,173 @@
 <template>
   <h1>Checkout</h1>
-  <!-- <b-container class="page">
-    <div class="border p-4 my-4 rounded">
-      <b-row> -->
-  <!-- <b-col md="7" class="p-1">
-          <h2>Finalizar compra</h2>
-
-          <div class="">
-            <strong>Sorteio</strong>
-            <p>{{ details.title }}</p>
-          </div>
-
-          <div class="">
-            <strong>Prêmio do sorteio</strong>
-            <p>{{ details.short_description }}</p>
-          </div>
-
-          <div>
-            <p><strong>Meus números</strong></p>
-            <p v-if="numbers.length > 100">
-              {{
-                  numbers
-                    .map((n) => n.number)
-                    .splice(0, 10)
-                    .join(", ")
-              }}
-            </p>
-            <p v-else>
-              <b-row style="max-height: 120px; overflow-y: auto">
-                <b-col :key="number.number" v-for="number in numbers" cols="4" md="3" lg="2" class="p-1 text-center">
-                  <contest-number :number="number" />
-                </b-col>
-              </b-row>
-            </p>
-            <p>
-              <b-button variant="link" @click="$bvModal.show('confirmation-leave-modal')">
-                Gostaria de trocar ou escolher mais números? Clique aqui
-              </b-button>
-            </p>
-          </div>
-
-          <div class="d-flex justify-content-between w-md-50">
-            <strong>Quantidade</strong>
-            <p>{{ numbers.length }}</p>
-          </div>
-
-          <div class="d-flex justify-content-between w-md-50">
-            <strong>Valor do número</strong>
-            <p v-if="details.sale.quantity > 0">
-              <del>{{ formatPrice(details.price) }}</del>
-              {{ formatPrice(details.sale.price) }}
-            </p>
-            <p v-else>{{ formatPrice(details.price) }}</p>
-          </div>
-
-          <div class="d-flex justify-content-between w-md-50">
-            <strong>Valor total</strong>
-            <p>{{ formatPrice(total) }}</p>
-          </div>
-
-          <div class="divider"></div>
-
-          <p>
-            <strong>Pague com PIX:</strong>
-            Escaneie o QR Code ao lado com seu celular, ou copie o código para
-            fazer o pagamento
-          </p>
-
-          <p>
-            Após o pagamento, permaneça na página para aguardar a confirmação.
-          </p>
-        </b-col> -->
-
-  <!-- <b-col md="5" class="d-flex justify-content-center align-items-center"> -->
-  <!-- Pagamento confirmado -->
-  <!-- <div v-if="paymentConfirmed" class="payment-success">
-            <div class="icon text-success">
-              <i class="fas fa-check-circle"></i>
-            </div>
-            <p class="fs-3">Recebemos o seu pagamento. Obrigado!</p>
-            <p class="fs-5">
-              Seus números: {{ numbers.map((n) => n.number).join(", ") }}
-            </p>
-            <p>
-              Para acompanhar o sorteio, você deve entrar no grupo do WhatsApp
-              abaixo:
-            </p>
-            <a :href="details.whatsapp_group" target="_blank" rel="noopener noreferrer">
-              {{ details.whatsapp_group }}
-            </a>
-            <p class="mt-2">
-              <strong>IMPORTANTE:</strong> É obrigatório permanecer no grupo até
-              o término do sorteio
-            </p>
-
-            <router-link :to="`/sorteios/${this.details.slug}`">
-              <b-button variant="primary">Escolher mais números</b-button>
-            </router-link>
-          </div> -->
-  <!-- QRCode e código para copiar -->
-  <!-- <div v-else>
-            <my-loader v-if="loading" />
-            <div class="text-center" v-else>
-              <img src="/img/mercado-pago.png" class="w-50 mb-2" alt="Mercado Pago" />
-              <img :src="`data:image/jpeg;base64,${payment.qrcode_base64}`" alt="qrcode"
-                class="img-fluid mb-2 rounded" />
-              <b-input-group>
-                <b-form-input type="text" v-model="payment.qr_code" readonly></b-form-input>
-
-                <b-input-group-append>
-                  <b-button variant="primary" v-clipboard:copy="payment.qr_code" v-clipboard:success="onCopySuccess"
-                    v-clipboard:error="onCopyError"><i class="fas fa-copy"></i></b-button>
-                </b-input-group-append>
-              </b-input-group>
-            </div>
-          </div> -->
-  <!-- </b-col> -->
-  <!-- </b-row>
-    </div> -->
-
-  <!-- Confirmation modal -->
-  <!-- <b-modal id="confirmation-leave-modal" ok-variant="danger" ok-title="Sim, desejo sair" cancel-title="Não"
-      @ok="freeReservedNumbers">
-      <template #modal-title> Deseja realmente sair da página? </template>
-      <div>
-        <p>
-          Ao sair da página, seus números selecionados serão disponibilizados
-          para outros clientes.
-        </p>
-        <p>Recomendamos finalizar a compra para garantir seus números.</p>
-        <p><strong>Ainda sim deseja sair?</strong></p>
-      </div>
-    </b-modal> -->
-  <!-- </b-container> -->
 </template>
 
-<script>
-import ContestNumberVue from "@/components/Contests/ContestNumber.vue";
-import LoaderVue from "@/components/_commons/Loader.vue";
-import { moneyFormat } from "@/utils/moneyFormat";
+<script lang="ts">
+import { defineComponent } from "@vue/runtime-core";
 
-import { reserveNumbers, freeNumbers } from "@/services/numbers";
-
-export default {
+export default defineComponent({
   name: "Checkout",
-  components: {
-    "my-loader": LoaderVue,
-    "contest-number": ContestNumberVue,
-  },
-  data() {
-    return {
-      loading: false,
-      leaving: false,
-      numbers: [],
-      total: 0,
-      details: {
-        slug: "",
-        short_description: "",
-        price: 0,
-      },
-      payment: {
-        order_id: null,
-        qrcode_base64: "",
-        qr_code: "",
-      },
-    };
-  },
-  created() {
-    const { numbers, total, details } = this.$route.params;
+});
+// import ContestNumberVue from "@/components/Contests/ContestNumber.vue";
+// import LoaderVue from "@/components/_commons/Loader.vue";
+// import { moneyFormat } from "@/utils/moneyFormat";
 
-    if (!numbers || !total || !details) {
-      this.$router.push({
-        name: "contests",
-      });
-      return;
-    }
+// import { reserveNumbers, freeNumbers } from "@/services/numbers";
 
-    this.numbers = numbers || [];
-    this.total = total || 0;
-    this.details = { ...details };
-    this.leaving = true;
+// export default {
+//   name: "Checkout",
+//   components: {
+//     "my-loader": LoaderVue,
+//     "contest-number": ContestNumberVue,
+//   },
+//   data() {
+//     return {
+//       loading: false,
+//       leaving: false,
+//       numbers: [],
+//       total: 0,
+//       details: {
+//         slug: "",
+//         short_description: "",
+//         price: 0,
+//       },
+//       payment: {
+//         order_id: null,
+//         qrcode_base64: "",
+//         qr_code: "",
+//       },
+//     };
+//   },
+//   created() {
+//     const { numbers, total, details } = this.$route.params;
 
-    window.addEventListener("beforeunload", this.showLeaveConfirmation);
+//     if (!numbers || !total || !details) {
+//       this.$router.push({
+//         name: "contests",
+//       });
+//       return;
+//     }
 
-    this.getQRCode();
-  },
-  computed: {
-    paymentConfirmed() {
-      const { auth, payment } = this.$store.state;
-      const isCurrentUser = auth.user.id === payment.userId;
-      const isCurrentOrder = payment.orderId === this.payment.order_id;
-      const isConfirmed = payment.confirmed === true;
+//     this.numbers = numbers || [];
+//     this.total = total || 0;
+//     this.details = { ...details };
+//     this.leaving = true;
 
-      return isCurrentUser && isCurrentOrder && isConfirmed;
-    },
-  },
-  watch: {
-    paymentConfirmed(newVal, oldVal) {
-      if (newVal === true) {
-        this.leaving = false;
-      }
-    },
-  },
-  methods: {
-    async getQRCode() {
-      try {
-        this.loading = true;
+//     window.addEventListener("beforeunload", this.showLeaveConfirmation);
 
-        const { contestId } = this.details;
-        const order = {
-          total: this.total,
-          numbers: this.numbers.map((n) => n.number),
-        };
+//     this.getQRCode();
+//   },
+//   computed: {
+//     paymentConfirmed() {
+//       const { auth, payment } = this.$store.state;
+//       const isCurrentUser = auth.user.id === payment.userId;
+//       const isCurrentOrder = payment.orderId === this.payment.order_id;
+//       const isConfirmed = payment.confirmed === true;
 
-        const { payment } = await reserveNumbers(contestId, order);
+//       return isCurrentUser && isCurrentOrder && isConfirmed;
+//     },
+//   },
+//   watch: {
+//     paymentConfirmed(newVal, oldVal) {
+//       if (newVal === true) {
+//         this.leaving = false;
+//       }
+//     },
+//   },
+//   methods: {
+//     async getQRCode() {
+//       try {
+//         this.loading = true;
 
-        this.payment = { ...payment };
-      } catch (error) {
-        console.error(error);
+//         const { contestId } = this.details;
+//         const order = {
+//           total: this.total,
+//           numbers: this.numbers.map((n) => n.number),
+//         };
 
-        this.$router.push({
-          name: "contests",
-        });
-      } finally {
-        this.loading = false;
-      }
-    },
-    async freeReservedNumbers() {
-      try {
-        this.loading = true;
+//         const { payment } = await reserveNumbers(contestId, order);
 
-        const { contestId } = this.details;
-        const order = {
-          numbers: this.numbers.map((n) => n.number),
-        };
+//         this.payment = { ...payment };
+//       } catch (error) {
+//         console.error(error);
 
-        await freeNumbers(contestId, order);
+//         this.$router.push({
+//           name: "contests",
+//         });
+//       } finally {
+//         this.loading = false;
+//       }
+//     },
+//     async freeReservedNumbers() {
+//       try {
+//         this.loading = true;
 
-        this.addMoreNumbers();
-      } catch (error) {
-        console.error(error);
+//         const { contestId } = this.details;
+//         const order = {
+//           numbers: this.numbers.map((n) => n.number),
+//         };
 
-        this.$router.push({
-          name: "contests",
-        });
-      } finally {
-        this.loading = false;
-      }
-    },
-    showLeaveConfirmation(e) {
-      e.returnValue = "";
-    },
-    addMoreNumbers() {
-      this.leaving = false;
-      this.$router.push({
-        name: "contestDetail",
-        params: {
-          slug: this.details.slug,
-          checkout: {
-            totals: this.total,
-            numbers: this.numbers,
-          },
-        },
-      });
-    },
-    formatPrice(price) {
-      return moneyFormat(price);
-    },
-    onCopySuccess(e) {
-      this.$toasted.show("Código copiado com sucesso!", {
-        type: "success",
-        theme: "toasted-primary",
-        position: "top-right",
-        duration: 3000,
-      });
-    },
-    onCopyError(e) {
-      this.$toasted.show("Erro ao copiar o código", {
-        type: "error",
-        theme: "toasted-primary",
-        position: "top-right",
-        duration: 3000,
-      });
-    },
-  },
-  beforeRouteLeave(to, from, next) {
-    if (this.leaving) {
-      // this.$bvModal.show("confirmation-leave-modal");
-      return;
-    }
+//         await freeNumbers(contestId, order);
 
-    next();
-  },
-  beforeDestroy() {
-    window.removeEventListener("beforeunload", this.showLeaveConfirmation);
-  },
-};
+//         this.addMoreNumbers();
+//       } catch (error) {
+//         console.error(error);
+
+//         this.$router.push({
+//           name: "contests",
+//         });
+//       } finally {
+//         this.loading = false;
+//       }
+//     },
+//     showLeaveConfirmation(e) {
+//       e.returnValue = "";
+//     },
+//     addMoreNumbers() {
+//       this.leaving = false;
+//       this.$router.push({
+//         name: "contestDetail",
+//         params: {
+//           slug: this.details.slug,
+//           checkout: {
+//             totals: this.total,
+//             numbers: this.numbers,
+//           },
+//         },
+//       });
+//     },
+//     formatPrice(price) {
+//       return moneyFormat(price);
+//     },
+//     onCopySuccess(e) {
+//       this.$toasted.show("Código copiado com sucesso!", {
+//         type: "success",
+//         theme: "toasted-primary",
+//         position: "top-right",
+//         duration: 3000,
+//       });
+//     },
+//     onCopyError(e) {
+//       this.$toasted.show("Erro ao copiar o código", {
+//         type: "error",
+//         theme: "toasted-primary",
+//         position: "top-right",
+//         duration: 3000,
+//       });
+//     },
+//   },
+//   beforeRouteLeave(to, from, next) {
+//     if (this.leaving) {
+//       // this.$bvModal.show("confirmation-leave-modal");
+//       return;
+//     }
+
+//     next();
+//   },
+//   beforeDestroy() {
+//     window.removeEventListener("beforeunload", this.showLeaveConfirmation);
+//   },
+// };
 </script>
 
 <style>

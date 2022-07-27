@@ -112,7 +112,7 @@ class ContestController extends Controller
 
         $contest = Contest::with('seller:id,name,username')
             ->with('gallery')
-            ->with('bank_accounts')
+            ->with('bank_accounts:id,name')
             ->with('sales')
             ->where('slug', '=', $slug)
             ->first()
@@ -177,7 +177,7 @@ class ContestController extends Controller
             ], 404);
         }
 
-        $orders = Order::with('user')
+        $orders = Order::with('user:id,name,whatsapp')
             ->with('contest:id,title,price')
             ->where('contest_id', '=', $id)
             ->where('status', '=', OrderStatus::PENDING)
@@ -214,7 +214,7 @@ class ContestController extends Controller
     {
         $contest = Contest::with('seller:id,name,username')
             ->with('gallery')
-            ->with('bank_accounts')
+            ->with('bank_accounts:id,name')
             ->with('sales')
             ->find($id)
             ->makeHiddenIf(function ($value) {

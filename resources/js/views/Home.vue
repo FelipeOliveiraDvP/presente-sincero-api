@@ -19,24 +19,27 @@
   </container>
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent, onMounted, ref } from "vue";
 
 import Container from "@/components/_commons/Container.vue";
 import ContestCard from "@/components/Contests/ContestCard.vue";
 
 import { listContests } from "@/services/contests";
+import { ContestItem } from "@/types/Contest.types";
 
 export default defineComponent({
-  components: { Container, ContestCard },
   name: "Home",
+  components: { Container, ContestCard },
   setup() {
-    const loading = ref(false);
-    const contests = ref([]);
+    const loading = ref<boolean>(false);
+    const contests = ref<ContestItem[]>();
 
     async function getContests() {
       loading.value = true;
-      const result = await listContests();
+
+      const result = await listContests({});
+
       contests.value = result.data;
       loading.value = false;
     }

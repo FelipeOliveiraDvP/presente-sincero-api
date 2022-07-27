@@ -1,19 +1,22 @@
 <template>
-  <a-layout style="min-height: 100vh;" class="public-layout">
+  <a-layout style="min-height: 100vh" class="public-layout">
     <a-layout-header>
       <router-link to="/">
         <a-image :preview="false" src="/img/logo.png" :width="175" />
       </router-link>
 
-      <a-popover v-if="authenticated" title="Olá Usuário" trigger="click" class="desktop-user-avatar">
+      <a-popover
+        v-if="authenticated"
+        title="Olá Usuário"
+        trigger="click"
+        class="desktop-user-avatar"
+      >
         <a-avatar :size="48">U</a-avatar>
         <template #content>
           <router-link to="/minha-conta">
-            <a-button type="link" block>
-              <user-icon /> Minha conta
-            </a-button>
+            <a-button type="link" block> <user-icon /> Minha conta </a-button>
           </router-link>
-          <a-button type="link" danger block>
+          <a-button @click="logout" type="link" danger block>
             <logout-icon /> Sair
           </a-button>
         </template>
@@ -21,32 +24,33 @@
 
       <a-space v-else class="desktop-links">
         <router-link to="/login">
-          <a-button type="primary" ghost>
-            <login-icon /> Entre
-          </a-button>
+          <a-button type="primary" ghost> <login-icon /> Entre </a-button>
         </router-link>
 
         <router-link to="/cadastre-se">
-          <a-button type="primary" ghost>
-            <user-icon /> Cadastre-se
-          </a-button>
+          <a-button type="primary" ghost> <user-icon /> Cadastre-se </a-button>
         </router-link>
       </a-space>
 
-      <a-button class="mobile-menu-button" type="primary" shape="circle" size="large" @click="showDrawer">
+      <a-button
+        class="mobile-menu-button"
+        type="primary"
+        shape="circle"
+        size="large"
+        @click="showDrawer"
+      >
         <menu-icon />
       </a-button>
 
-      <a-drawer v-model:visible="visible" :title="authenticated ? 'Nome do usuário' : 'Bem vindo a Rifandos'">
+      <a-drawer
+        v-model:visible="visible"
+        :title="authenticated ? 'Nome do usuário' : 'Bem vindo a Rifandos'"
+      >
         <div v-if="authenticated">
           <router-link to="/minha-conta">
-            <a-button type="link" block>
-              <user-icon /> Minha conta
-            </a-button>
+            <a-button type="link" block> <user-icon /> Minha conta </a-button>
           </router-link>
-          <a-button type="link" danger block>
-            <logout-icon /> Sair
-          </a-button>
+          <a-button type="link" danger block> <logout-icon /> Sair </a-button>
         </div>
 
         <div v-else>
@@ -54,9 +58,7 @@
 
           <a-space>
             <router-link to="/login">
-              <a-button type="primary" ghost>
-                <login-icon /> Entre
-              </a-button>
+              <a-button type="primary" ghost> <login-icon /> Entre </a-button>
             </router-link>
 
             <router-link to="/cadastre-se">
@@ -118,45 +120,40 @@
   </a-layout>
 </template>
 
-<script>
-import { defineComponent, ref } from 'vue';
-import { UserOutlined, LoginOutlined, LogoutOutlined, MenuOutlined } from '@ant-design/icons-vue';
-import { mapActions } from "vuex";
+<script lang="ts">
+import { useAuthStore } from "@/store/auth";
+import { defineComponent, ref } from "@vue/runtime-core";
+import {
+  UserOutlined,
+  LoginOutlined,
+  LogoutOutlined,
+  MenuOutlined,
+} from "@ant-design/icons-vue";
 
 export default defineComponent({
-  setup() {
-    const visible = ref(false);
-
-    const showDrawer = () => {
-      visible.value = true;
-    };
-
-    return {
-      visible,
-      showDrawer,
-    };
-  },
-  computed: {
-    user() {
-      return this.$store.state.auth.user;
-    },
-    authenticated() {
-      return this.$store.state.auth.authenticated;
-    },
-  },
-  methods: {
-    ...mapActions({
-      signOut: "auth/logout",
-    }),
-  },
+  name: "PublicLayout",
   components: {
     "login-icon": LoginOutlined,
     "logout-icon": LogoutOutlined,
     "user-icon": UserOutlined,
-    "menu-icon": MenuOutlined
+    "menu-icon": MenuOutlined,
+  },
+  setup() {
+    const { authenticated, logout } = useAuthStore();
+    const visible = ref<boolean>(false);
+
+    const showDrawer = () => {
+      visible.value = !visible.value;
+    };
+
+    return {
+      authenticated,
+      showDrawer,
+      visible,
+      logout,
+    };
   },
 });
-
 </script>
 
 <style>
@@ -188,7 +185,7 @@ export default defineComponent({
 
 .public-layout .ant-layout-footer {
   color: #fff;
-  background: #44853C;
+  background: #44853c;
 }
 
 .ant-layout-footer .step-footer {
@@ -199,7 +196,7 @@ export default defineComponent({
 .ant-layout-footer .step-footer .step {
   display: inline-block;
   background: #fff;
-  color: #44853C;
+  color: #44853c;
   width: 48px;
   height: 48px;
   line-height: 48px;

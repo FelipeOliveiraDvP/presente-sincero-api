@@ -4,24 +4,31 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "App",
-  created() {
-    window.Echo.channel("payment.confirmed").listen(
-      "PaymentConfirmed",
-      async (e) => {
-        const payment = {
-          userId: e.user_id,
-          orderId: e.order_id,
-          confirmed: e.confirmed,
-        };
+<script lang="ts">
+// import { defineComponent, onMounted } from "vue";
+// import { usePaymentStore } from "./store/payment";
 
-        await this.$store.dispatch("payment/confirmPayment", payment);
-      }
-    );
-  }
-};
+// export default defineComponent({
+//   name: "App",
+//   // setup() {
+//   //   const { confirmPayment } = usePaymentStore();
+
+//   //   onMounted(() => {
+//   //     window.Echo.channel("payment.confirmed").listen(
+//   //       "PaymentConfirmed",
+//   //       (e) => {
+//   //         const payment = {
+//   //           userId: e.user_id,
+//   //           orderId: e.order_id,
+//   //           confirmed: e.confirmed,
+//   //         };
+
+//   //         confirmPayment(payment);
+//   //       }
+//   //     );
+//   //   });
+//   // },
+// });
 </script>
 
 <style>
