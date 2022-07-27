@@ -30,12 +30,14 @@ export const useAuthStore = defineStore("auth", {
       const canManageContests =
         user.role === MIX_ADMIN_ROLE || user.role === MIX_SELLER_ROLE;
 
-      this.$state.authenticated = true;
-      this.$state.user = { ...user };
-      this.$state.token = token;
+      this.$patch({
+        authenticated: true,
+        user: { ...user },
+        token: token,
+      });
 
       if (canManageContests) {
-        this.$state.admin = true;
+        this.$patch({ admin: true });
         router.push({ name: "adminContestList" });
       } else {
         router.push({ name: "profile" });
@@ -44,16 +46,18 @@ export const useAuthStore = defineStore("auth", {
     simpleLogin(data: AuthResponse) {
       const { user, token } = data;
 
-      this.$state.authenticated = true;
-      this.$state.user = { ...user };
-      this.$state.token = token;
+      this.$patch({
+        authenticated: true,
+        user: { ...user },
+        token: token,
+      });
     },
     logout() {
-      this.$state = { ...state };
+      this.$reset();
       router.push({ name: "login" });
     },
     updateUser(user: AuthUser) {
-      this.$state.user = { ...user };
+      this.$patch({ user: { ...user } });
     },
   },
   persist: {

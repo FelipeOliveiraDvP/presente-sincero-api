@@ -129,6 +129,7 @@ import {
   LogoutOutlined,
   MenuOutlined,
 } from "@ant-design/icons-vue";
+import { storeToRefs } from "pinia";
 
 export default defineComponent({
   name: "PublicLayout",
@@ -139,8 +140,9 @@ export default defineComponent({
     "menu-icon": MenuOutlined,
   },
   setup() {
-    const { authenticated, logout } = useAuthStore();
+    const store = useAuthStore();
     const visible = ref<boolean>(false);
+    const { authenticated } = storeToRefs(store);
 
     const showDrawer = () => {
       visible.value = !visible.value;
@@ -148,9 +150,9 @@ export default defineComponent({
 
     return {
       authenticated,
-      showDrawer,
       visible,
-      logout,
+      showDrawer,
+      logout: store.logout,
     };
   },
 });

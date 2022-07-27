@@ -18,10 +18,10 @@ export const usePaymentStore = defineStore("payment", {
   }),
   actions: {
     confirmPayment(payment: PaymentState) {
-      this.$state = { ...payment };
+      this.$patch({ ...payment });
     },
     resetPayment() {
-      this.$state = { ...state };
+      this.$reset();
     },
   },
 });
