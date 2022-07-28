@@ -185,6 +185,17 @@ const routes = [
         },
       },
       {
+        name: "adminSellerList",
+        path: "/admin/vendedores",
+        component: () =>
+          import(
+            /* webpackChunkName: "AdminSellesList" */ "@/views/admin/SellerList.vue"
+          ),
+        meta: {
+          adminRoute: true,
+        },
+      },
+      {
         name: "adminBankAccountList",
         path: "/admin/contas",
         component: () =>
