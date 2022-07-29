@@ -173,17 +173,18 @@ const routes = [
           adminRoute: true,
         },
       },
-      {
-        name: "adminCustomerDetail",
-        path: "/admin/clientes/:id",
-        component: () =>
-          import(
-            /* webpackChunkName: "AdminCustomerDetail" */ "@/views/admin/CustomerDetail.vue"
-          ),
-        meta: {
-          adminRoute: true,
-        },
-      },
+      // TODO: Detalhes do cliente
+      // {
+      //   name: "adminCustomerDetail",
+      //   path: "/admin/clientes/:id",
+      //   component: () =>
+      //     import(
+      //       /* webpackChunkName: "AdminCustomerDetail" */ "@/views/admin/CustomerDetail.vue"
+      //     ),
+      //   meta: {
+      //     adminRoute: true,
+      //   },
+      // },
       {
         name: "adminSellerList",
         path: "/admin/vendedores",

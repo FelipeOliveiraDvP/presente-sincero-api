@@ -1,4 +1,6 @@
-export const contestPercentage = (contest) => {
+import { ContestDetail } from "@/types/Contest.types";
+
+export const contestPercentage = (contest: ContestDetail) => {
   let total = 0;
 
   if (contest === null) return total.toFixed(2);
@@ -8,7 +10,7 @@ export const contestPercentage = (contest) => {
     show_percentage,
     paid_percentage,
     custom_percentage,
-  } = contest.value;
+  } = contest;
 
   if (show_percentage) total = paid_percentage * 100;
 
