@@ -1,11 +1,12 @@
 import api from "@/api";
-import { ApiResponse, PaginatedResponse } from "../../types/api.types";
+import { ApiResponse, PaginatedResponse } from "@/types/api.types";
 import {
   BankAccountItem,
   BankAccountRequest,
+  BankAccountResponse,
   ListBankQuery,
   UpdateMercadoToken,
-} from "../../types/BankAccount.types";
+} from "@/types/BankAccount.types";
 
 export async function listBankAccounts(params: ListBankQuery) {
   const result = (await api.get("bank-accounts", params)) as unknown;
@@ -16,7 +17,7 @@ export async function listBankAccounts(params: ListBankQuery) {
 export async function createBankAccount(bankAccount: BankAccountRequest) {
   const result = (await api.post("bank-accounts", bankAccount)) as unknown;
 
-  return result as ApiResponse;
+  return result as BankAccountResponse;
 }
 
 export async function editBankAccount(
@@ -28,7 +29,7 @@ export async function editBankAccount(
     bankAccount
   )) as unknown;
 
-  return result as ApiResponse;
+  return result as BankAccountResponse;
 }
 
 export async function removeBankAccount(id) {

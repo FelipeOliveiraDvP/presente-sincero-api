@@ -1,7 +1,9 @@
 <template>
   <a-page-header title="Minhas contas bancárias">
     <template #extra>
-      <a-button type="primary">Nova conta</a-button>
+      <a-button type="primary" @click="toggleAccountModal(undefined)"
+        >Nova conta</a-button
+      >
     </template>
   </a-page-header>
 
@@ -40,12 +42,12 @@
 
       <template v-if="column.key === 'actions'">
         <a-space>
-          <a-button type="primary">
+          <a-button type="primary" @click="toggleAccountModal(record)">
             <template #icon><form-outlined /></template>
             Editar
           </a-button>
 
-          <a-button type="primary" danger>
+          <a-button type="primary" danger @click="toggleRemoveModal(record)">
             <template #icon><delete-outlined /></template>
             Excluir
           </a-button>
@@ -78,6 +80,22 @@
   </a-typography-paragraph>
 
   <mercado-pago-form :loading="loading" @onFinish="handleSaveMpToken" />
+
+  <bank-account-modal
+    :account="selectedAccount"
+    :loading="loading"
+    :visible="showAccountModal"
+    @finish="handleFinish"
+    @cancel="toggleAccountModal"
+  />
+
+  <remove-account-modal
+    :account="selectedAccount"
+    :loading="loading"
+    :visible="showRemoveModal"
+    @remove="handleRemove"
+    @cancel="toggleRemoveModal"
+  />
 </template>
 
 <script lang="ts">
@@ -87,7 +105,11 @@ import { ChangeEvent } from "ant-design-vue/lib/_util/EventInterface";
 import { debounce } from "lodash";
 import { FormOutlined, DeleteOutlined } from "@ant-design/icons-vue";
 
-import { listBankAccounts, saveMPAccessToken } from "@/services/bankAccounts";
+import {
+  listBankAccounts,
+  removeBankAccount,
+  saveMPAccessToken,
+} from "@/services/bankAccounts";
 import {
   ApiResponse,
   BaseQuery,
@@ -98,6 +120,8 @@ import { BankAccountItem, UpdateMercadoToken } from "@/types/BankAccount.types";
 import Pagination from "@/components/_commons/Pagination.vue";
 import MercadoPagoForm from "@/components/BankAccount/MercadoPagoForm.vue";
 import { notification } from "ant-design-vue";
+import BankAccountModal from "@/components/BankAccount/BankAccountModal.vue";
+import RemoveAccountModal from "@/components/BankAccount/RemoveAccountModal.vue";
 
 const columns: ColumnsType<BankAccountItem> = [
   {
@@ -158,10 +182,16 @@ export default defineComponent({
     DeleteOutlined,
     Pagination,
     MercadoPagoForm,
+    BankAccountModal,
+    RemoveAccountModal,
   },
   setup() {
     const loading = ref<boolean>(false);
     const accounts = ref<BankAccountItem[]>();
+    const selectedAccount = ref<BankAccountItem>();
+    const showAccountModal = ref<boolean>(false);
+    const showRemoveModal = ref<boolean>(false);
+
     const pager = ref<PaginatedResponse<BankAccountItem>>({
       current_page: 1,
       total: 1,
@@ -184,11 +214,10 @@ export default defineComponent({
       const response: PaginatedResponse<BankAccountItem> =
         await listBankAccounts(params);
 
+      accounts.value = response.data;
       pager.value.current_page = response.current_page || 1;
       pager.value.total = response.total || 1;
       pager.value.per_page = response.per_page || 1;
-
-      accounts.value = response.data;
       loading.value = false;
     }
 
@@ -218,6 +247,44 @@ export default defineComponent({
       }
     }
 
+    async function handleFinish() {
+      toggleAccountModal(undefined);
+      await getAccounts(filters);
+    }
+
+    async function handleRemove(account?: BankAccountItem) {
+      try {
+        if (account === undefined) return;
+        loading.value = true;
+
+        const result: ApiResponse = await removeBankAccount(account.id);
+
+        notification.success({
+          message: result.message,
+        });
+        toggleRemoveModal(undefined);
+        await getAccounts(filters);
+      } catch (error: unknown) {
+        const { message } = error as ErrorResponse;
+
+        notification.error({
+          message: message,
+        });
+      } finally {
+        loading.value = false;
+      }
+    }
+
+    function toggleAccountModal(account?: BankAccountItem) {
+      selectedAccount.value = account;
+      showAccountModal.value = !showAccountModal.value;
+    }
+
+    function toggleRemoveModal(account?: BankAccountItem) {
+      selectedAccount.value = account;
+      showRemoveModal.value = !showRemoveModal.value;
+    }
+
     function formatAccountType(type: string) {
       const accountTypes = {
         BANK: "Conta bancária",
@@ -237,10 +304,18 @@ export default defineComponent({
       accounts,
       pager,
       filters,
+      selectedAccount,
+      showAccountModal,
+      showRemoveModal,
+
       handleSearch,
       handlePaginate,
       formatAccountType,
       handleSaveMpToken,
+      toggleAccountModal,
+      toggleRemoveModal,
+      handleFinish,
+      handleRemove,
     };
   },
 });

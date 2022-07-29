@@ -1,5 +1,5 @@
 export type ApiResponse = {
-  message?: string;
+  message: string;
 };
 
 export type ErrorResponse = ApiResponse & {

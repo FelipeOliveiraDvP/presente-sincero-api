@@ -2,6 +2,8 @@
     "/js/app.js": "/js/app.js",
     "/js/PublicLayout.js": "/js/PublicLayout.js",
     "/js/Home.js": "/js/Home.js",
+    "/js/NotFound.js": "/js/NotFound.js",
+    "/js/Forbidden.js": "/js/Forbidden.js",
     "/js/ContestList.js": "/js/ContestList.js",
     "/js/ContestDetail.js": "/js/ContestDetail.js",
     "/js/Checkout.js": "/js/Checkout.js",
@@ -10,7 +12,6 @@
     "/js/Recovery.js": "/js/Recovery.js",
     "/js/Reset.js": "/js/Reset.js",
     "/js/Profile.js": "/js/Profile.js",
-    "/js/NotFound.js": "/js/NotFound.js",
     "/js/PrivateLayout.js": "/js/PrivateLayout.js",
     "/js/AdminContestList.js": "/js/AdminContestList.js",
     "/js/AdminContestCreate.js": "/js/AdminContestCreate.js",
@@ -20,6 +21,5 @@
     "/js/AdminCustomerList.js": "/js/AdminCustomerList.js",
     "/js/AdminSellesList.js": "/js/AdminSellesList.js",
     "/js/AdminBankAccountList.js": "/js/AdminBankAccountList.js",
-    "/css/app.css": "/css/app.css",
-    "/js/Forbidden.js": "/js/Forbidden.js"
+    "/css/app.css": "/css/app.css"
 }

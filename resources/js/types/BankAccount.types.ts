@@ -6,10 +6,15 @@ export interface BankAccountRequest {
   type: BankAccountType;
   name: string;
   main: boolean;
-  cc?: string;
-  agency?: string;
-  dv?: string;
-  key?: string;
+  cc?: string | null;
+  agency?: string | null;
+  dv?: string | null;
+  key?: string | null;
+}
+
+export interface BankAccountResponse {
+  message: string;
+  bank_account: BankAccountItem;
 }
 
 export interface ListBankQuery extends BaseQuery {}
