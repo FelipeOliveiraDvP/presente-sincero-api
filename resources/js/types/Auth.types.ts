@@ -9,7 +9,8 @@ export interface AuthUser {
   username?: string | null;
   avatar?: string | null;
   mp_access_token?: string | null;
-  seller_approved?: string | null;
+  seller_approved?: boolean;
+  blocked?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -38,7 +39,12 @@ export type AuthResetRequest = {
 };
 
 export type AuthProfileRequest = {
-  whatsapp: string;
+  name?: string;
+  whatsapp?: string;
+  email?: string | null;
+  username?: string | null;
+  password?: string;
+  password_confirmation?: string;
 };
 
 export interface AuthResponse {
