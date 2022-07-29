@@ -55,6 +55,29 @@
   </a-table>
 
   <pagination :pager="pager" @paginate="handlePaginate" />
+
+  <a-divider />
+
+  <a-typography-title :level="3" class="section-title">
+    Mercado Pago
+    <img src="/img/mercado-pago.png" />
+  </a-typography-title>
+
+  <a-typography-paragraph>
+    Adicione o seu token do Mercado Pago para receber o pagamento dos números do
+    sorteio. Para conseguir o token, você vai precisar de uma conta verificada e
+    aprovada no Mercado Pago. <br />
+    Na sua conta, você deve acessar
+    <a
+      href="https://www.mercadopago.com.br/settings/account/credentials"
+      target="_blank"
+      >Seu negócio > Configurações > Credenciais > Credenciais de produção</a
+    >
+    e copiar o "Access Token". Copie e cole o código no campo abaixo, e depois
+    clique em salvar.
+  </a-typography-paragraph>
+
+  <mercado-pago-form :loading="loading" @onFinish="handleSaveMpToken" />
 </template>
 
 <script lang="ts">
@@ -64,10 +87,17 @@ import { ChangeEvent } from "ant-design-vue/lib/_util/EventInterface";
 import { debounce } from "lodash";
 import { FormOutlined, DeleteOutlined } from "@ant-design/icons-vue";
 
-import { listBankAccounts } from "@/services/bankAccounts";
-import { BaseQuery, PaginatedResponse } from "@/types/api.types";
-import { BankAccountItem } from "@/types/BankAccount.types";
+import { listBankAccounts, saveMPAccessToken } from "@/services/bankAccounts";
+import {
+  ApiResponse,
+  BaseQuery,
+  ErrorResponse,
+  PaginatedResponse,
+} from "@/types/api.types";
+import { BankAccountItem, UpdateMercadoToken } from "@/types/BankAccount.types";
 import Pagination from "@/components/_commons/Pagination.vue";
+import MercadoPagoForm from "@/components/BankAccount/MercadoPagoForm.vue";
+import { notification } from "ant-design-vue";
 
 const columns: ColumnsType<BankAccountItem> = [
   {
@@ -127,6 +157,7 @@ export default defineComponent({
     FormOutlined,
     DeleteOutlined,
     Pagination,
+    MercadoPagoForm,
   },
   setup() {
     const loading = ref<boolean>(false);
@@ -167,6 +198,26 @@ export default defineComponent({
       await getAccounts(filters);
     }
 
+    async function handleSaveMpToken(values: UpdateMercadoToken) {
+      try {
+        loading.value = true;
+
+        const result: ApiResponse = await saveMPAccessToken(values);
+
+        notification.success({
+          message: result.message,
+        });
+      } catch (error: unknown) {
+        const { message } = error as ErrorResponse;
+
+        notification.error({
+          message: message,
+        });
+      } finally {
+        loading.value = false;
+      }
+    }
+
     function formatAccountType(type: string) {
       const accountTypes = {
         BANK: "Conta bancária",
@@ -189,10 +240,15 @@ export default defineComponent({
       handleSearch,
       handlePaginate,
       formatAccountType,
+      handleSaveMpToken,
     };
   },
 });
 </script>
 
 <style>
+.section-title img {
+  max-width: 100px;
+  margin-left: 5px;
+}
 </style>

@@ -6,13 +6,14 @@
 
 <script lang="ts">
 import { defineComponent, ref } from "@vue/runtime-core";
+import { notification } from "ant-design-vue";
 
 import Container from "@/components/_commons/Container.vue";
 import RecoveryForm from "@/components/Auth/RecoveryForm.vue";
-import { AuthRequest } from "@/types/Auth.types";
+
 import { forgot } from "@/services/auth";
-import { notification } from "ant-design-vue";
-import { ErrorResponse } from "@/types/api.types";
+import { AuthRequest } from "@/types/Auth.types";
+import { ApiResponse, ErrorResponse } from "@/types/api.types";
 
 export default defineComponent({
   components: { Container, RecoveryForm },
@@ -20,34 +21,24 @@ export default defineComponent({
   setup() {
     const loading = ref<boolean>(false);
 
-    function handleFinish(values: AuthRequest) {
-      forgot(values)
-        .then((result) => {
-          loading.value = true;
+    async function handleFinish(values: AuthRequest) {
+      try {
+        loading.value = true;
 
-          console.log(result);
-        })
-        .catch((error) => {
-          console.log(error);
-        })
-        .finally(() => (loading.value = false));
+        const result: ApiResponse = await forgot(values);
 
-      // try {
-      //   loading.value = true;
+        notification.success({
+          message: result.message,
+        });
+      } catch (error: unknown) {
+        const { message } = error as ErrorResponse;
 
-      //   await
-
-      //   // notification.success({
-      //   //   message: result.message,
-      //   // });
-      // } catch (error) {
-      //   // const { message } = error as ErrorResponse;
-      //   // notification.error({
-      //   //   message,
-      //   // });
-      // } finally {
-      //   loading.value = false;
-      // }
+        notification.error({
+          message,
+        });
+      } finally {
+        loading.value = false;
+      }
     }
 
     return {

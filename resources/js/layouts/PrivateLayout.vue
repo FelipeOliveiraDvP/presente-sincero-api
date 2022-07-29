@@ -53,7 +53,7 @@
         </a-menu-item>
       </a-menu>
     </a-layout-sider>
-    <a-layout>
+    <a-layout style="overflow-y: auto; height: 100vh">
       <a-layout-header>
         <a-popover
           :title="user && user.name"
@@ -70,9 +70,12 @@
           </template>
         </a-popover>
       </a-layout-header>
-      <a-layout-content :style="{ margin: '24px 16px 0', height: '100%' }">
+      <a-layout-content :style="{ margin: '24px 16px 0' }">
         <div
-          :style="{ padding: '16px', background: '#fff', minHeight: '360px' }"
+          :style="{
+            padding: '16px',
+            background: '#fff',
+          }"
         >
           <router-view />
         </div>
@@ -176,6 +179,10 @@ export default defineComponent({
 
 [data-theme="dark"] .site-layout-sub-header-background {
   background: #141414;
+}
+
+.ant-layout-content {
+  min-height: unset;
 }
 
 .ant-page-header {

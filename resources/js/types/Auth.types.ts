@@ -8,6 +8,8 @@ export interface AuthUser {
   email?: string | null;
   username?: string | null;
   avatar?: string | null;
+  mp_access_token?: string | null;
+  seller_approved?: string | null;
   created_at?: string;
   updated_at?: string;
 }
