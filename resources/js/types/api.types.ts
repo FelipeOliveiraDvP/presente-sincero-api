@@ -8,7 +8,7 @@ export type ErrorResponse = ApiResponse & {
 
 export interface BaseQuery {
   page?: number;
-  search?: number;
+  search?: string;
 }
 
 export interface PaginatedResponse<T> {

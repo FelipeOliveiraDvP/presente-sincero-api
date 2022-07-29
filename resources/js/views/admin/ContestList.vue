@@ -44,20 +44,23 @@
       <template v-if="column.key === 'actions'">
         <a-space>
           <router-link :to="`/admin/sorteios/${record.id}`">
-            <a-button type="primary" shape="circle">
+            <a-button type="primary">
               <template #icon><form-outlined /></template>
+              Editar
             </a-button>
           </router-link>
 
           <router-link :to="`/admin/sorteios/${record.id}/gerenciar`">
-            <a-button type="primary" shape="circle">
+            <a-button type="primary">
               <template #icon><setting-outlined /></template>
+              Gerenciar
             </a-button>
           </router-link>
 
           <router-link :to="`/admin/sorteios/${record.id}/pedidos`">
-            <a-button type="primary" shape="circle">
+            <a-button type="primary">
               <template #icon><dollar-outlined /></template>
+              Pedidos
             </a-button>
           </router-link>
 
@@ -65,8 +68,9 @@
             :to="`/${record.seller.username}/${record.slug}`"
             target="_blank"
           >
-            <a-button type="primary" shape="circle">
+            <a-button type="primary">
               <template #icon><eye-outlined /></template>
+              Visualizar
             </a-button>
           </router-link>
         </a-space>
@@ -102,7 +106,7 @@ const columns: ColumnsType<ContestItem> = [
     title: "Título",
     dataIndex: "title",
     key: "title",
-    width: 650,
+    width: 400,
   },
   {
     title: "Data de início",
@@ -132,8 +136,9 @@ const columns: ColumnsType<ContestItem> = [
     title: "Ações",
     dataIndex: "actions",
     key: "actions",
+    align: "right",
     width: 100,
-    maxWidth: 100,
+    maxWidth: 300,
   },
 ];
 
@@ -170,11 +175,13 @@ export default defineComponent({
 
     async function getContests(params: ListContestsQuery) {
       loading.value = true;
-      const response = await listContestsByUser(params);
+      const response: PaginatedResponse<ContestItem> = await listContestsByUser(
+        params
+      );
 
-      pager.value.current_page = response.current_page;
-      pager.value.total = response.total;
-      pager.value.per_page = response.per_page;
+      pager.value.current_page = response.current_page || 1;
+      pager.value.total = response.total || 1;
+      pager.value.per_page = response.per_page || 1;
       contests.value = response.data;
       loading.value = false;
     }

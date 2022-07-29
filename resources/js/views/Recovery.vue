@@ -20,23 +20,34 @@ export default defineComponent({
   setup() {
     const loading = ref<boolean>(false);
 
-    async function handleFinish(values: AuthRequest) {
-      try {
-        loading.value = true;
-        const result = await forgot(values);
+    function handleFinish(values: AuthRequest) {
+      forgot(values)
+        .then((result) => {
+          loading.value = true;
 
-        notification.success({
-          message: result.message,
-        });
-      } catch (error: unknown) {
-        const { message } = error as ErrorResponse;
+          console.log(result);
+        })
+        .catch((error) => {
+          console.log(error);
+        })
+        .finally(() => (loading.value = false));
 
-        notification.error({
-          message,
-        });
-      } finally {
-        loading.value = false;
-      }
+      // try {
+      //   loading.value = true;
+
+      //   await
+
+      //   // notification.success({
+      //   //   message: result.message,
+      //   // });
+      // } catch (error) {
+      //   // const { message } = error as ErrorResponse;
+      //   // notification.error({
+      //   //   message,
+      //   // });
+      // } finally {
+      //   loading.value = false;
+      // }
     }
 
     return {
