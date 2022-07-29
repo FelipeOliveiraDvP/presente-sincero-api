@@ -1,10 +1,6 @@
 import api from "@/api";
-import {
-  ApiResponse,
-  BaseQuery,
-  PaginatedResponse,
-} from "../../types/api.types";
-import { SellerItem } from "../../types/Seller.types";
+import { ApiResponse, BaseQuery, PaginatedResponse } from "@/types/api.types";
+import { SellerItem } from "@/types/Seller.types";
 
 export async function listSellers(params: BaseQuery) {
   const result = (await api.get("sellers", params)) as unknown;
