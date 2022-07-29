@@ -7,28 +7,40 @@
 
       <a-popover
         v-if="authenticated"
-        title="Olá Usuário"
+        :title="`Olá ${user && user.name}`"
         trigger="click"
         class="desktop-user-avatar"
       >
-        <a-avatar :size="48">U</a-avatar>
+        <a-avatar :size="48">
+          {{ user && user.name.charAt(0).toUpperCase() }}
+        </a-avatar>
         <template #content>
+          <router-link v-if="isAdmin || isSeller" to="/admin/sorteios">
+            <a-button type="link" block>
+              <dashboard-outlined />
+              Ir para a Dashboard
+            </a-button>
+          </router-link>
           <router-link to="/minha-conta">
-            <a-button type="link" block> <user-icon /> Minha conta </a-button>
+            <a-button type="link" block>
+              <user-outlined /> Minha conta
+            </a-button>
           </router-link>
           <a-button @click="logout" type="link" danger block>
-            <logout-icon /> Sair
+            <logout-outlined /> Sair
           </a-button>
         </template>
       </a-popover>
 
       <a-space v-else class="desktop-links">
         <router-link to="/login">
-          <a-button type="primary" ghost> <login-icon /> Entre </a-button>
+          <a-button type="primary" ghost> <login-outlined /> Entre </a-button>
         </router-link>
 
         <router-link to="/cadastre-se">
-          <a-button type="primary" ghost> <user-icon /> Cadastre-se </a-button>
+          <a-button type="primary" ghost>
+            <user-outlined /> Cadastre-se
+          </a-button>
         </router-link>
       </a-space>
 
@@ -39,18 +51,28 @@
         size="large"
         @click="showDrawer"
       >
-        <menu-icon />
+        <menu-outlined />
       </a-button>
 
       <a-drawer
         v-model:visible="visible"
-        :title="authenticated ? 'Nome do usuário' : 'Bem vindo a Rifandos'"
+        :title="authenticated ? user && user.name : 'Bem vindo a Rifandos'"
       >
         <div v-if="authenticated">
-          <router-link to="/minha-conta">
-            <a-button type="link" block> <user-icon /> Minha conta </a-button>
+          <router-link v-if="isAdmin || isSeller" to="/admin/sorteios">
+            <a-button type="link" block>
+              <dashboard-outlined />
+              Ir para a Dashboard
+            </a-button>
           </router-link>
-          <a-button type="link" danger block> <logout-icon /> Sair </a-button>
+          <router-link to="/minha-conta">
+            <a-button type="link" block>
+              <user-outlined /> Minha conta
+            </a-button>
+          </router-link>
+          <a-button type="link" danger block>
+            <logout-outlined /> Sair
+          </a-button>
         </div>
 
         <div v-else>
@@ -58,12 +80,14 @@
 
           <a-space>
             <router-link to="/login">
-              <a-button type="primary" ghost> <login-icon /> Entre </a-button>
+              <a-button type="primary" ghost>
+                <login-outlined /> Entre
+              </a-button>
             </router-link>
 
             <router-link to="/cadastre-se">
               <a-button type="primary" ghost>
-                <user-icon /> Cadastre-se
+                <user-outlined /> Cadastre-se
               </a-button>
             </router-link>
           </a-space>
@@ -128,21 +152,23 @@ import {
   LoginOutlined,
   LogoutOutlined,
   MenuOutlined,
+  DashboardOutlined,
 } from "@ant-design/icons-vue";
 import { storeToRefs } from "pinia";
 
 export default defineComponent({
   name: "PublicLayout",
   components: {
-    "login-icon": LoginOutlined,
-    "logout-icon": LogoutOutlined,
-    "user-icon": UserOutlined,
-    "menu-icon": MenuOutlined,
+    LoginOutlined,
+    LogoutOutlined,
+    UserOutlined,
+    MenuOutlined,
+    DashboardOutlined,
   },
   setup() {
     const store = useAuthStore();
     const visible = ref<boolean>(false);
-    const { authenticated } = storeToRefs(store);
+    const { authenticated, user, isAdmin, isSeller } = storeToRefs(store);
 
     const showDrawer = () => {
       visible.value = !visible.value;
@@ -150,7 +176,10 @@ export default defineComponent({
 
     return {
       authenticated,
+      user,
       visible,
+      isAdmin,
+      isSeller,
       showDrawer,
       logout: store.logout,
     };

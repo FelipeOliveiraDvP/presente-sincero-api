@@ -19,11 +19,35 @@ const state: AuthState = {
 
 const MIX_ADMIN_ROLE = process.env.MIX_ADMIN_ROLE;
 const MIX_SELLER_ROLE = process.env.MIX_SELLER_ROLE;
+const MIX_CUSTOMER_ROLE = process.env.MIX_CUSTOMER_ROLE;
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     ...state,
   }),
+  getters: {
+    isAdmin(state: AuthState) {
+      if (state.user === null) return false;
+
+      const { role } = state.user as AuthUser;
+
+      return role === MIX_ADMIN_ROLE;
+    },
+    isSeller(state: AuthState) {
+      if (state.user === null) return false;
+
+      const { role } = state.user as AuthUser;
+
+      return role === MIX_SELLER_ROLE;
+    },
+    isCustomer(state: AuthState) {
+      if (state.user === null) return false;
+
+      const { role } = state.user as AuthUser;
+
+      return role === MIX_CUSTOMER_ROLE;
+    },
+  },
   actions: {
     login(data: AuthResponse) {
       const { user, token } = data;

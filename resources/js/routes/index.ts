@@ -18,6 +18,18 @@ const routes = [
           import(/* webpackChunkName: "Home" */ "@/views/Home.vue"),
       },
       {
+        name: "notFound",
+        path: "/404",
+        component: () =>
+          import(/* webpackChunkName: "NotFound" */ "@/views/NotFound.vue"),
+      },
+      {
+        name: "forbidden",
+        path: "/403",
+        component: () =>
+          import(/* webpackChunkName: "Forbidden" */ "@/views/Forbidden.vue"),
+      },
+      {
         name: "contests",
         path: "/:username",
         component: () =>
@@ -87,12 +99,6 @@ const routes = [
           logged: true,
         },
       },
-      {
-        name: "notFound",
-        path: "/404",
-        component: () =>
-          import(/* webpackChunkName: "NotFound" */ "@/views/NotFound.vue"),
-      },
     ],
   },
   // Admin
@@ -107,6 +113,22 @@ const routes = [
       adminRoute: true,
     },
     children: [
+      {
+        name: "adminNotFound",
+        path: "/admin/404",
+        component: () =>
+          import(
+            /* webpackChunkName: "AdminNotFound" */ "@/views/NotFound.vue"
+          ),
+      },
+      {
+        name: "adminForbidden",
+        path: "/admin/403",
+        component: () =>
+          import(
+            /* webpackChunkName: "AdminForbidden" */ "@/views/Forbidden.vue"
+          ),
+      },
       {
         name: "adminContestList",
         path: "/admin/sorteios",

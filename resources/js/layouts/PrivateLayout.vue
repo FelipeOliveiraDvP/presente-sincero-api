@@ -31,14 +31,14 @@
           </router-link>
         </a-menu-item>
 
-        <a-menu-item key="/clientes">
+        <a-menu-item v-if="isAdmin" key="/clientes">
           <router-link to="/admin/clientes">
             <team-outlined />
             <span class="nav-text">Clientes</span>
           </router-link>
         </a-menu-item>
 
-        <a-menu-item key="/vendedores">
+        <a-menu-item v-if="isAdmin" key="/vendedores">
           <router-link to="/admin/vendedores">
             <shop-outlined />
             <span class="nav-text">Vendedores</span>
@@ -64,6 +64,11 @@
             user && user.name.charAt(0).toUpperCase()
           }}</a-avatar>
           <template #content>
+            <router-link to="/">
+              <home-outlined />
+              Ir para o site
+            </router-link>
+            <a-divider />
             <a-button @click="logout" type="ghost" danger block>
               <logout-outlined /> Sair
             </a-button>
@@ -96,6 +101,7 @@ import {
   TeamOutlined,
   DollarCircleOutlined,
   LogoutOutlined,
+  HomeOutlined,
 } from "@ant-design/icons-vue";
 import { defineComponent, ref } from "@vue/runtime-core";
 
@@ -110,15 +116,17 @@ export default defineComponent({
     TeamOutlined,
     DollarCircleOutlined,
     LogoutOutlined,
+    HomeOutlined,
   },
   setup() {
     const selectedKeys = ref<string[]>(["/sorteios"]);
     const store = useAuthStore();
-    const { user } = storeToRefs(store);
+    const { user, isAdmin } = storeToRefs(store);
 
     return {
       selectedKeys,
       user,
+      isAdmin,
       logout: store.logout,
     };
   },

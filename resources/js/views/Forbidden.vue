@@ -1,8 +1,8 @@
 <template>
   <a-result
-    status="404"
-    title="Ops! Página não encontrada"
-    sub-title="Desculpe, a página que você tentou acessar não está mais disponível."
+    status="403"
+    title="Ops! Acesso proibido"
+    sub-title="Desculpe, você não tem permissão para acessar essa página."
   >
     <template #extra>
       <router-link :to="authenticated ? '/admin/sorteios' : '/'">
@@ -18,7 +18,7 @@ import { defineComponent } from "@vue/runtime-core";
 import { storeToRefs } from "pinia";
 
 export default defineComponent({
-  name: "NotFoundPage",
+  name: "ForbiddenPage",
   setup() {
     const store = useAuthStore();
     const { authenticated } = storeToRefs(store);

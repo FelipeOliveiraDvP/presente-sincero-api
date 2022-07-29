@@ -20,5 +20,6 @@
     "/js/AdminCustomerList.js": "/js/AdminCustomerList.js",
     "/js/AdminSellesList.js": "/js/AdminSellesList.js",
     "/js/AdminBankAccountList.js": "/js/AdminBankAccountList.js",
-    "/css/app.css": "/css/app.css"
+    "/css/app.css": "/css/app.css",
+    "/js/Forbidden.js": "/js/Forbidden.js"
 }
