@@ -12,11 +12,11 @@ export interface BaseQuery {
 }
 
 export interface PaginatedResponse<T> {
-  current_page: number;
-  from: number;
-  to: number;
-  last_page: number;
-  per_page: number;
-  total: number;
-  data: Array<T>;
+  current_page?: number;
+  from?: number;
+  to?: number;
+  last_page?: number;
+  per_page?: number;
+  total?: number;
+  data?: Array<T>;
 }

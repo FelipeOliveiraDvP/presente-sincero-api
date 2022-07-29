@@ -36,70 +36,70 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+// import { mapActions } from "vuex";
 
-import { simpleLogin } from "@/services/auth";
+// import { simpleLogin } from "@/services/auth";
 
-export default {
-  name: "SimpleRegisterModal",
-  data() {
-    return {
-      loading: false,
-      newAccount: false,
-      form: {
-        name: "",
-        whatsapp: "",
-      },
-    };
-  },
-  methods: {
-    ...mapActions({
-      signIn: "auth/simpleLogin",
-    }),
-    async handleSubmit() {
-      try {
-        this.loading = true;
+// export default {
+//   name: "SimpleRegisterModal",
+//   data() {
+//     return {
+//       loading: false,
+//       newAccount: false,
+//       form: {
+//         name: "",
+//         whatsapp: "",
+//       },
+//     };
+//   },
+//   methods: {
+//     ...mapActions({
+//       signIn: "auth/simpleLogin",
+//     }),
+//     async handleSubmit() {
+//       try {
+//         this.loading = true;
 
-        const result = await simpleLogin({
-          ...this.form,
-          new_account: this.newAccount,
-        });
+//         const result = await simpleLogin({
+//           ...this.form,
+//           new_account: this.newAccount,
+//         });
 
-        if (result.new_account === true) {
-          this.newAccount = true;
+//         if (result.new_account === true) {
+//           this.newAccount = true;
 
-          // this.$toasted.show(result.message, {
-          //   type: "success",
-          //   theme: "toasted-primary",
-          //   position: "top-right",
-          //   duration: 3000,
-          // });
+//           // this.$toasted.show(result.message, {
+//           //   type: "success",
+//           //   theme: "toasted-primary",
+//           //   position: "top-right",
+//           //   duration: 3000,
+//           // });
 
-          this.loading = false;
-        } else {
-          this.signIn(result);
+//           this.loading = false;
+//         } else {
+//           this.signIn(result);
 
-          // this.$bvModal.hide("simple-register");
+//           // this.$bvModal.hide("simple-register");
 
-          this.$emit("onsuccess");
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        this.loading = false;
-      }
-    },
-    handleOk(e) {
-      e.preventDefault();
+//           this.$emit("onsuccess");
+//         }
+//       } catch (error) {
+//         console.error(error);
+//       } finally {
+//         this.loading = false;
+//       }
+//     },
+//     handleOk(e) {
+//       e.preventDefault();
 
-      this.handleSubmit();
-    },
-    handleClose() {
-      this.form = { name: "", whatsapp: "" };
-    },
+//       this.handleSubmit();
+//     },
+//     handleClose() {
+//       this.form = { name: "", whatsapp: "" };
+//     },
 
-  },
-};
+//   },
+// };
 </script>
 
 <style>

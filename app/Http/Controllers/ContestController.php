@@ -138,23 +138,9 @@ class ContestController extends Controller
      */
     public function getContestsByUser(Request $request)
     {
-        $title = $request->query('title');
-        $limit = $request->query('limit') ?? 10;
+        $user = $request->user('sanctum');
 
-        $contests = Contest::where('title', 'LIKE', "%{$title}%")
-            ->where('user_id', '=', $request->user->id)
-            ->orderBy('created_at', 'desc')
-            ->paginate($limit, [
-                'id',
-                'title',
-                'slug',
-                'short_description',
-                'start_date',
-                'price',
-                'quantity'
-            ]);
-
-        return response()->json($contests);
+        return $this->getContestsByUsername($user->username, $request);
     }
 
     /**

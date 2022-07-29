@@ -70,22 +70,22 @@
           </template>
         </a-popover>
       </a-layout-header>
-      <a-layout-content :style="{ margin: '24px 16px 0' }">
+      <a-layout-content :style="{ margin: '24px 16px 0', height: '100%' }">
         <div
-          :style="{ padding: '24px', background: '#fff', minHeight: '360px' }"
+          :style="{ padding: '16px', background: '#fff', minHeight: '360px' }"
         >
           <router-view />
         </div>
       </a-layout-content>
       <a-layout-footer style="text-align: center">
-        Ant Design ©2018 Created by Ant UED
+        Rifandos &copy; 2022 - Todos os direitos reservados
       </a-layout-footer>
     </a-layout>
   </a-layout>
 </template>
 
 <script lang="ts">
-import { useAuthStore } from "@/store/auth";
+import { storeToRefs } from "pinia";
 import {
   SettingOutlined,
   ShopOutlined,
@@ -95,7 +95,8 @@ import {
   LogoutOutlined,
 } from "@ant-design/icons-vue";
 import { defineComponent, ref } from "@vue/runtime-core";
-import { storeToRefs } from "pinia";
+
+import { useAuthStore } from "@/store/auth";
 
 export default defineComponent({
   name: "PrivateLayout",
@@ -161,6 +162,7 @@ export default defineComponent({
   .ant-layout-sider {
     position: fixed;
     height: 100%;
+    z-index: 999;
   }
 }
 
@@ -174,5 +176,14 @@ export default defineComponent({
 
 [data-theme="dark"] .site-layout-sub-header-background {
   background: #141414;
+}
+
+.ant-page-header {
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.ant-table-wrapper {
+  margin: 1rem auto;
 }
 </style>

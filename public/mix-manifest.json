@@ -8,7 +8,6 @@
     "/js/Login.js": "/js/Login.js",
     "/js/Register.js": "/js/Register.js",
     "/js/Recovery.js": "/js/Recovery.js",
-    "/js/Verify.js": "/js/Verify.js",
     "/js/Reset.js": "/js/Reset.js",
     "/js/Profile.js": "/js/Profile.js",
     "/js/NotFound.js": "/js/NotFound.js",
@@ -20,7 +19,7 @@
     "/js/AdminContestOrders.js": "/js/AdminContestOrders.js",
     "/js/AdminCustomerList.js": "/js/AdminCustomerList.js",
     "/js/AdminCustomerDetail.js": "/js/AdminCustomerDetail.js",
+    "/js/AdminSellesList.js": "/js/AdminSellesList.js",
     "/js/AdminBankAccountList.js": "/js/AdminBankAccountList.js",
-    "/css/app.css": "/css/app.css",
-    "/js/AdminSellesList.js": "/js/AdminSellesList.js"
+    "/css/app.css": "/css/app.css"
 }
