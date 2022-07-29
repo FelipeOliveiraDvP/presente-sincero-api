@@ -29,6 +29,10 @@
     :pagination="false"
   >
     <template #bodyCell="{ column, record }">
+      <template v-if="column.key === 'image'">
+        <a-image :preview="false" :src="record.gallery[0].path" />
+      </template>
+
       <template v-if="column.key === 'start_date'">
         {{ formatDate(record.start_date) }}
       </template>
@@ -38,27 +42,27 @@
       </template>
 
       <template v-if="column.key === 'paid_percentage'">
-        <a-progress :percent="record.paid_percentage" size="small" />
+        <a-progress :percent="record.paid_percentage" />
       </template>
 
       <template v-if="column.key === 'actions'">
-        <a-space>
+        <a-space direction="vertical">
           <router-link :to="`/admin/sorteios/${record.id}`">
-            <a-button type="primary">
+            <a-button type="primary" :block="true">
               <template #icon><form-outlined /></template>
               Editar
             </a-button>
           </router-link>
 
           <router-link :to="`/admin/sorteios/${record.id}/gerenciar`">
-            <a-button type="primary">
+            <a-button type="primary" block>
               <template #icon><setting-outlined /></template>
               Gerenciar
             </a-button>
           </router-link>
 
           <router-link :to="`/admin/sorteios/${record.id}/pedidos`">
-            <a-button type="primary">
+            <a-button type="primary" block>
               <template #icon><dollar-outlined /></template>
               Pedidos
             </a-button>
@@ -68,12 +72,54 @@
             :to="`/${record.seller.username}/${record.slug}`"
             target="_blank"
           >
-            <a-button type="primary">
+            <a-button type="primary" block>
               <template #icon><eye-outlined /></template>
               Visualizar
             </a-button>
           </router-link>
         </a-space>
+
+        <!-- <a-dropdown :trigger="['click']">
+          <a-button>
+            Mais Opções
+            <down-outlined />
+          </a-button>
+
+          <template #overlay>
+            <a-menu>
+              <a-menu-item key="0">
+                <router-link :to="`/admin/sorteios/${record.id}`">
+                  <form-outlined />
+                  Editar
+                </router-link>
+              </a-menu-item>
+
+              <a-menu-item key="1">
+                <router-link :to="`/admin/sorteios/${record.id}/gerenciar`">
+                  <setting-outlined />
+                  Gerenciar
+                </router-link>
+              </a-menu-item>
+
+              <a-menu-item key="3">
+                <router-link :to="`/admin/sorteios/${record.id}/pedidos`">
+                  <dollar-outlined />
+                  Pedidos
+                </router-link>
+              </a-menu-item>
+
+              <a-menu-item key="4">
+                <router-link
+                  :to="`/${record.seller.username}/${record.slug}`"
+                  target="_blank"
+                >
+                  <eye-outlined />
+                  Visualizar
+                </router-link>
+              </a-menu-item>
+            </a-menu>
+          </template>
+        </a-dropdown> -->
       </template>
     </template>
   </a-table>
@@ -91,6 +137,7 @@ import {
   SettingOutlined,
   DollarOutlined,
   EyeOutlined,
+  DownOutlined,
 } from "@ant-design/icons-vue";
 import * as moment from "moment";
 
@@ -103,10 +150,17 @@ import { moneyFormat } from "@/utils/moneyFormat";
 
 const columns: ColumnsType<ContestItem> = [
   {
+    title: "Imagem",
+    dataIndex: "image",
+    key: "image",
+    width: 200,
+    align: "center",
+  },
+  {
     title: "Título",
     dataIndex: "title",
     key: "title",
-    width: 400,
+    width: 300,
   },
   {
     title: "Data de início",
@@ -136,9 +190,8 @@ const columns: ColumnsType<ContestItem> = [
     title: "Ações",
     dataIndex: "actions",
     key: "actions",
-    align: "right",
-    width: 100,
-    maxWidth: 300,
+    align: "center",
+    width: 150,
   },
 ];
 
@@ -150,6 +203,7 @@ export default defineComponent({
     SettingOutlined,
     DollarOutlined,
     EyeOutlined,
+    DownOutlined,
   },
   setup() {
     const loading = ref<boolean>(false);
@@ -220,4 +274,7 @@ export default defineComponent({
 </script>
 
 <style>
+.ant-space-item {
+  width: 100%;
+}
 </style>
