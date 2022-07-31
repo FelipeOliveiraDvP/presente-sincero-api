@@ -154,7 +154,8 @@ class BankAccountController extends Controller
 
         if ($bank_account->main == 1) {
             $first_account = BankAccount::where('user_id', auth('sanctum')->id())->where('main', 0)->first();
-            $first_account->update(['main' => 1]);
+
+            if (!empty($first_account)) $first_account->update(['main' => 1]);
         }
 
         $bank_account->delete();

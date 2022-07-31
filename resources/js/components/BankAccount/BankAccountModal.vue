@@ -101,6 +101,7 @@ import {
 import { FormInstance, notification } from "ant-design-vue";
 import { createBankAccount, editBankAccount } from "@/services/bankAccounts";
 import { ErrorResponse } from "@/types/api.types";
+import { getErrorMessage } from "@/utils/handleError";
 
 export default defineComponent({
   name: "BankAccountModal",
@@ -156,10 +157,9 @@ export default defineComponent({
 
         emit("finish", result.bank_account);
       } catch (error: unknown) {
-        // const { message } = error as ErrorResponse;
-        // notification.error({
-        //   message: message,
-        // });
+        notification.error({
+          message: getErrorMessage(error),
+        });
       } finally {
         loading.value = false;
       }

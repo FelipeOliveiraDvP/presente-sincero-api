@@ -191,6 +191,7 @@ export default defineComponent({
 
 .ant-layout-content {
   min-height: unset;
+  height: auto;
 }
 
 .ant-page-header {

@@ -8,7 +8,7 @@ import {
   UpdateMercadoToken,
 } from "@/types/BankAccount.types";
 
-export async function listBankAccounts(params: ListBankQuery) {
+export async function listBankAccounts(params?: ListBankQuery) {
   const result = (await api.get("bank-accounts", params)) as unknown;
 
   return result as PaginatedResponse<BankAccountItem>;

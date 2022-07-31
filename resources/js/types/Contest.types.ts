@@ -24,17 +24,14 @@ export interface ContestItem {
 
 export interface ContestRequest {
   title: string;
-  start_date: string;
+  start_date: string | Date;
   max_reserve_days: number;
   price: number;
   quantity: number;
   short_description: string;
   whatsapp_number: string;
   whatsapp_group: string;
-  sales: Array<{
-    quantity: number;
-    price: number;
-  }>;
+  sales: Array<ContestSale>;
   bank_accounts: Array<number>;
   gallery: Array<string>;
 }
@@ -70,6 +67,7 @@ export interface ContestDetail {
 export interface ContestBankAccount {
   id: number;
   name?: string;
+  main: boolean;
 }
 
 export interface ContestImage {

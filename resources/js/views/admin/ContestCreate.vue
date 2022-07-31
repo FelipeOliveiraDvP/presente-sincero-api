@@ -41,6 +41,7 @@
           <a-date-picker
             v-model:value="formState.start_date"
             style="width: 100%"
+            format="DD/MM/YYYY"
           />
         </a-form-item>
       </a-col>
@@ -147,8 +148,27 @@
         Adicionar promoção
       </a-button>
     </a-form-item>
-    <!-- Contas bancárias -->
 
+    <!-- Contas bancárias -->
+    <a-typography-title :level="3">Contas bancárias</a-typography-title>
+
+    <a-typography-text type="secondary"
+      >Escolha as contas onde você vai receber os pagamentos dos
+      pedidos.</a-typography-text
+    ><br />
+
+    <a-typography
+      ><strong>Como funciona?: </strong> Após selecionar os números, o cliente é
+      levado para a página do checkout. Caso você tenha configurado o pagamento
+      automático, o cliente vai visualizar um QR Code para o pagamento. <br />
+      Do contrário, vão ser exibidas as contas selecionadas abaixo onde o
+      cliente deverá enviar o comprovante para a confirmação do pedido. </a-typography
+    ><br />
+
+    <contest-bank-account-form
+      :formState="formState"
+      @select="handleSelectAccount"
+    />
     <!-- Galeria -->
 
     <a-form-item>
@@ -165,28 +185,39 @@ import { DeleteOutlined, PlusOutlined } from "@ant-design/icons-vue";
 
 import InputMoney from "@/components/_commons/InputMoney.vue";
 import { ContestRequest, ContestSale } from "@/types/Contest.types";
+import ContestBankAccountForm from "@/components/Contests/Admin/BankAccountsForm.vue";
 
 export default defineComponent({
-  components: { InputMoney, DeleteOutlined, PlusOutlined },
+  components: {
+    InputMoney,
+    ContestBankAccountForm,
+    DeleteOutlined,
+    PlusOutlined,
+  },
   name: "AdminContestCreate",
   setup() {
     const formRef = ref<FormInstance>();
     const formState = reactive<ContestRequest>({
-      title: "",
-      short_description: "",
+      title: "teste",
+      short_description: "teste",
       start_date: "",
       price: 0.1,
       quantity: 100,
       max_reserve_days: 1,
-      whatsapp_number: "",
-      whatsapp_group: "",
+      whatsapp_number: "11964513763",
+      whatsapp_group: "https://antdv.com/components/select#API",
       sales: [] as ContestSale[],
       bank_accounts: [],
       gallery: [],
     });
 
     async function handleSubmit(values: ContestRequest) {
-      console.log(values);
+      console.log({
+        ...values,
+        bank_accounts: Object.entries(values.bank_accounts).map(
+          (value) => value[1] as number
+        ),
+      });
     }
 
     function addSale() {
@@ -194,13 +225,6 @@ export default defineComponent({
         quantity: 1,
         price: 0.1,
       } as ContestSale);
-      // const sales: ContestSale[] = [
-      //   {
-      //     quantity: 1,
-      //     price: 0.1,
-      //   },
-      // ];
-      // formState.sales = sales;
     }
 
     function removeSale(sale: any) {
@@ -222,11 +246,16 @@ export default defineComponent({
       }
     };
 
-    watch(formState, (newVal) => {
-      formState.quantity = parseInt(String(newVal.quantity), 10);
-    });
+    function handleSelectAccount(accounts: number[]) {
+      const values = Object.entries(accounts).map(
+        (value) => value[1] as number
+      );
+
+      formState.bank_accounts = [...values];
+    }
 
     watch(formState, (newVal) => {
+      formState.quantity = parseInt(String(newVal.quantity), 10);
       formState.max_reserve_days = parseInt(
         String(newVal.max_reserve_days),
         10
@@ -240,6 +269,7 @@ export default defineComponent({
       handleSubmit,
       addSale,
       removeSale,
+      handleSelectAccount,
     };
   },
 });

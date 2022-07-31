@@ -123,7 +123,7 @@ class ContestController extends Controller
 
         $contest = Contest::with('seller:id,name,username')
             ->with('gallery')
-            ->with('bank_accounts:id,name')
+            ->with('bank_accounts:id,name,main')
             ->with('sales')
             ->where('slug', '=', $slug)
             ->first()
@@ -211,7 +211,7 @@ class ContestController extends Controller
     {
         $contest = Contest::with('seller:id,name,username')
             ->with('gallery')
-            ->with('bank_accounts:id,name')
+            ->with('bank_accounts:id,name,main')
             ->with('sales')
             ->find($id)
             ->makeHiddenIf(function ($value) {
