@@ -1,10 +1,10 @@
-export type ApiResponse = {
+export interface ApiResponse {
   message: string;
-};
+}
 
-export type ErrorResponse = ApiResponse & {
+export interface ErrorResponse extends ApiResponse {
   errors?: Record<string, Array<string>>;
-};
+}
 
 export interface BaseQuery {
   page?: number;

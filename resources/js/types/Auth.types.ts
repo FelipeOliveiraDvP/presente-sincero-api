@@ -52,9 +52,9 @@ export interface AuthResponse {
   token: string;
 }
 
-export type AuthProfileResponse = ApiResponse & {
+export interface AuthProfileResponse extends ApiResponse {
   user: AuthUser;
-};
+}
 
 export interface AuthSimpleLoginRequest {
   whatsapp: string;

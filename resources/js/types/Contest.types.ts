@@ -29,7 +29,6 @@ export interface ContestRequest {
   price: number;
   quantity: number;
   short_description: string;
-  full_description: string;
   whatsapp_number: string;
   whatsapp_group: string;
   sales: Array<{
@@ -56,7 +55,6 @@ export interface ContestDetail {
   price: number;
   quantity: number;
   short_description: string;
-  full_description: string;
   whatsapp_number: string;
   whatsapp_group: string;
   numbers?: string;
@@ -71,18 +69,18 @@ export interface ContestDetail {
 
 export interface ContestBankAccount {
   id: number;
-  name: string;
+  name?: string;
 }
 
 export interface ContestImage {
-  id: number;
-  contest_id: number;
+  id?: number;
+  contest_id?: number;
   path: string;
 }
 
 export interface ContestSale {
-  id: number;
-  contest_id: number;
+  id?: number;
+  contest_id?: number;
   quantity: number;
   price: number;
 }

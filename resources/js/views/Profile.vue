@@ -86,6 +86,7 @@ import { editProfile } from "@/services/auth";
 import { useAuthStore } from "@/store/auth";
 import { ErrorResponse } from "@/types/api.types";
 import { AuthProfileRequest, AuthUser } from "@/types/Auth.types";
+import { getErrorMessage } from "@/utils/handleError";
 import { defineComponent, reactive, ref } from "@vue/runtime-core";
 import { FormInstance, notification } from "ant-design-vue";
 import { Rule } from "ant-design-vue/lib/form";
@@ -148,10 +149,8 @@ export default defineComponent({
 
         store.updateUser(result.user);
       } catch (error: unknown) {
-        const { message } = error as ErrorResponse;
-
         notification.error({
-          message,
+          message: getErrorMessage(error),
         });
       } finally {
         loading.value = false;

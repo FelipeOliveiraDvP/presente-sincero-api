@@ -115,7 +115,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, reactive, ref } from "@vue/runtime-core";
+import {
+  defineComponent,
+  handleError,
+  onMounted,
+  reactive,
+  ref,
+} from "@vue/runtime-core";
 import { ChangeEvent } from "ant-design-vue/lib/_util/EventInterface";
 import { ColumnsType } from "ant-design-vue/lib/vc-table/interface";
 import * as moment from "moment";
@@ -131,18 +137,14 @@ import {
 import Pagination from "@/components/_commons/Pagination.vue";
 import ApproveSellerModal from "@/components/Sellers/ApproveSellerModal.vue";
 
-import {
-  ApiResponse,
-  BaseQuery,
-  ErrorResponse,
-  PaginatedResponse,
-} from "@/types/api.types";
+import { ApiResponse, BaseQuery, PaginatedResponse } from "@/types/api.types";
 import { SellerItem } from "@/types/Seller.types";
 import { approveSeller, listSellers, toggleSeller } from "@/services/sellers";
 
 import { cellphoneMask } from "@/utils/cellphoneMask";
 import { notification } from "ant-design-vue";
 import ToggleSellerModal from "@/components/Sellers/ToggleSellerModal.vue";
+import { getErrorMessage } from "@/utils/handleError";
 
 const columns: ColumnsType<SellerItem> = [
   {
@@ -217,7 +219,7 @@ export default defineComponent({
     async function getSellers(params: BaseQuery) {
       loading.value = true;
 
-      const response: PaginatedResponse<SellerItem> = await listSellers(params);
+      const response = await listSellers(params);
 
       pager.value.current_page = response.current_page || 1;
       pager.value.total = response.total || 1;
@@ -262,7 +264,7 @@ export default defineComponent({
         loading.value = false;
         toggleApproveModal(undefined);
 
-        const result: ApiResponse = await approveSeller(seller?.id);
+        const result = await approveSeller(seller?.id);
 
         notification.success({
           message: result.message,
@@ -270,10 +272,8 @@ export default defineComponent({
 
         await getSellers(filters);
       } catch (error: unknown) {
-        const { message } = error as ErrorResponse;
-
         notification.error({
-          message: message,
+          message: getErrorMessage(error),
         });
       } finally {
         loading.value = false;
@@ -300,10 +300,8 @@ export default defineComponent({
 
         await getSellers(filters);
       } catch (error: unknown) {
-        const { message } = error as ErrorResponse;
-
         notification.error({
-          message: message,
+          message: getErrorMessage(error),
         });
       } finally {
         loading.value = false;

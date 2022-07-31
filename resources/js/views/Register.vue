@@ -9,8 +9,9 @@ import RegisterForm from "@/components/Auth/RegisterForm.vue";
 import Container from "@/components/_commons/Container.vue";
 import { register } from "@/services/auth";
 import { useAuthStore } from "@/store/auth";
-import { ErrorResponse } from "@/types/api.types";
+
 import { AuthRegisterRequest } from "@/types/Auth.types";
+import { getErrorMessage } from "@/utils/handleError";
 import { defineComponent, ref } from "@vue/runtime-core";
 import { notification } from "ant-design-vue";
 
@@ -28,10 +29,8 @@ export default defineComponent({
 
         signIn(result);
       } catch (error: unknown) {
-        const { message } = error as ErrorResponse;
-
         notification.error({
-          message,
+          message: getErrorMessage(error),
         });
       } finally {
         loading.value = false;

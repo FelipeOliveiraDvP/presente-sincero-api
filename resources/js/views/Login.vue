@@ -13,7 +13,8 @@ import { AuthLoginRequest } from "@/types/Auth.types";
 import { useAuthStore } from "@/store/auth";
 import { login } from "@/services/auth";
 import { notification } from "ant-design-vue";
-import { ErrorResponse } from "@/types/api.types";
+
+import { getErrorMessage } from "@/utils/handleError";
 
 export default defineComponent({
   name: "Login",
@@ -28,11 +29,9 @@ export default defineComponent({
         const result = await login(values);
 
         signIn(result);
-      } catch (error: unknown) {
-        const { message } = error as ErrorResponse;
-
+      } catch (error) {
         notification.error({
-          message,
+          message: getErrorMessage(error),
         });
       } finally {
         loading.value = false;

@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 import { successInterceptor } from "./interceptors/success.interceptor";
 import { errorInterceptor } from "./interceptors/error.interceptor";
@@ -11,30 +11,49 @@ const instance = axios.create({
 instance.interceptors.request.use(tokenInterceptor);
 instance.interceptors.response.use(successInterceptor, errorInterceptor);
 
-const get = (url: string, params: any = {}) => {
-  return instance.get(url, { params: { ...params } });
-};
-
-const post = (url: string, data: any = {}, config: any = {}) => {
-  return instance.post(url, data, config);
-};
-
-const update = (url: string, data?: any) => {
-  return instance.put(url, data);
-};
-
-const remove = (url: string) => {
-  return instance.delete(url);
-};
-
-const patch = (url: string, data?: any) => {
-  return instance.patch(url, data);
-};
-
-const upload = (url: string, data?: FormData) => {
-  return instance.post(url, data, {
-    headers: { "Content-Type": "multipart/form-data" },
+const get = async <T = any>(url: string, params: any = {}): Promise<T> => {
+  const result = await instance.get<T>(url, {
+    params: { ...params },
   });
+
+  return result.data as T;
+};
+
+const post = async <T = any>(
+  url: string,
+  data: any = {},
+  config: any = {}
+): Promise<T> => {
+  const result = await instance.post<T>(url, data, config);
+
+  return result.data as T;
+};
+
+const update = async <T = any>(url: string, data?: any): Promise<T> => {
+  const result = await instance.put<T>(url, data);
+
+  return result.data as T;
+};
+
+const remove = async <T = any>(url: string): Promise<T> => {
+  const result = await instance.delete<T>(url);
+
+  return result.data as T;
+};
+
+const patch = async <T = any>(url: string, data?: any): Promise<T> => {
+  const result = await instance.patch<T>(url, data);
+
+  return result.data as T;
+};
+
+const upload = async <T = any>(url: string, data?: FormData): Promise<T> => {
+  const headers = { "Content-Type": "multipart/form-data" };
+  const result = await instance.post<T>(url, data, {
+    headers,
+  });
+
+  return result.data as T;
 };
 
 const api = {

@@ -122,6 +122,7 @@ import MercadoPagoForm from "@/components/BankAccount/MercadoPagoForm.vue";
 import { notification } from "ant-design-vue";
 import BankAccountModal from "@/components/BankAccount/BankAccountModal.vue";
 import RemoveAccountModal from "@/components/BankAccount/RemoveAccountModal.vue";
+import { getErrorMessage } from "@/utils/handleError";
 
 const columns: ColumnsType<BankAccountItem> = [
   {
@@ -237,10 +238,8 @@ export default defineComponent({
           message: result.message,
         });
       } catch (error: unknown) {
-        const { message } = error as ErrorResponse;
-
         notification.error({
-          message: message,
+          message: getErrorMessage(error),
         });
       } finally {
         loading.value = false;
@@ -265,10 +264,8 @@ export default defineComponent({
         toggleRemoveModal(undefined);
         await getAccounts(filters);
       } catch (error: unknown) {
-        const { message } = error as ErrorResponse;
-
         notification.error({
-          message: message,
+          message: getErrorMessage(error),
         });
       } finally {
         loading.value = false;

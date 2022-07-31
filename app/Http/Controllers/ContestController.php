@@ -110,6 +110,17 @@ class ContestController extends Controller
             ], 404);
         }
 
+        // TODO: Utilizar o mesmo método de detalhes
+        // $contest = Contest::where('slug', '=', $slug)->first();
+
+        // if (empty($contest)) {
+        //     return response()->json([
+        //         'message' => 'O sorteio informado não existe!'
+        //     ], 404);
+        // }
+
+        // return $this->details($contest->id);
+
         $contest = Contest::with('seller:id,name,username')
             ->with('gallery')
             ->with('bank_accounts:id,name')

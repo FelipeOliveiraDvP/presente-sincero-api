@@ -1,7 +1,9 @@
 <template>
   <a-page-header title="Meus sorteios">
     <template #extra>
-      <a-button type="primary">Novo sorteio</a-button>
+      <router-link to="/admin/sorteios/novo-sorteio">
+        <a-button type="primary">Novo sorteio</a-button>
+      </router-link>
     </template>
   </a-page-header>
 
@@ -78,48 +80,6 @@
             </a-button>
           </router-link>
         </a-space>
-
-        <!-- <a-dropdown :trigger="['click']">
-          <a-button>
-            Mais Opções
-            <down-outlined />
-          </a-button>
-
-          <template #overlay>
-            <a-menu>
-              <a-menu-item key="0">
-                <router-link :to="`/admin/sorteios/${record.id}`">
-                  <form-outlined />
-                  Editar
-                </router-link>
-              </a-menu-item>
-
-              <a-menu-item key="1">
-                <router-link :to="`/admin/sorteios/${record.id}/gerenciar`">
-                  <setting-outlined />
-                  Gerenciar
-                </router-link>
-              </a-menu-item>
-
-              <a-menu-item key="3">
-                <router-link :to="`/admin/sorteios/${record.id}/pedidos`">
-                  <dollar-outlined />
-                  Pedidos
-                </router-link>
-              </a-menu-item>
-
-              <a-menu-item key="4">
-                <router-link
-                  :to="`/${record.seller.username}/${record.slug}`"
-                  target="_blank"
-                >
-                  <eye-outlined />
-                  Visualizar
-                </router-link>
-              </a-menu-item>
-            </a-menu>
-          </template>
-        </a-dropdown> -->
       </template>
     </template>
   </a-table>

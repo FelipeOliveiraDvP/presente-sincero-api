@@ -156,11 +156,10 @@ export default defineComponent({
 
         emit("finish", result.bank_account);
       } catch (error: unknown) {
-        const { message } = error as ErrorResponse;
-
-        notification.error({
-          message: message,
-        });
+        // const { message } = error as ErrorResponse;
+        // notification.error({
+        //   message: message,
+        // });
       } finally {
         loading.value = false;
       }

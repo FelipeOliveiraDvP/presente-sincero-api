@@ -27,8 +27,8 @@ import { useRoute, useRouter } from "vue-router";
 import { AuthResetRequest } from "@/types/Auth.types";
 import { reset, verify } from "@/services/auth";
 import { useAuthStore } from "@/store/auth";
-import { ErrorResponse } from "@/types/api.types";
 import { notification } from "ant-design-vue";
+import { getErrorMessage } from "@/utils/handleError";
 
 export default defineComponent({
   components: { Container, ResetForm },
@@ -51,10 +51,8 @@ export default defineComponent({
 
         signIn(result);
       } catch (error: unknown) {
-        const { message } = error as ErrorResponse;
-
         notification.error({
-          message,
+          message: getErrorMessage(error),
         });
       } finally {
         loading.value = false;
@@ -73,10 +71,8 @@ export default defineComponent({
 
         validateCode.isValid = true;
       } catch (error: unknown) {
-        const { message } = error as ErrorResponse;
-
         validateCode.isValid = false;
-        validateCode.message = message as string;
+        validateCode.message = getErrorMessage(error);
       } finally {
         loading.value = false;
       }

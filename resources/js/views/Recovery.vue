@@ -14,6 +14,7 @@ import RecoveryForm from "@/components/Auth/RecoveryForm.vue";
 import { forgot } from "@/services/auth";
 import { AuthRequest } from "@/types/Auth.types";
 import { ApiResponse, ErrorResponse } from "@/types/api.types";
+import { getErrorMessage } from "@/utils/handleError";
 
 export default defineComponent({
   components: { Container, RecoveryForm },
@@ -31,10 +32,8 @@ export default defineComponent({
           message: result.message,
         });
       } catch (error: unknown) {
-        const { message } = error as ErrorResponse;
-
         notification.error({
-          message,
+          message: getErrorMessage(error),
         });
       } finally {
         loading.value = false;
