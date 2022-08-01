@@ -281,12 +281,14 @@ class ContestController extends Controller
 
             $contest_created->bank_accounts()->sync($request->bank_accounts);
 
-            foreach ($request->sales as $sale) {
-                Sale::create([
-                    'contest_id'    => $contest_created->id,
-                    'quantity'      => $sale['quantity'],
-                    'price'         => $sale['price'],
-                ]);
+            if ($request->has('sales')) {
+                foreach ($request->sales as $sale) {
+                    Sale::create([
+                        'contest_id'    => $contest_created->id,
+                        'quantity'      => $sale['quantity'],
+                        'price'         => $sale['price'],
+                    ]);
+                }
             }
 
             foreach ($request->gallery as $image) {

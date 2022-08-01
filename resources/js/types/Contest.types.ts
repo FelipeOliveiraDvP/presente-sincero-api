@@ -1,3 +1,5 @@
+import { Dayjs } from "dayjs";
+
 export interface ListContestsQuery {
   title?: string;
   limit?: number;
@@ -24,7 +26,7 @@ export interface ContestItem {
 
 export interface ContestRequest {
   title: string;
-  start_date: string | Date;
+  start_date: string | Dayjs;
   max_reserve_days: number;
   price: number;
   quantity: number;

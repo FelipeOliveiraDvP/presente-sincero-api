@@ -1,12 +1,18 @@
 <template>
-  <a-form-item name="bank_accounts">
+  <a-form-item
+    name="bank_accounts"
+    :rules="{
+      required: true,
+      message: 'Selecione pelo menos uma conta para receber',
+    }"
+  >
     <a-alert
       v-if="options && options.length === 0"
       type="warning"
       message="Você ainda não cadastrou nenhuma conta"
     >
       <template #description>
-        <a-button type="primary" @click="toggleAccountModal"
+        <a-button type="primary" ghost @click="toggleAccountModal"
           >Clique aqui para criar uma nova conta</a-button
         >
       </template>

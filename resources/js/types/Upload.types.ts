@@ -1,8 +1,8 @@
 export interface UploadResponse {
   message: string;
-  image: {
+  images: Array<{
     id: number;
     title: string;
     path: string;
-  };
+  }>;
 }

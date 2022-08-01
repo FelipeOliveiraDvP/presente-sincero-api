@@ -32,7 +32,12 @@
   >
     <template #bodyCell="{ column, record }">
       <template v-if="column.key === 'image'">
-        <a-image :preview="false" :src="record.gallery[0].path" />
+        <a-image
+          :preview="false"
+          :src="
+            record.gallery[0] ? record.gallery[0].path : '/img/placeholder.jpg'
+          "
+        />
       </template>
 
       <template v-if="column.key === 'start_date'">

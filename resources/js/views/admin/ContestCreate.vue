@@ -42,6 +42,7 @@
             v-model:value="formState.start_date"
             style="width: 100%"
             format="DD/MM/YYYY"
+            :disabledDate="disabledDate"
           />
         </a-form-item>
       </a-col>
@@ -68,16 +69,25 @@
       </a-col>
 
       <a-col :xs="24" :md="8">
-        <a-form-item
-          label="Dias para a reserva"
-          name="max_reserve_days"
-          help="Quantidade de dias que o pagamento gerado vai ficar disponível. (Somente para o Mercado Pago)"
-        >
+        <a-form-item label="Dias para a reserva" name="max_reserve_days">
           <a-input
             v-model:value="formState.max_reserve_days"
             type="number"
             :min="1"
+            :max="30"
           />
+          <a-popover title="Dias para a reserva">
+            <template #content>
+              <p style="max-width: 300px">
+                Quantidade de dias que o pagamento gerado vai ficar disponível.
+                (Somente para o Mercado Pago)
+              </p>
+            </template>
+            <a-typography-text type="secondary">
+              <info-circle-outlined />
+              Precisa de ajuda?
+            </a-typography-text>
+          </a-popover>
         </a-form-item>
       </a-col>
 
@@ -85,12 +95,28 @@
         <a-form-item
           label="WhatsApp para contato"
           name="whatsapp_number"
-          help="Seu clientes vão entrar em contato com esse número para enviar comprovantes ou em caso de dúvida"
           :rules="[
             { required: true, message: 'Inform um WhatsApp para contato' },
+            { pattern: /^[0-9]{11}$/, message: 'Informe um número válido' },
           ]"
         >
           <a-input v-model:value="formState.whatsapp_number" />
+          <a-popover title="WhatsApp para contato">
+            <template #content>
+              <p style="max-width: 300px">
+                Seu clientes vão entrar em contato com esse número para enviar
+                comprovantes ou em caso de dúvida
+              </p>
+              <p>
+                <strong>Importante:</strong> Certifique-se de informar um número
+                correto
+              </p>
+            </template>
+            <a-typography-text type="secondary">
+              <info-circle-outlined />
+              Precisa de ajuda?
+            </a-typography-text>
+          </a-popover>
         </a-form-item>
       </a-col>
 
@@ -98,12 +124,24 @@
         <a-form-item
           label="Grupo do sorteio"
           name="whatsapp_group"
-          help="Após a confirmação do pagamento, seus clientes devem participar desse grupo para acompanhar o sorteio"
           :rules="[
             { required: true, message: 'Informe o grupo para o sorteio' },
+            { type: 'url', message: 'Informe uma URL válida' },
           ]"
         >
           <a-input v-model:value="formState.whatsapp_group" />
+          <a-popover title="Grupo do sorteio">
+            <template #content>
+              <p style="max-width: 300px">
+                Após a confirmação do pagamento, seus clientes devem participar
+                desse grupo para acompanhar o sorteio
+              </p>
+            </template>
+            <a-typography-text type="secondary">
+              <info-circle-outlined />
+              Precisa de ajuda?
+            </a-typography-text>
+          </a-popover>
         </a-form-item>
       </a-col>
     </a-row>
@@ -169,55 +207,109 @@
       :formState="formState"
       @select="handleSelectAccount"
     />
+
     <!-- Galeria -->
+    <a-typography-title :level="3">Galeria de imagens</a-typography-title>
+
+    <a-typography-text type="secondary"
+      >Escolha as melhores fotos que representam o seu
+      sorteio</a-typography-text
+    ><br />
+
+    <a-typography
+      ><strong>Como funciona?: </strong> Selecione todas as fotos que deseja
+      adicionar ao sorteio. </a-typography
+    ><br />
+
+    <contest-gallery-form @change="handleChangeImages" />
 
     <a-form-item>
-      <a-button type="primary" html-type="submit">Cadastrar sorteio</a-button>
+      <a-button type="primary" html-type="submit" :loading="loading"
+        >Cadastrar sorteio</a-button
+      >
     </a-form-item>
   </a-form>
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, ref, watch } from "@vue/runtime-core";
-import { FormInstance } from "ant-design-vue";
+import {
+  defineComponent,
+  reactive,
+  ref,
+  toRaw,
+  watch,
+} from "@vue/runtime-core";
+import { FormInstance, notification } from "ant-design-vue";
 import type { Rule } from "ant-design-vue/lib/form";
-import { DeleteOutlined, PlusOutlined } from "@ant-design/icons-vue";
+import {
+  DeleteOutlined,
+  PlusOutlined,
+  InfoCircleOutlined,
+} from "@ant-design/icons-vue";
 
 import InputMoney from "@/components/_commons/InputMoney.vue";
 import { ContestRequest, ContestSale } from "@/types/Contest.types";
 import ContestBankAccountForm from "@/components/Contests/Admin/BankAccountsForm.vue";
+import ContestGalleryForm from "@/components/Contests/Admin/GalleryForm.vue";
+import * as dayjs from "dayjs";
+import { createContest } from "@/services/contests";
+import { useRouter } from "vue-router";
+import { getErrorMessage } from "@/utils/handleError";
 
 export default defineComponent({
   components: {
     InputMoney,
     ContestBankAccountForm,
+    ContestGalleryForm,
+    InfoCircleOutlined,
     DeleteOutlined,
     PlusOutlined,
   },
   name: "AdminContestCreate",
   setup() {
+    const router = useRouter();
     const formRef = ref<FormInstance>();
+    const loading = ref<boolean>(false);
+    const gallery = ref<string[]>([]);
     const formState = reactive<ContestRequest>({
-      title: "teste",
-      short_description: "teste",
-      start_date: "",
+      title: "",
+      short_description: "",
+      start_date: dayjs(),
       price: 0.1,
       quantity: 100,
       max_reserve_days: 1,
-      whatsapp_number: "11964513763",
-      whatsapp_group: "https://antdv.com/components/select#API",
+      whatsapp_number: "",
+      whatsapp_group: "",
       sales: [] as ContestSale[],
       bank_accounts: [],
       gallery: [],
     });
 
     async function handleSubmit(values: ContestRequest) {
-      console.log({
-        ...values,
-        bank_accounts: Object.entries(values.bank_accounts).map(
-          (value) => value[1] as number
-        ),
-      });
+      try {
+        loading.value = true;
+        const obj: ContestRequest = {
+          ...values,
+          bank_accounts: Object.entries(values.bank_accounts).map(
+            (value) => value[1] as number
+          ),
+          gallery: toRaw(gallery.value),
+          start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
+        };
+
+        const result = await createContest(obj);
+
+        notification.success({
+          message: result.message,
+        });
+        router.push("/admin/sorteios");
+      } catch (error) {
+        notification.error({
+          message: getErrorMessage(error),
+        });
+      } finally {
+        loading.value = false;
+      }
     }
 
     function addSale() {
@@ -254,6 +346,15 @@ export default defineComponent({
       formState.bank_accounts = [...values];
     }
 
+    function handleChangeImages(images: string[]) {
+      gallery.value = images;
+    }
+
+    function disabledDate(current: dayjs.Dayjs) {
+      // Can not select days before today and today
+      return current && current < dayjs().endOf("day");
+    }
+
     watch(formState, (newVal) => {
       formState.quantity = parseInt(String(newVal.quantity), 10);
       formState.max_reserve_days = parseInt(
@@ -265,11 +366,14 @@ export default defineComponent({
     return {
       formRef,
       formState,
-      moneyValidator,
+      loading,
       handleSubmit,
+      handleSelectAccount,
+      handleChangeImages,
+      moneyValidator,
       addSale,
       removeSale,
-      handleSelectAccount,
+      disabledDate,
     };
   },
 });

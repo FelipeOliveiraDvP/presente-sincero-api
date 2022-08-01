@@ -22,8 +22,8 @@
         :rules="[{ required: true, message: 'Selecione o tipo da conta' }]"
       >
         <a-select v-model:value="formState.type" placeholder="Tipo da conta">
-          <a-select-option value="BANK">Conta bancária</a-select-option>
           <a-select-option value="PIX">PIX</a-select-option>
+          <a-select-option value="BANK">Conta bancária</a-select-option>
         </a-select>
       </a-form-item>
 
@@ -86,7 +86,6 @@
 <script lang="ts">
 import {
   defineComponent,
-  onMounted,
   PropType,
   reactive,
   ref,
@@ -100,7 +99,6 @@ import {
 } from "@/types/BankAccount.types";
 import { FormInstance, notification } from "ant-design-vue";
 import { createBankAccount, editBankAccount } from "@/services/bankAccounts";
-import { ErrorResponse } from "@/types/api.types";
 import { getErrorMessage } from "@/utils/handleError";
 
 export default defineComponent({
@@ -122,7 +120,7 @@ export default defineComponent({
     const formRef = ref<FormInstance>();
 
     const formState = reactive<BankAccountRequest>({
-      type: "BANK",
+      type: "PIX",
       name: "",
       main: false,
       cc: "",
@@ -176,7 +174,7 @@ export default defineComponent({
     });
 
     watch(account, (newVal) => {
-      formState.type = newVal?.type || "BANK";
+      formState.type = newVal?.type || "PIX";
       formState.name = newVal?.name || "";
       formState.main = newVal?.main || false;
       formState.cc = newVal?.cc || "";
