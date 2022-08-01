@@ -96,7 +96,7 @@ trait WhatsApp
    */
   protected function sendRecoveryMessage(User $user, string $code)
   {
-    $verify_link = env('APP_URL') . "/verificar-codigo";
+    $verify_link = env('APP_URL') . "/nova-senha/{$code}";
 
     $message = "Olá *{$user->name}*, tudo bem?\n\n";
     $message .= "Utilize o código abaixo para recuperar sua senha no *Presente Sincero*.\n\n";

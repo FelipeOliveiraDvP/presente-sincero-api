@@ -60,7 +60,7 @@ Route::controller(ContestController::class)->group(function () {
             });
         });
         /**
-         * Route: /contests/{username}
+         * Route: /contests
          */
         Route::get('/', 'index');
         Route::get('/{username}', 'getContestsByUsername');
@@ -75,14 +75,18 @@ Route::controller(NumberController::class)->group(function () {
      */
     Route::prefix('numbers')->group(function () {
         Route::middleware(['auth.token'])->group(function () {
-            Route::get('/{contest_id}', 'index');
+            Route::get('/{contest_id}/customer/{customer_id}', 'index');
             Route::post('/{contest_id}/free', 'free');
             Route::post('/{contest_id}/reserve', 'reserve');
-
+            /**
+             * Route: /numbers/manage
+             */
             Route::middleware(['auth.blocked', 'auth.seller', 'seller.approved'])->group(function () {
-                Route::post('/{contest_id}/manage/paid', 'adminPaidNumbers');
-                Route::post('/{contest_id}/manage/free', 'adminFreeNumbers');
-                Route::delete('/{contest_id}/manage/cancel-order', 'adminCancelOrder');
+                Route::prefix('manage')->group(function () {
+                    Route::post('/{contest_id}/paid', 'adminPaidNumbers');
+                    Route::post('/{contest_id}/free', 'adminFreeNumbers');
+                    Route::delete('/{contest_id}/cancel-order/{order_id}', 'adminCancelOrder');
+                });
             });
         });
 

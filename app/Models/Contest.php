@@ -44,7 +44,6 @@ class Contest extends Model
         'price',
         'quantity',
         'short_description',
-        'full_description',
         'whatsapp_number',
         'whatsapp_group',
         'numbers',
@@ -64,10 +63,10 @@ class Contest extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'price' => 'double',
-        'paid_percentage' => 'double',
-        'custom_percentage' => 'double',
-        'show_percentage' => 'boolean',
+        'price'                 => 'double',
+        'paid_percentage'       => 'double',
+        'custom_percentage'     => 'double',
+        'show_percentage'       => 'boolean',
         'use_custom_percentage' => 'boolean',
     ];
 
@@ -76,15 +75,18 @@ class Contest extends Model
         return $this->belongsToMany(BankAccount::class, 'contest_bank', 'contest_id', 'bank_id');
     }
 
-
     public function gallery()
     {
         return $this->hasMany(Gallery::class, 'contest_id', 'id');
     }
 
-
     public function sales()
     {
         return $this->hasMany(Sale::class, 'contest_id', 'id');
+    }
+
+    public function seller()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 }

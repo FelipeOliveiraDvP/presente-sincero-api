@@ -1,0 +1,22 @@
+export interface ApiResponse {
+  message: string;
+}
+
+export interface ErrorResponse extends ApiResponse {
+  errors?: Record<string, Array<string>>;
+}
+
+export interface BaseQuery {
+  page?: number;
+  search?: string;
+}
+
+export interface PaginatedResponse<T> {
+  current_page?: number;
+  from?: number;
+  to?: number;
+  last_page?: number;
+  per_page?: number;
+  total?: number;
+  data?: Array<T>;
+}

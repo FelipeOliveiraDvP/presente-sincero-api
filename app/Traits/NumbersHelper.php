@@ -46,10 +46,6 @@ trait NumbersHelper
   }
 
   /**
-   * Converts the 
-   */
-
-  /**
    * Set the contest numbers as FREE.
    * 
    * @param int $contest_id
@@ -60,9 +56,11 @@ trait NumbersHelper
    */
   protected function setContestNumbersAsFree(int $contest_id, array $numbers, User $customer)
   {
-    $contest = Contest::find($contest_id);
+    // $contest = Contest::find($contest_id);
     $contest_numbers = $this->getContestNumbers($contest_id);
     $updated_numbers = [];
+    $free_count = 0;
+    $max_free_numbers = count($numbers);
 
     foreach ($contest_numbers as $number) {
       $number_exists = in_array($number->number, $numbers);
@@ -81,9 +79,15 @@ trait NumbersHelper
         $number->customer->id = null;
         $number->customer->name = null;
         $number->customer->whatsapp = null;
+
+        $free_count++;
       }
 
       $updated_numbers[] = json_encode($number);
+
+      if ($free_count == $max_free_numbers) {
+        break;
+      }
     }
 
     return json_encode($updated_numbers);
@@ -93,22 +97,30 @@ trait NumbersHelper
    * Set the contest numbers as RESERVED.
    * 
    * @param int $contest_id
-   * @param array $numbers   
+   * @param array $numbers      
    * @param Order $order
    * @param User $customer
+   * @param int $random
    * 
    * @return string|boolean
    */
-  protected function setContestNumbersAsReserved(int $contest_id, array $numbers, Order $order, User $customer)
+  protected function setContestNumbersAsReserved(int $contest_id, array $numbers = [], Order $order, User $customer, int $random = 0)
   {
     $contest_numbers = $this->getContestNumbers($contest_id);
     $updated_numbers = [];
+    $reserve_count = 0;
+    $max_reserve_numbers = $random > 0 ? $random : count($numbers);
+
+    if ($random > 0) {
+      shuffle($contest_numbers);
+    }
 
     foreach ($contest_numbers as $number) {
+      $is_random = $random > 0;
       $number_exists = in_array($number->number, $numbers);
       $is_free = $number->status == NumberStatus::FREE;
 
-      $can_reserve_number = $number_exists && $is_free;
+      $can_reserve_number = !$is_random ? $number_exists && $is_free : $is_free;
 
       if ($can_reserve_number) {
         $number->status = NumberStatus::RESERVED;
@@ -117,9 +129,15 @@ trait NumbersHelper
         $number->customer->id = $customer->id;
         $number->customer->name = $customer->name;
         $number->customer->whatsapp = $customer->whatsapp;
+
+        $reserve_count++;
       }
 
       $updated_numbers[] = json_encode($number);
+
+      if ($reserve_count == $max_reserve_numbers) {
+        break;
+      }
     }
 
     return json_encode($updated_numbers);
@@ -138,6 +156,8 @@ trait NumbersHelper
   {
     $contest_numbers = $this->getContestNumbers($contest_id);
     $updated_numbers = [];
+    $paid_numbers = 0;
+    $max_paid_numbers = count($numbers);
 
     foreach ($contest_numbers as $number) {
       $number_exists = in_array($number->number, $numbers);
@@ -153,9 +173,15 @@ trait NumbersHelper
         $number->customer->id = $customer->id;
         $number->customer->name = $customer->name;
         $number->customer->whatsapp = $customer->whatsapp;
+
+        $paid_numbers++;
       }
 
       $updated_numbers[] = json_encode($number);
+
+      if ($paid_numbers == $max_paid_numbers) {
+        break;
+      }
     }
 
     return json_encode($updated_numbers);

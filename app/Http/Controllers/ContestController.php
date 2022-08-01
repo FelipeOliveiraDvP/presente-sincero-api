@@ -14,6 +14,7 @@ use App\Traits\NumbersHelper;
 use App\Traits\WhatsApp;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -33,12 +34,14 @@ class ContestController extends Controller
         $title = $request->query('title');
         $limit = $request->query('limit') ?? 12;
 
-        $contests = Contest::with('gallery')
+        $contests = Contest::with('seller:id,name,username')
+            ->with('gallery')
             ->where('title', 'LIKE', "%{$title}%")
             ->orderBy('created_at', 'desc')
             ->paginate($limit, [
                 'id',
                 'title',
+                'user_id',
                 'slug',
                 'short_description',
                 'start_date',
@@ -69,13 +72,15 @@ class ContestController extends Controller
             ], 404);
         }
 
-        $contests = Contest::with('gallery')
+        $contests = Contest::with('seller:id,name,username')
+            ->with('gallery')
             ->where('title', 'LIKE', "%{$title}%")
             ->where('user_id', '=', $user->id)
             ->orderBy('created_at', 'desc')
             ->paginate($limit, [
                 'id',
                 'title',
+                'user_id',
                 'slug',
                 'short_description',
                 'start_date',
@@ -105,7 +110,26 @@ class ContestController extends Controller
             ], 404);
         }
 
-        $contest = Contest::where('slug', '=', $slug)->first();
+        // TODO: Utilizar o mesmo método de detalhes
+        // $contest = Contest::where('slug', '=', $slug)->first();
+
+        // if (empty($contest)) {
+        //     return response()->json([
+        //         'message' => 'O sorteio informado não existe!'
+        //     ], 404);
+        // }
+
+        // return $this->details($contest->id);
+
+        $contest = Contest::with('seller:id,name,username')
+            ->with('gallery')
+            ->with('bank_accounts:id,name,main')
+            ->with('sales')
+            ->where('slug', '=', $slug)
+            ->first()
+            ->makeHiddenIf(function ($value) {
+                return $value->quantity >= 10000;
+            }, ['numbers']);
 
         if (empty($contest)) {
             return response()->json([
@@ -113,7 +137,7 @@ class ContestController extends Controller
             ], 404);
         }
 
-        return $this->details($contest->id);
+        return response()->json($contest);
     }
 
     /**
@@ -125,23 +149,9 @@ class ContestController extends Controller
      */
     public function getContestsByUser(Request $request)
     {
-        $title = $request->query('title');
-        $limit = $request->query('limit') ?? 10;
+        $user = $request->user('sanctum');
 
-        $contests = Contest::where('title', 'LIKE', "%{$title}%")
-            ->where('user_id', '=', $request->user->id)
-            ->orderBy('created_at', 'desc')
-            ->paginate($limit, [
-                'id',
-                'title',
-                'slug',
-                'short_description',
-                'start_date',
-                'price',
-                'quantity'
-            ]);
-
-        return response()->json($contests);
+        return $this->getContestsByUsername($user->username, $request);
     }
 
     /**
@@ -164,7 +174,7 @@ class ContestController extends Controller
             ], 404);
         }
 
-        $orders = Order::with('user')
+        $orders = Order::with('user:id,name,whatsapp')
             ->with('contest:id,title,price')
             ->where('contest_id', '=', $id)
             ->where('status', '=', OrderStatus::PENDING)
@@ -199,10 +209,14 @@ class ContestController extends Controller
      */
     public function details(int $id)
     {
-        $contest = Contest::with('gallery')
-            ->with('bank_accounts')
+        $contest = Contest::with('seller:id,name,username')
+            ->with('gallery')
+            ->with('bank_accounts:id,name,main')
             ->with('sales')
-            ->find($id);
+            ->find($id)
+            ->makeHiddenIf(function ($value) {
+                return $value->quantity >= 10000;
+            }, ['numbers']);
 
         if (empty($contest) || $contest->user_id != auth('sanctum')->id()) {
             return response()->json([
@@ -224,13 +238,12 @@ class ContestController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title'             => 'required|unique:contests,title',
-            'start_date'        => 'required|date|after:now',
+            'start_date'        => 'required|date',
             'contest_date'      => 'nullable|date|after:now',
             'max_reserve_days'  => 'gte:1|lte:30',
             'price'             => 'required|gte:0.1',
             'quantity'          => 'required|gte:1',
             'short_description' => 'required|string',
-            'full_description'  => 'required|string',
             'whatsapp_number'   => 'required|string',
             'whatsapp_group'    => 'url',
             'sales.*.quantity'  => 'required|gte:1',
@@ -258,35 +271,38 @@ class ContestController extends Controller
             'price'             => $request->price,
             'quantity'          => $request->quantity,
             'short_description' => $request->short_description,
-            'full_description'  => $request->full_description,
             'whatsapp_number'   => $request->whatsapp_number,
             'whatsapp_group'    => $request->whatsapp_group,
             'numbers'           => $numbers
         ];
 
-        $contest_created = Contest::create($contest);
+        Cache::lock("create-contest-{$contest['slug']}")->get(function () use ($contest, $request) {
+            $contest_created = Contest::create($contest);
 
-        $contest_created->bank_accounts()->sync($request->bank_accounts);
+            $contest_created->bank_accounts()->sync($request->bank_accounts);
 
-        foreach ($request->sales as $sale) {
-            Sale::create([
-                'contest_id'    => $contest_created->id,
-                'quantity'      => $sale['quantity'],
-                'price'         => $sale['price'],
-            ]);
-        }
-
-        foreach ($request->gallery as $image) {
-            if (!is_null($image)) {
-                Gallery::create([
-                    'contest_id' => $contest_created->id,
-                    'path' => $image,
-                ]);
+            if ($request->has('sales')) {
+                foreach ($request->sales as $sale) {
+                    Sale::create([
+                        'contest_id'    => $contest_created->id,
+                        'quantity'      => $sale['quantity'],
+                        'price'         => $sale['price'],
+                    ]);
+                }
             }
-        }
+
+            foreach ($request->gallery as $image) {
+                if (!is_null($image)) {
+                    Gallery::create([
+                        'contest_id' => $contest_created->id,
+                        'path' => $image,
+                    ]);
+                }
+            }
+        });
 
         return response()->json([
-            'contest' => $contest_created
+            'message' => 'Sorteio criado com sucesso!'
         ], 201);
     }
 
@@ -313,7 +329,6 @@ class ContestController extends Controller
             'max_reserve_days'  => 'gte:1|lte:30',
             'price'             => 'gte:0.1',
             'short_description' => 'string',
-            'full_description'  => 'string',
             'whatsapp_number'   => 'string',
             'whatsapp_group'    => 'url',
             'sales.*.quantity'  => 'gte:1',
@@ -330,16 +345,15 @@ class ContestController extends Controller
         }
 
         $update = [
-            'title' => $request->title ?? $contest->title,
-            'contest_date' => $request->contest_date ?? $contest->contest_date,
-            'max_reserve_days' => $request->max_reserve_days ?? $contest->max_reserve_days,
-            'show_percentage' => $request->show_percentage ?? $contest->show_percentage,
+            'title'                 => $request->title ?? $contest->title,
+            'contest_date'          => $request->contest_date ?? $contest->contest_date,
+            'max_reserve_days'      => $request->max_reserve_days ?? $contest->max_reserve_days,
+            'show_percentage'       => $request->show_percentage ?? $contest->show_percentage,
             'use_custom_percentage' => $request->use_custom_percentage ?? $contest->use_custom_percentage,
-            'custom_percentage' => $request->custom_percentage ?? $contest->custom_percentage,
-            'short_description' => $request->short_description ?? $contest->short_description,
-            'full_description' => $request->full_description ?? $contest->full_description,
-            'whatsapp_number' => $request->whatsapp_number ?? $contest->whatsapp_number,
-            'whatsapp_group' => $request->whatsapp_group ?? $contest->whatsapp_group,
+            'custom_percentage'     => $request->custom_percentage ?? $contest->custom_percentage,
+            'short_description'     => $request->short_description ?? $contest->short_description,
+            'whatsapp_number'       => $request->whatsapp_number ?? $contest->whatsapp_number,
+            'whatsapp_group'        => $request->whatsapp_group ?? $contest->whatsapp_group,
         ];
 
         $can_change_price = count($this->getContestNumbersByStatus($id, NumberStatus::PAID)) <= 0;

@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div>Form de detalhes do sorteio</div>
+  <!-- <div>
     <h3>Detalhes do sorteio</h3>
 
     <b-form-group label="Título" label-for="title">
@@ -108,7 +109,7 @@
         </b-form-group>
       </b-col>
     </b-row>
-  </div>
+  </div> -->
 </template>
 
 <script>

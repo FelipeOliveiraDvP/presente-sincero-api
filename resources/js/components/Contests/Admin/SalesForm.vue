@@ -1,5 +1,6 @@
 <template>
-  <div class="mt-2">
+  <div>Form de promoções</div>
+  <!-- <div class="mt-2">
     <h3>Promoções</h3>
 
     <b-row v-for="(sale, index) in contest.sales" :key="`sale-${index}`">
@@ -32,7 +33,7 @@
     <b-button variant="primary" class="my-4" @click="addSale"
       >Nova promoção</b-button
     >
-  </div>
+  </div> -->
 </template>
 
 <script>

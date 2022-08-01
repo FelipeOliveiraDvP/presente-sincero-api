@@ -11,32 +11,36 @@ class UploadController extends Controller
     public function uploadImage(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'image' => 'required|mimes:jpeg,png,jpg|max:4096'
+            'image'   => 'required',
+            'image.*' => 'mimes:jpeg,png,jpg|max:4096'
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Erro ao salvar a imagem!',
+                'message' => 'Erro ao salvar a imagens!',
                 'errors' => $validator->errors()
             ], 400);
         }
 
-        $upload_folder = 'img';
-        $image = $request->file('image');
-        $upload_path = $image->store($upload_folder);
+        $created_images = [];
+        foreach ($request->file('image') as $image) {
+            $upload_folder = 'img';
+            $upload_path = $image->store($upload_folder);
 
-        $image->move(public_path() . '/uploads', $upload_path);
+            $image->move(public_path() . '/uploads', $upload_path);
 
-        $uploaded_image = [
-            'title' => basename($upload_path),
-            'path' => "/uploads/" . basename($upload_path),
-        ];
+            $uploaded_image = [
+                'title' => basename($upload_path),
+                'path' => "/uploads/" . basename($upload_path),
+            ];
 
-        $created_image = Image::create($uploaded_image);
+            $created_image = Image::create($uploaded_image);
+            $created_images[] = $created_image;
+        }
 
         return response()->json([
-            'message' => 'Imagem carregada com sucesso!',
-            'image'    => $created_image
+            'message' => 'Imagens carregadas com sucesso!',
+            'images'    => $created_images
         ], 201);
     }
 }
