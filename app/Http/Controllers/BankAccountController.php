@@ -99,10 +99,10 @@ class BankAccountController extends Controller
         $validator = Validator::make($request->all(), [
             'type'   => ['required', Rule::in([BankTypes::PIX, BankTypes::BANK])],
             "name"   => 'required|string',
-            "cc"     => 'sometimes|required_unless:type,PIX|unique:bank_accounts,cc',
+            "cc"     => 'sometimes|required_unless:type,PIX|unique:bank_accounts,cc,' . $id,
             "agency" => 'required_unless:type,PIX',
             "dv"     => 'required_unless:type,PIX',
-            "key"    => 'sometimes|required_unless:type,BANK|unique:bank_accounts,key',
+            "key"    => 'required_unless:type,BANK|unique:bank_accounts,key,' . $id,
             "main"   => 'boolean'
         ]);
 
@@ -150,6 +150,12 @@ class BankAccountController extends Controller
             return response()->json([
                 'message' => 'A conta informada não existe',
             ], 404);
+        }
+
+        if ($bank_account->main == 1) {
+            $first_account = BankAccount::where('user_id', auth('sanctum')->id())->where('main', 0)->first();
+
+            if (!empty($first_account)) $first_account->update(['main' => 1]);
         }
 
         $bank_account->delete();

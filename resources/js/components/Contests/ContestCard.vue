@@ -1,37 +1,58 @@
 <template>
-  <b-card no-body class="contest-card overflow-hidden mb-3">
-    <b-row no-gutters>
-      <b-col md="6">
-        <b-card-img :src="thumbnail" :alt="contest.title" />
-      </b-col>
-      <b-col md="6">
-        <b-card-body :title="contest.title">
-          <b-card-text>
-            {{ contest.short_description }}
-          </b-card-text>
-          <router-link :to="`sorteios/${contest.slug}`">
-            <b-button variant="primary">PARTICIPAR</b-button>
-          </router-link>
-        </b-card-body>
-      </b-col>
-    </b-row>
-  </b-card>
+  <a-card hoverable style="min-height: 400px">
+    <template #cover>
+      <img :alt="contest.title" :src="thumbnail" />
+    </template>
+    <template #actions>
+      <router-link :to="contestLink">
+        <a-button type="primary"> Compre agora por {{ price }} </a-button>
+      </router-link>
+    </template>
+    <a-card-meta
+      :title="contest.title"
+      :description="contest.short_description"
+    />
+  </a-card>
 </template>
 
 <script>
-export default {
+import { computed, defineComponent, toRefs } from "vue";
+import { useRoute } from "vue-router";
+
+import { moneyFormat } from "@/utils/moneyFormat";
+
+export default defineComponent({
+  name: "ContestCard",
   props: {
     contest: Object,
   },
-  name: "ContestCard",
-  computed: {
-    thumbnail() {
-      const { gallery } = this.contest;
+  setup(props) {
+    const route = useRoute();
+    const { contest } = toRefs(props);
+
+    const price = computed(() => moneyFormat(contest.value.price));
+
+    const thumbnail = computed(() => {
+      const { gallery } = contest.value;
 
       return gallery[0].path;
-    },
+    });
+
+    const contestLink = computed(() => {
+      const { username } = route.params;
+      const { seller, slug } = contest.value;
+
+      return `/${username || seller.username}/${slug}`;
+    });
+
+    return {
+      contest,
+      price,
+      thumbnail,
+      contestLink,
+    };
   },
-};
+});
 </script>
 
 <style>

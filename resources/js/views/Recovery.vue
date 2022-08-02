@@ -1,107 +1,51 @@
 <template>
-  <b-container class="page my-4">
-    <div
-      class="p-4 my-4 d-flex justify-content-center align-items-center h-100"
-    >
-      <div class="p-3 border rounded" style="width: 400px">
-        <h3>Recuperação de senha</h3>
-        <p class="text-muted">
-          Informe seu WhatsApp ou e-mail para recuperar sua senha
-        </p>
-        <b-form @submit.stop.prevent="onSubmit">
-          <b-form-group label="WhatsApp ou E-mail" label-for="user">
-            <b-form-input
-              id="user"
-              name="user"
-              v-model="$v.form.user.$model"
-              :state="validateState('user')"
-            ></b-form-input>
-
-            <b-form-invalid-feedback v-if="!$v.form.user.required"
-              >Campo obrigatório</b-form-invalid-feedback
-            >
-          </b-form-group>
-
-          <div>
-            <b-button
-              type="submit"
-              block
-              variant="primary"
-              class="w-100 mt-4"
-              :disabled="loading"
-              >Recuperar senha</b-button
-            >
-          </div>
-
-          <div class="my-2 d-flex justify-content-between">
-            <router-link to="/login"> Ir para o login </router-link>
-          </div>
-        </b-form>
-      </div>
-    </div>
-  </b-container>
+  <container :center="true">
+    <recovery-form :loading="loading" @onFinish="handleFinish" />
+  </container>
 </template>
 
-<script>
-import { validationMixin } from "vuelidate";
-import { required } from "vuelidate/lib/validators";
+<script lang="ts">
+import { defineComponent, ref } from "@vue/runtime-core";
+import { notification } from "ant-design-vue";
 
-import { forgot } from "../services/auth";
+import Container from "@/components/_commons/Container.vue";
+import RecoveryForm from "@/components/Auth/RecoveryForm.vue";
 
-export default {
+import { forgot } from "@/services/auth";
+import { AuthRequest } from "@/types/Auth.types";
+import { ApiResponse, ErrorResponse } from "@/types/api.types";
+import { getErrorMessage } from "@/utils/handleError";
+
+export default defineComponent({
+  components: { Container, RecoveryForm },
   name: "Recovery",
-  mixins: [validationMixin],
-  data() {
-    return {
-      loading: false,
-      form: {
-        user: "",
-      },
-    };
-  },
-  validations: {
-    form: {
-      user: { required },
-    },
-  },
-  methods: {
-    validateState(user) {
-      const { $dirty, $error } = this.$v.form[user];
+  setup() {
+    const loading = ref<boolean>(false);
 
-      return $dirty ? !$error : null;
-    },
-    async onSubmit() {
+    async function handleFinish(values: AuthRequest) {
       try {
-        this.loading = true;
-        this.$v.form.$touch();
+        loading.value = true;
 
-        if (this.$v.form.$anyError) {
-          return;
-        }
+        const result: ApiResponse = await forgot(values);
 
-        const result = await forgot(this.form);
-
-        this.$toasted.show(result.message, {
-          type: "success",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
+        notification.success({
+          message: result.message,
         });
-
-        this.$router.push({ name: "verify" });
-      } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
+      } catch (error: unknown) {
+        notification.error({
+          message: getErrorMessage(error),
         });
       } finally {
-        this.loading = false;
+        loading.value = false;
       }
-    },
+    }
+
+    return {
+      loading,
+      handleFinish,
+    };
   },
-};
+});
 </script>
 
 <style>

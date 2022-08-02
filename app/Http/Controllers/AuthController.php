@@ -284,7 +284,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Ok',
-            'user' => $user->makeHidden(['mp_access_token', 'blocked', 'seller_approved'])->toArray()
+            'user' => $user
         ], 200);
     }
 

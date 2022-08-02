@@ -1,421 +1,397 @@
 <template>
-  <b-container fluid>
-    <div class="p-1">
-      <h2>Novo sorteio</h2>
+  <a-page-header title="Novo sorteio" />
 
-      <b-form @submit.stop.prevent="onSubmit">
-        <b-form-group label="Título" label-for="title">
-          <b-form-input
-            id="title"
-            name="title"
-            v-model="$v.contest.title.$model"
-            :state="validateState('title')"
-          ></b-form-input>
-
-          <b-form-invalid-feedback v-if="!$v.contest.title.required"
-            >Campo obrigatório</b-form-invalid-feedback
-          >
-        </b-form-group>
-
-        <b-row>
-          <b-col md="6">
-            <b-form-group label="Data de início" label-for="start_date">
-              <b-form-datepicker
-                id="start_date"
-                name="start_date"
-                v-model="$v.contest.start_date.$model"
-                placeholder="Selecione uma data"
-                :state="validateState('start_date')"
-                :min="minStartDate"
-              ></b-form-datepicker>
-
-              <b-form-invalid-feedback v-if="!$v.contest.start_date.required"
-                >Campo obrigatório</b-form-invalid-feedback
-              >
-            </b-form-group>
-          </b-col>
-          <b-col md="6">
-            <b-form-group label="Data do sorteio" label-for="contest_date">
-              <b-form-datepicker
-                id="contest_date"
-                name="contest_date"
-                v-model="contest.contest_date"
-                placeholder="Selecione uma data"
-              ></b-form-datepicker>
-            </b-form-group>
-          </b-col>
-        </b-row>
-
-        <b-row>
-          <b-col md="4">
-            <b-form-group label="Valor do número R$" label-for="price">
-              <the-mask
-                :mask="['#,##', '##,##', '###,##', '#.###,##']"
-                class="form-control"
-                id="price"
-                name="price"
-                v-model="$v.contest.price.$model"
-                :state="validateState('price')"
-              ></the-mask>
-
-              <b-form-invalid-feedback v-if="!$v.contest.price.required"
-                >Campo obrigatório</b-form-invalid-feedback
-              >
-              <b-form-invalid-feedback v-if="!$v.contest.price.minValue"
-                >Valor mínimo deve ser R$ 0,50</b-form-invalid-feedback
-              >
-            </b-form-group>
-          </b-col>
-          <b-col md="4">
-            <b-form-group label="Quantidade de números" label-for="quantity">
-              <b-form-input
-                id="quantity"
-                name="quantity"
-                type="number"
-                v-model="$v.contest.quantity.$model"
-                :state="validateState('quantity')"
-              ></b-form-input>
-
-              <b-form-invalid-feedback v-if="!$v.contest.quantity.required"
-                >Campo obrigatório</b-form-invalid-feedback
-              >
-              <b-form-invalid-feedback v-if="!$v.contest.quantity.minValue"
-                >Deve ter pelo menos 1 número</b-form-invalid-feedback
-              >
-            </b-form-group>
-          </b-col>
-          <b-col md="4">
-            <b-form-group
-              label="Dias para pagamento"
-              description="Quantidade de dias após a reserva em que o pagamento ficará disponível"
-              label-for="max_reserve_days"
-            >
-              <b-form-input
-                id="max_reserve_days"
-                name="max_reserve_days"
-                type="number"
-                v-model="$v.contest.max_reserve_days.$model"
-                :state="validateState('max_reserve_days')"
-              ></b-form-input>
-
-              <b-form-invalid-feedback
-                v-if="!$v.contest.max_reserve_days.required"
-                >Campo obrigatório</b-form-invalid-feedback
-              >
-              <b-form-invalid-feedback
-                v-if="!$v.contest.max_reserve_days.minValue"
-                >Deve ter pelo menos 1 dia</b-form-invalid-feedback
-              >
-            </b-form-group>
-          </b-col>
-        </b-row>
-
-        <contest-sales-form
-          :contest="contest"
-          :addSale="handleAddSale"
-          :removeSale="handleRemoveSale"
-        />
-
-        <b-form-group label="Descrição breve" label-for="short_description">
-          <b-form-input
-            id="short_description"
-            name="short_description"
-            v-model="$v.contest.short_description.$model"
-            :state="validateState('short_description')"
-          ></b-form-input>
-
-          <b-form-invalid-feedback v-if="!$v.contest.short_description.required"
-            >Campo obrigatório</b-form-invalid-feedback
-          >
-        </b-form-group>
-
-        <b-form-group label="Descrição completa" label-for="full_description">
-          <wysiwyg
-            id="full_description"
-            v-model="$v.contest.full_description.$model"
-          />
-
-          <b-form-invalid-feedback v-if="!$v.contest.full_description.required"
-            >Campo obrigatório</b-form-invalid-feedback
-          >
-        </b-form-group>
-
-        <!-- <h3>Contas bancárias</h3>
-        <b-form-group
-          label="Contas disponíveis"
-          description="Selecione as contas para receber o pagamento dos números"
-          label-for="full_description"
+  <a-form
+    ref="formRef"
+    layout="vertical"
+    :model="formState"
+    @finish="handleSubmit"
+  >
+    <a-row :gutter="[16, 16]">
+      <a-col :span="24">
+        <a-form-item
+          label="Título"
+          name="title"
+          :rules="[{ required: true, message: 'Campo obrigatório!' }]"
         >
-          <b-form-checkbox-group
-            v-if="bank_accounts.length > 0"
-            class="d-block w-100"
-            v-model="contest.bank_accounts"
-            :options="
-              bank_accounts.map((acc) => ({ value: acc.id, text: acc.name }))
-            "
-          ></b-form-checkbox-group>
-          <div v-else>
-            <b-alert show variant="warning">
-              Não existem contas cadastradas.
-              <hr />
-              <router-link class="alert-link" to="/admin/contas">
-                Cadastrar contas
-              </router-link>
-            </b-alert>
-          </div>
-        </b-form-group> -->
+          <a-input v-model:value="formState.title" />
+        </a-form-item>
+      </a-col>
 
-        <b-row>
-          <b-col md="6">
-            <b-form-group
-              label="WhatsApp para contato"
-              label-for="whatsapp_number"
-            >
-              <b-form-input
-                id="whatsapp_number"
-                name="whatsapp_number"
-                v-model="$v.contest.whatsapp_number.$model"
-                :state="validateState('whatsapp_number')"
-              ></b-form-input>
+      <a-col :span="24">
+        <a-form-item
+          label="Descrição"
+          name="short_description"
+          :rules="[{ required: true, message: 'Campo obrigatório!' }]"
+        >
+          <a-textarea
+            v-model:value="formState.short_description"
+            placeholder="Descreva quais são as regras do sorteio e outras informações"
+            :auto-size="{ minRows: 4, maxRows: 5 }"
+          />
+        </a-form-item>
+      </a-col>
 
-              <b-form-invalid-feedback
-                v-if="!$v.contest.whatsapp_number.required"
-                >Campo obrigatório</b-form-invalid-feedback
-              >
-              <b-form-invalid-feedback
-                v-if="!$v.contest.whatsapp_number.numeric"
-                >Digite apenas números</b-form-invalid-feedback
-              >
-              <b-form-invalid-feedback
-                v-if="!$v.contest.whatsapp_number.minLength"
-                >Informe um número válido</b-form-invalid-feedback
-              >
-            </b-form-group>
-          </b-col>
-          <b-col md="6">
-            <b-form-group label="Grupo do sorteio" label-for="whatsapp_group">
-              <b-form-input
-                id="whatsapp_group"
-                name="whatsapp_group"
-                v-model="$v.contest.whatsapp_group.$model"
-                :state="validateState('whatsapp_group')"
-              ></b-form-input>
+      <a-col :xs="24" :md="8">
+        <a-form-item
+          label="Data de início"
+          name="start_date"
+          :rules="[{ required: true, message: 'Campo obrigatório!' }]"
+        >
+          <a-date-picker
+            v-model:value="formState.start_date"
+            style="width: 100%"
+            format="DD/MM/YYYY"
+            :disabledDate="disabledDate"
+          />
+        </a-form-item>
+      </a-col>
 
-              <b-form-invalid-feedback
-                v-if="!$v.contest.whatsapp_group.required"
-                >Campo obrigatório</b-form-invalid-feedback
-              >
-              <b-form-invalid-feedback v-if="!$v.contest.whatsapp_group.url"
-                >Informe uma URL válida</b-form-invalid-feedback
-              >
-            </b-form-group>
-          </b-col>
-        </b-row>
+      <a-col :xs="24" :md="8">
+        <a-form-item
+          label="R$ Valor"
+          name="price"
+          :validateFirst="true"
+          :rules="[{ validator: priceValidator, trigger: ['change', 'blur'] }]"
+        >
+          <input-money v-model="formState.price" />
+        </a-form-item>
+      </a-col>
 
-        <contest-gallery-form
-          :contest="contest"
-          :addImage="handleAddImage"
-          :removeImage="handleRemoveImage"
-        />
+      <a-col :xs="24" :md="8">
+        <a-form-item label="Quantidade" name="quantity">
+          <a-input
+            v-model:value="formState.quantity"
+            type="number"
+            :min="100"
+          />
+        </a-form-item>
+      </a-col>
 
-        <div>
-          <b-button
-            type="submit"
-            block
-            variant="primary"
-            class="my-4"
-            :disabled="loading"
-            >Cadastrar sorteio</b-button
-          >
-        </div>
-      </b-form>
-    </div>
-  </b-container>
+      <a-col :xs="24" :md="8">
+        <a-form-item label="Dias para a reserva" name="max_reserve_days">
+          <a-input
+            v-model:value="formState.max_reserve_days"
+            type="number"
+            :min="1"
+            :max="30"
+          />
+          <a-popover title="Dias para a reserva">
+            <template #content>
+              <p style="max-width: 300px">
+                Quantidade de dias que o pagamento gerado vai ficar disponível.
+                (Somente para o Mercado Pago)
+              </p>
+            </template>
+            <a-typography-text type="secondary">
+              <info-circle-outlined />
+              Precisa de ajuda?
+            </a-typography-text>
+          </a-popover>
+        </a-form-item>
+      </a-col>
+
+      <a-col :xs="24" :md="8">
+        <a-form-item
+          label="WhatsApp para contato"
+          name="whatsapp_number"
+          :rules="[
+            { required: true, message: 'Inform um WhatsApp para contato' },
+            { pattern: /^[0-9]{11}$/, message: 'Informe um número válido' },
+          ]"
+        >
+          <a-input v-model:value="formState.whatsapp_number" />
+          <a-popover title="WhatsApp para contato">
+            <template #content>
+              <p style="max-width: 300px">
+                Seu clientes vão entrar em contato com esse número para enviar
+                comprovantes ou em caso de dúvida
+              </p>
+              <p>
+                <strong>Importante:</strong> Certifique-se de informar um número
+                correto
+              </p>
+            </template>
+            <a-typography-text type="secondary">
+              <info-circle-outlined />
+              Precisa de ajuda?
+            </a-typography-text>
+          </a-popover>
+        </a-form-item>
+      </a-col>
+
+      <a-col :xs="24" :md="8">
+        <a-form-item
+          label="Grupo do sorteio"
+          name="whatsapp_group"
+          :rules="[{ type: 'url', message: 'Informe uma URL válida' }]"
+        >
+          <a-input v-model:value="formState.whatsapp_group" />
+          <a-popover title="Grupo do sorteio">
+            <template #content>
+              <p style="max-width: 300px">
+                Após a confirmação do pagamento, seus clientes devem participar
+                desse grupo para acompanhar o sorteio
+              </p>
+            </template>
+            <a-typography-text type="secondary">
+              <info-circle-outlined />
+              Precisa de ajuda?
+            </a-typography-text>
+          </a-popover>
+        </a-form-item>
+      </a-col>
+    </a-row>
+
+    <a-divider />
+    <!-- Promoções -->
+    <a-typography-title :level="3">Promoções</a-typography-title>
+
+    <a-typography-text type="secondary"
+      >Adicione promoções para impulsionar as vendas.</a-typography-text
+    ><br />
+
+    <a-typography
+      ><strong>Como funciona?: </strong> Vamos supor que você tenha um sorteio
+      de 3000 números à R$ 5,00. É possível criar uma promoção onde a partir de
+      100 números, cada um vai sair por R$ 2,50. </a-typography
+    ><br />
+
+    <a-space
+      v-for="(sale, index) in formState.sales"
+      :key="index"
+      style="display: flex; margin-bottom: 8px"
+      align="baseline"
+    >
+      <a-form-item :name="['sales', index, 'quantity']">
+        <a-input v-model:value="sale.quantity" type="number" :min="1" />
+      </a-form-item>
+      <a-form-item
+        :name="['sales', index, 'price']"
+        :validateFirst="true"
+        :rules="[
+          { validator: salePriceValidator, trigger: ['change', 'blur'] },
+        ]"
+      >
+        <input-money v-model="sale.price" />
+      </a-form-item>
+      <a-button size="small" type="primary" danger @click="removeSale(sale)">
+        <delete-outlined />
+      </a-button>
+    </a-space>
+    <a-form-item>
+      <a-button type="primary" @click="addSale" size="large">
+        <plus-outlined />
+        Adicionar promoção
+      </a-button>
+    </a-form-item>
+
+    <!-- Contas bancárias -->
+    <a-typography-title :level="3">Contas bancárias</a-typography-title>
+
+    <a-typography-text type="secondary"
+      >Escolha as contas onde você vai receber os pagamentos dos
+      pedidos.</a-typography-text
+    ><br />
+
+    <a-typography
+      ><strong>Como funciona?: </strong> Após selecionar os números, o cliente é
+      levado para a página do checkout. Caso você tenha configurado o pagamento
+      automático, o cliente vai visualizar um QR Code para o pagamento. <br />
+      Do contrário, vão ser exibidas as contas selecionadas abaixo onde o
+      cliente deverá enviar o comprovante para a confirmação do pedido. </a-typography
+    ><br />
+
+    <contest-bank-account-form
+      :formState="formState"
+      @select="handleSelectAccount"
+    />
+
+    <!-- Galeria -->
+    <a-typography-title :level="3">Galeria de imagens</a-typography-title>
+
+    <a-typography-text type="secondary"
+      >Escolha as melhores fotos que representam o seu
+      sorteio</a-typography-text
+    ><br />
+
+    <a-typography
+      ><strong>Como funciona?: </strong> Selecione todas as fotos que deseja
+      adicionar ao sorteio. </a-typography
+    ><br />
+
+    <contest-gallery-form @change="handleChangeImages" />
+
+    <a-form-item>
+      <a-button type="primary" html-type="submit" :loading="loading"
+        >Cadastrar sorteio</a-button
+      >
+    </a-form-item>
+  </a-form>
 </template>
 
-<script>
+<script lang="ts">
 import {
-  required,
-  numeric,
-  minValue,
-  url,
-  minLength,
-} from "vuelidate/lib/validators";
-import { validationMixin } from "vuelidate";
-import moment from "moment";
-import isEmpty from "lodash.isempty";
+  defineComponent,
+  reactive,
+  ref,
+  toRaw,
+  watch,
+} from "@vue/runtime-core";
+import { FormInstance, notification } from "ant-design-vue";
+import type { Rule } from "ant-design-vue/lib/form";
+import {
+  DeleteOutlined,
+  PlusOutlined,
+  InfoCircleOutlined,
+} from "@ant-design/icons-vue";
 
-import SalesFormVue from "@/components/Contests/Admin/SalesForm.vue";
-import GalleryFormVue from "@/components/Contests/Admin/GalleryForm.vue";
-
+import InputMoney from "@/components/_commons/InputMoney.vue";
+import { ContestRequest, ContestSale } from "@/types/Contest.types";
+import ContestBankAccountForm from "@/components/Contests/Admin/BankAccountsForm.vue";
+import ContestGalleryForm from "@/components/Contests/Admin/GalleryForm.vue";
+import * as dayjs from "dayjs";
 import { createContest } from "@/services/contests";
-import { listBankAccounts } from "@/services/bankAccounts";
+import { useRouter } from "vue-router";
+import { getErrorMessage } from "@/utils/handleError";
 
-export default {
-  name: "AdminContestCreate",
-  mixins: [validationMixin],
+export default defineComponent({
   components: {
-    "contest-sales-form": SalesFormVue,
-    "contest-gallery-form": GalleryFormVue,
+    InputMoney,
+    ContestBankAccountForm,
+    ContestGalleryForm,
+    InfoCircleOutlined,
+    DeleteOutlined,
+    PlusOutlined,
   },
-  data() {
-    return {
-      loading: false,
+  name: "AdminContestCreate",
+  setup() {
+    const router = useRouter();
+    const formRef = ref<FormInstance>();
+    const loading = ref<boolean>(false);
+    const gallery = ref<string[]>([]);
+    const formState = reactive<ContestRequest>({
+      title: "",
+      short_description: "",
+      start_date: dayjs(),
+      price: 0.1,
+      quantity: 100,
+      max_reserve_days: 1,
+      whatsapp_number: "",
+      whatsapp_group: "",
+      sales: [] as ContestSale[],
       bank_accounts: [],
-      contest: {
-        title: "",
-        start_date: moment().add(1, "day").format("YYYY-MM-DD"),
-        contest_date: null,
-        price: 0.5,
+      gallery: [],
+    });
+
+    async function handleSubmit(values: ContestRequest) {
+      try {
+        loading.value = true;
+        const obj: ContestRequest = {
+          ...values,
+          bank_accounts: Object.entries(values.bank_accounts).map(
+            (value) => value[1] as number
+          ),
+          gallery: toRaw(gallery.value),
+          start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
+        };
+
+        const result = await createContest(obj);
+
+        notification.success({
+          message: result.message,
+        });
+        router.push("/admin/sorteios");
+      } catch (error) {
+        notification.error({
+          message: getErrorMessage(error),
+        });
+      } finally {
+        loading.value = false;
+      }
+    }
+
+    function addSale() {
+      formState.sales.push({
         quantity: 1,
-        max_reserve_days: 1,
-        sales: [],
-        short_description: "",
-        full_description: "",
-        bank_accounts: [],
-        whatsapp_number: "",
-        whatsapp_group: "",
-        gallery: [],
-      },
+        price: 0.1,
+      } as ContestSale);
+    }
+
+    function removeSale(sale: any) {
+      let index = formState.sales.indexOf(sale as ContestSale);
+
+      if (index !== -1) {
+        formState.sales.splice(index, 1);
+      }
+    }
+
+    const priceValidator = async (_rule: Rule, value: string) => {
+      if (value === "") {
+        return Promise.reject("Campo obrigatório!");
+      } else {
+        if (formState.price < 0.1 || formState.price === null) {
+          return Promise.reject("O preço deve ser maior que R$ 0,10");
+        }
+        return Promise.resolve();
+      }
+    };
+
+    const salePriceValidator = async (_rule: Rule, value: string) => {
+      if (value === "") {
+        return Promise.reject("Campo obrigatório!");
+      } else {
+        formState.sales.forEach((sale) => {
+          if (sale.price < 0.1 || sale.price === null) {
+            return Promise.reject("O preço deve ser maior que R$ 0,10");
+          }
+        });
+
+        return Promise.resolve();
+      }
+    };
+
+    function handleSelectAccount(accounts: number[]) {
+      const values = Object.entries(accounts).map(
+        (value) => value[1] as number
+      );
+
+      formState.bank_accounts = [...values];
+    }
+
+    function handleChangeImages(images: string[]) {
+      gallery.value = images;
+    }
+
+    function disabledDate(current: dayjs.Dayjs) {
+      // Can not select days before today and today
+      return current && current < dayjs().endOf("day");
+    }
+
+    watch(formState, (newVal) => {
+      formState.quantity = parseInt(String(newVal.quantity), 10);
+      formState.max_reserve_days = parseInt(
+        String(newVal.max_reserve_days),
+        10
+      );
+    });
+
+    return {
+      formRef,
+      formState,
+      loading,
+      handleSubmit,
+      handleSelectAccount,
+      handleChangeImages,
+      priceValidator,
+      salePriceValidator,
+      addSale,
+      removeSale,
+      disabledDate,
     };
   },
-  computed: {
-    minStartDate() {
-      return moment().add(1, "day").format("YYYY-MM-DD");
-    },
-  },
-  mounted() {
-    this.getBankAccountsData();
-  },
-  validations: {
-    contest: {
-      title: { required },
-      start_date: { required },
-      price: { required, minValue: minValue(0.5) },
-      quantity: { required, minValue: minValue(1) },
-      max_reserve_days: { required, minValue: minValue(1) },
-      short_description: { required },
-      full_description: { required },
-      whatsapp_number: { required, numeric, minLength: minLength(10) },
-      whatsapp_group: { required, url },
-    },
-  },
-  methods: {
-    async onSubmit() {
-      try {
-        const { bank_accounts, gallery, full_description } = this.contest;
-
-        this.$v.contest.$touch();
-
-        if (this.$v.contest.$anyError) {
-          this.$toasted.show(
-            "Por favor, verifique se todos os campos estão corretos.",
-            {
-              type: "error",
-              theme: "toasted-primary",
-              position: "top-right",
-              duration: 3000,
-            }
-          );
-          return;
-        }
-
-        if (isEmpty(full_description)) {
-          this.$toasted.show("Informe a descrição completa para o sorteio", {
-            type: "error",
-            theme: "toasted-primary",
-            position: "top-right",
-            duration: 3000,
-          });
-          return;
-        }
-
-        // if (this.validateArray(bank_accounts)) {
-        //   this.$toasted.show("Selecione uma conta para receber o pagamento", {
-        //     type: "error",
-        //     theme: "toasted-primary",
-        //     position: "top-right",
-        //     duration: 3000,
-        //   });
-        //   return;
-        // }
-
-        if (this.validateArray(gallery)) {
-          this.$toasted.show("Selecione ao menos uma imagem para o sorteio", {
-            type: "error",
-            theme: "toasted-primary",
-            position: "top-right",
-            duration: 3000,
-          });
-          return;
-        }
-
-        this.contest.gallery = gallery.map((img) =>
-          img ? img?.image_path : ""
-        );
-
-        const result = await createContest(this.contest);
-
-        this.$toasted.show(result.message, {
-          type: "success",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
-
-        this.$router.push({ name: "adminContestList" });
-      } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
-      }
-    },
-    async getBankAccountsData() {
-      const result = await listBankAccounts();
-
-      this.bank_accounts = result.data;
-    },
-    handleAddSale() {
-      const { sales } = this.contest;
-
-      sales.push({
-        quantity: 1,
-        price: 0,
-      });
-    },
-    handleRemoveSale(index) {
-      const { sales } = this.contest;
-      sales.splice(index, 1);
-    },
-    handleAddImage(image) {
-      const { gallery } = this.contest;
-
-      gallery.push(image);
-    },
-    handleRemoveImage(index) {
-      const { gallery } = this.contest;
-      gallery.splice(index, 1);
-    },
-    validateState(field) {
-      const { $dirty, $error } = this.$v.contest[field];
-
-      return $dirty ? !$error : null;
-    },
-    validateArray(array = []) {
-      return array.length <= 0;
-    },
-  },
-};
+});
 </script>
 
 <style lang="scss">
-.editr {
-  border: 1px solid #e4e4e4;
-  width: 100%;
-  overflow-x: auto;
-  margin-bottom: 1rem;
-}
-</style>
+</style>s

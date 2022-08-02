@@ -1,5 +1,6 @@
 <template>
-  <span
+  <span>001</span>
+  <!-- <span
     class="contest-number"
     :title="number.customer ? number.customer.name : ''"
     :class="isSelected ? 'bg-secondary' : numberClass(number.status)"
@@ -14,7 +15,7 @@
     >
       <font-awesome-icon icon="fa-solid fa-trash" />
     </button>
-  </span>
+  </span> -->
 </template>
 
 <script>

@@ -1,72 +1,97 @@
 <template>
-  <b-container class="page">
-    <!-- TODO: Filtros de sorteios -->
-    <!-- <div class="my-4 d-flex flex-column flex-md-row justify-content-between">
-      <b-button-group class="mb-3">
-        <b-button variant="success">Em andamento</b-button>
-        <b-button variant="warning">Próximos</b-button>
-        <b-button variant="danger">Encerrados</b-button>
-      </b-button-group>
+  <container>
+    <h1>Lista de sorteios</h1>
+    <!-- <a-skeleton-input
+      v-if="loading"
+      size="large"
+      active
+      block
+      style="height: 40px; width: 100%"
+    />
+    <h1 v-else>
+      {{ seller && seller.name }} - {{ seller && seller.username }}
+    </h1>
 
-      <b-form-select
-        class="custom-form-select"
-        v-model="order"
-        :options="options"
-      ></b-form-select>
-    </div> -->
-
-    <h2 class="text-center">Sorteios em andamento</h2>
-
-    <my-loader v-if="loading" />
-    <b-row v-else>
-      <b-col v-for="contest in contests" :key="contest.id" md="6">
-        <contest-card :contest="contest" />
-      </b-col>
-    </b-row>
-  </b-container>
+    <a-spin :spinning="loading" style="min-height: 400px">
+      <a-row :gutter="[16, 16]">
+        <a-col
+          v-for="contest in contests"
+          :key="contest.id"
+          :xs="24"
+          :sm="12"
+          :md="8"
+          :lg="6"
+        >
+          <contest-card :contest="contest" />
+        </a-col>
+      </a-row>
+      <pagination :pager="pager" />
+    </a-spin> -->
+  </container>
 </template>
 
-<script>
-import ContestCardVue from "../components/Contests/ContestCard.vue";
-import LoaderVue from "../components/_commons/Loader.vue";
+<script lang="ts">
+import { defineComponent, onMounted, reactive, ref } from "vue";
+import { notification } from "ant-design-vue";
+import { useRoute } from "vue-router";
 
-import { listContests } from "../services/contests";
+import Container from "@/components/_commons/Container.vue";
+import Pagination from "@/components/_commons/Pagination.vue";
+import ContestCard from "@/components/Contests/ContestCard.vue";
 
-export default {
+import { listContestsBySeller } from "@/services/contests";
+
+export default defineComponent({
+  components: { Container, ContestCard, Pagination },
   name: "ContestList",
-  components: {
-    "contest-card": ContestCardVue,
-    "my-loader": LoaderVue,
-  },
-  data() {
-    return {
-      order: null,
-      options: [
-        { value: null, text: "Ordenar sorteios por" },
-        { value: "a", text: "Maior prêmiação" },
-        { value: "b", text: "Menor valor do número" },
-      ],
-      loading: false,
-      params: {
-        limit: 12,
-      },
-      contests: [],
-    };
-  },
-  mounted() {
-    this.getContests();
-  },
-  methods: {
-    async getContests() {
-      this.loading = true;
+  // setup() {
+  //   const loading = ref(false);
+  //   const contests = ref([]);
+  //   const seller = ref(null);
 
-      const result = await listContests(this.params);
+  //   const params = reactive({
+  //     limit: 12,
+  //   });
 
-      this.contests = result.data;
-      this.loading = false;
-    },
-  },
-};
+  //   const pager = reactive({
+  //     current_page: 1,
+  //     total: 1,
+  //   });
+
+  //   const route = useRoute();
+  //   const { username } = route.params;
+
+  //   async function getSellerContests() {
+  //     try {
+  //       loading.value = true;
+
+  //       const result = await listContestsBySeller(username, params);
+
+  //       contests.value = result.data;
+  //       seller.value = result.data[0].seller;
+  //       pager.current_page = result.current_page;
+  //       pager.total = result.total;
+  //     } catch (error) {
+  //       notification.warning({
+  //         message: error.message,
+  //       });
+  //     } finally {
+  //       loading.value = false;
+  //     }
+  //   }
+
+  //   onMounted(async () => {
+  //     await getSellerContests();
+  //   });
+
+  //   return {
+  //     loading,
+  //     contests,
+  //     pager,
+  //     seller,
+  //   };
+  // },
+});
 </script>
 
 <style>

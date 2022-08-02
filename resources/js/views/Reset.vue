@@ -1,151 +1,92 @@
 <template>
-  <b-container class="page my-4">
-    <div
-      class="p-4 my-4 d-flex justify-content-center align-items-center h-100"
-    >
-      <div class="p-3 border rounded" style="width: 400px">
-        <h3>Cadastrar nova senha</h3>
-        <p class="text-muted">
-          Cadastre uma nova senha para ter acesso a sua conta
-        </p>
-        <b-form @submit.stop.prevent="onSubmit">
-          <b-form-group label="Senha" label-for="password">
-            <b-form-input
-              id="password"
-              name="password"
-              type="password"
-              v-model="$v.form.password.$model"
-              :state="validateState('password')"
-            ></b-form-input>
+  <container :center="true">
+    <a-alert
+      v-if="validateCode.isValid === false"
+      :message="loading ? 'Verificando o código...' : validateCode.message"
+      :type="loading ? 'warning' : 'error'"
+      style="width: 100%; max-width: 600px; padding: 20px; text-align: center"
+      closeText="Voltar para o login"
+      @close="handleClose"
+    />
 
-            <b-form-invalid-feedback v-if="!$v.form.password.required"
-              >Campo obrigatório</b-form-invalid-feedback
-            >
-            <b-form-invalid-feedback v-if="!$v.form.password.minLength"
-              >Senha deve ter 8 caracteres</b-form-invalid-feedback
-            >
-          </b-form-group>
-
-          <b-form-group
-            label="Confirmar Senha"
-            label-for="password_confirmation"
-          >
-            <b-form-input
-              id="password_confirmation"
-              name="password_confirmation"
-              type="password"
-              v-model="$v.form.password_confirmation.$model"
-              :state="validateState('password_confirmation')"
-            ></b-form-input>
-
-            <b-form-invalid-feedback
-              v-if="!$v.form.password_confirmation.required"
-              >Campo obrigatório</b-form-invalid-feedback
-            >
-            <b-form-invalid-feedback
-              v-if="!$v.form.password_confirmation.sameAsPassword"
-              >As senhas precisam ser iguais</b-form-invalid-feedback
-            >
-          </b-form-group>
-
-          <div>
-            <b-button
-              type="submit"
-              block
-              variant="primary"
-              class="w-100 mt-4"
-              :disabled="loading"
-              >Salvar nova senha</b-button
-            >
-          </div>
-
-          <div class="my-2 d-flex justify-content-between">
-            <router-link to="/recuperar-senha">
-              Solicitar um novo código
-            </router-link>
-            <router-link to="/login"> Ir para o login </router-link>
-          </div>
-        </b-form>
-      </div>
-    </div>
-  </b-container>
+    <reset-form
+      v-else
+      :loading="loading"
+      :code="code"
+      @onFinish="handleFinish"
+    />
+  </container>
 </template>
 
-<script>
-import { validationMixin } from "vuelidate";
-import { required, minLength, sameAs } from "vuelidate/lib/validators";
-import { mapActions } from "vuex";
-import { reset } from "../services/auth";
+<script lang="ts">
+import { defineComponent, onMounted, reactive, ref } from "@vue/runtime-core";
 
-export default {
+import ResetForm from "@/components/Auth/ResetForm.vue";
+import Container from "@/components/_commons/Container.vue";
+import { useRoute, useRouter } from "vue-router";
+import { AuthResetRequest } from "@/types/Auth.types";
+import { reset, verify } from "@/services/auth";
+import { useAuthStore } from "@/store/auth";
+import { notification } from "ant-design-vue";
+import { getErrorMessage } from "@/utils/handleError";
+
+export default defineComponent({
+  components: { Container, ResetForm },
   name: "Reset",
-  mixins: [validationMixin],
-  data() {
-    return {
-      loading: false,
-      form: {
-        code: null,
-        password: "",
-        password_confirmation: "",
-      },
-    };
-  },
-  mounted() {
-    const { code } = this.$router.history.current.params;
+  setup() {
+    const route = useRoute();
+    const router = useRouter();
+    const { code } = route.params;
+    const { login: signIn } = useAuthStore();
+    const loading = ref<boolean>();
+    const validateCode = reactive({
+      isValid: false,
+      message: "",
+    });
 
-    if (code === undefined) {
-      this.$router.push({ name: "verify" });
-      return;
-    }
-    this.form.code = code;
-  },
-  validations: {
-    form: {
-      password: { required, minLength: minLength(8) },
-      password_confirmation: { required, sameAsPassword: sameAs("password") },
-    },
-  },
-  methods: {
-    ...mapActions({
-      signIn: "auth/login",
-    }),
-    validateState(field) {
-      const { $dirty, $error } = this.$v.form[field];
-
-      return $dirty ? !$error : null;
-    },
-    async onSubmit() {
+    async function handleFinish(values: AuthResetRequest) {
       try {
-        this.loading = true;
-        this.$v.form.$touch();
+        loading.value = true;
+        const result = await reset(values);
 
-        if (this.$v.form.$anyError) {
-          return;
-        }
-
-        const result = await reset(this.form);
-
-        this.$toasted.show(result.message, {
-          type: "success",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
-
-        this.signIn(result);
-      } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
+        signIn(result);
+      } catch (error: unknown) {
+        notification.error({
+          message: getErrorMessage(error),
         });
       } finally {
-        this.loading = false;
+        loading.value = false;
       }
-    },
+    }
+
+    function handleClose() {
+      router.push({ name: "login" });
+    }
+
+    onMounted(async () => {
+      try {
+        loading.value = true;
+
+        await verify(`${code}`);
+
+        validateCode.isValid = true;
+      } catch (error: unknown) {
+        validateCode.isValid = false;
+        validateCode.message = getErrorMessage(error);
+      } finally {
+        loading.value = false;
+      }
+    });
+
+    return {
+      code,
+      loading,
+      validateCode,
+      handleFinish,
+      handleClose,
+    };
   },
-};
+});
 </script>
 
 <style>

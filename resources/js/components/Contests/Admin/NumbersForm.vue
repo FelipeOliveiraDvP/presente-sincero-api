@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div>Form de numbers</div>
+  <!-- <div>
     <h3>Números</h3>
 
     <b-row>
@@ -71,7 +72,7 @@
         </b-form-group>
       </b-col>
     </b-row>
-  </div>
+  </div> -->
 </template>
 
 <script>

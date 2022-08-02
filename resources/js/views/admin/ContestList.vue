@@ -1,168 +1,245 @@
 <template>
-  <div>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2>Sorteios</h2>
-      <router-link class="btn btn-primary" to="/admin/sorteios/novo-sorteio">
-        Novo sorteio
+  <a-page-header title="Meus sorteios">
+    <template #extra>
+      <router-link to="/admin/sorteios/novo-sorteio">
+        <a-button type="primary">Novo sorteio</a-button>
       </router-link>
-    </div>
+    </template>
+  </a-page-header>
 
-    <b-row>
-      <b-col sm="12" md="6" lg="4" class="mb-3">
-        <b-form-datepicker
-          placeholder="Pesquisar por data"
-          v-model="params.date"
-        ></b-form-datepicker>
-      </b-col>
+  <a-row>
+    <a-col
+      :xs="24"
+      :md="{ span: 12, offset: 12 }"
+      :lg="{ span: 6, offset: 18 }"
+    >
+      <a-input-search
+        v-model:value="filters.title"
+        placeholder="Pesquisar sorteios"
+        enter-button
+        @input="handleSearch"
+      />
+    </a-col>
+  </a-row>
 
-      <b-col sm="12" md="6" lg="4">
-        <b-form-input
-          v-model="params.title"
-          placeholder="Pesquisar sorteio"
-        ></b-form-input>
-      </b-col>
-    </b-row>
+  <a-table
+    :columns="columns"
+    :row-key="(record) => record.id"
+    :data-source="contests"
+    :scroll="{ x: 950 }"
+    :loading="loading"
+    :pagination="false"
+  >
+    <template #bodyCell="{ column, record }">
+      <template v-if="column.key === 'image'">
+        <a-image
+          :preview="false"
+          :src="
+            record.gallery[0] ? record.gallery[0].path : '/img/placeholder.jpg'
+          "
+        />
+      </template>
 
-    <div class="table-responsive">
-      <b-table
-        id="contest-list"
-        class="text-white"
-        :fields="fields"
-        :items="items"
-        :busy.sync="loading"
-      >
-        <template v-slot:head()="scope">
-          <div style="width: 150px">{{ scope.label }}</div>
-        </template>
+      <template v-if="column.key === 'start_date'">
+        {{ formatDate(record.start_date) }}
+      </template>
 
-        <template #cell(price)="data">
-          {{ formatMoney(data.item.price) }}
-        </template>
+      <template v-if="column.key === 'price'">
+        {{ formatPrice(record.price) }}
+      </template>
 
-        <template #cell(paid_percentage)="data">
-          {{ `${data.item.paid_percentage * 100}%` }}
-        </template>
+      <template v-if="column.key === 'paid_percentage'">
+        <a-progress :percent="record.paid_percentage" />
+      </template>
 
-        <template #cell(actions)="data">
-          <router-link :to="`/admin/sorteios/${data.item.id}`">
-            <b-button variant="primary">
-              <i class="fas fa-solid fa-pen"></i>
-            </b-button>
+      <template v-if="column.key === 'actions'">
+        <a-space direction="vertical">
+          <router-link :to="`/admin/sorteios/${record.id}`">
+            <a-button type="primary" :block="true">
+              <template #icon><form-outlined /></template>
+              Editar
+            </a-button>
           </router-link>
-          <router-link :to="`/admin/sorteios/${data.item.id}/gerenciar`">
-            <b-button variant="primary">
-              <font-awesome-icon :icon="['fas', 'gear']" class="icon alt" />
-            </b-button>
-          </router-link>
-          <router-link :to="`/admin/sorteios/${data.item.id}/pedidos`">
-            <b-button variant="primary">
-              <i class="fa-solid fa-file-invoice-dollar"></i>
-            </b-button>
-          </router-link>
-        </template>
-      </b-table>
-    </div>
 
-    <b-pagination
-      :v-model="params.page"
-      :per-page="pager.per_page"
-      :total-rows="pager.total"
-      pills
-      align="end"
-      @change="handlePaginate"
-    ></b-pagination>
-  </div>
+          <router-link :to="`/admin/sorteios/${record.id}/gerenciar`">
+            <a-button type="primary" block>
+              <template #icon><setting-outlined /></template>
+              Gerenciar
+            </a-button>
+          </router-link>
+
+          <router-link :to="`/admin/sorteios/${record.id}/pedidos`">
+            <a-button type="primary" block>
+              <template #icon><dollar-outlined /></template>
+              Pedidos
+            </a-button>
+          </router-link>
+
+          <router-link
+            :to="`/${record.seller.username}/${record.slug}`"
+            target="_blank"
+          >
+            <a-button type="primary" block>
+              <template #icon><eye-outlined /></template>
+              Visualizar
+            </a-button>
+          </router-link>
+        </a-space>
+      </template>
+    </template>
+  </a-table>
+
+  <pagination :pager="pager" @paginate="handlePaginate" />
 </template>
 
-<script>
-import moneyFormat from "@/utils/moneyFormat";
-import { listContestsByUser } from "@/services/contests";
+<script lang="ts">
+import { defineComponent, onMounted, reactive, ref } from "@vue/runtime-core";
+import { ChangeEvent } from "ant-design-vue/lib/_util/EventInterface";
+import { ColumnsType } from "ant-design-vue/lib/table";
+import { debounce } from "lodash";
+import {
+  FormOutlined,
+  SettingOutlined,
+  DollarOutlined,
+  EyeOutlined,
+  DownOutlined,
+} from "@ant-design/icons-vue";
+import * as moment from "moment";
 
-export default {
+import Pagination from "@/components/_commons/Pagination.vue";
+
+import { ContestItem, ListContestsQuery } from "@/types/Contest.types";
+import { listContestsByUser } from "@/services/contests";
+import { PaginatedResponse } from "@/types/api.types";
+import { moneyFormat } from "@/utils/moneyFormat";
+
+const columns: ColumnsType<ContestItem> = [
+  {
+    title: "Imagem",
+    dataIndex: "image",
+    key: "image",
+    width: 200,
+    align: "center",
+  },
+  {
+    title: "Título",
+    dataIndex: "title",
+    key: "title",
+    width: 300,
+  },
+  {
+    title: "Data de início",
+    dataIndex: "start_date",
+    key: "start_date",
+    width: 150,
+  },
+  {
+    title: "R$ Valor",
+    dataIndex: "price",
+    key: "price",
+    width: 150,
+  },
+  {
+    title: "Quantidade",
+    dataIndex: "quantity",
+    key: "quantity",
+    width: 150,
+  },
+  {
+    title: "% Vendido",
+    dataIndex: "paid_percentage",
+    key: "paid_percentage",
+    width: 300,
+  },
+  {
+    title: "Ações",
+    dataIndex: "actions",
+    key: "actions",
+    align: "center",
+    width: 150,
+  },
+];
+
+export default defineComponent({
   name: "AdminContestList",
-  data() {
+  components: {
+    Pagination,
+    FormOutlined,
+    SettingOutlined,
+    DollarOutlined,
+    EyeOutlined,
+    DownOutlined,
+  },
+  setup() {
+    const loading = ref<boolean>(false);
+    const contests = ref<ContestItem[]>();
+
+    const filters = reactive<ListContestsQuery>({
+      title: "",
+      limit: 10,
+      page: 1,
+    });
+
+    const pager = ref<PaginatedResponse<ContestItem>>({
+      current_page: 1,
+      total: 1,
+      per_page: 1,
+    });
+
+    const handleSearch = debounce(async (e: ChangeEvent) => {
+      filters.title = e.target.value;
+
+      await getContests(filters);
+    }, 500);
+
+    async function getContests(params: ListContestsQuery) {
+      loading.value = true;
+      const response: PaginatedResponse<ContestItem> = await listContestsByUser(
+        params
+      );
+
+      pager.value.current_page = response.current_page || 1;
+      pager.value.total = response.total || 1;
+      pager.value.per_page = response.per_page || 1;
+      contests.value = response.data;
+      loading.value = false;
+    }
+
+    async function handlePaginate(page: number) {
+      filters.page = page;
+
+      await getContests(filters);
+    }
+
+    function formatDate(date: string) {
+      return moment(date).format("DD/MM/YYYY");
+    }
+
+    function formatPrice(value: number) {
+      return moneyFormat(value);
+    }
+
+    onMounted(async () => {
+      await getContests(filters);
+    });
+
     return {
-      loading: false,
-      params: {
-        title: "",
-        limit: 10,
-        page: 1,
-      },
-      pager: {
-        current_page: 1,
-        first_page: 1,
-        last_page: 1,
-        per_page: 10,
-        from: 1,
-        to: 10,
-        total: 10,
-      },
-      fields: [
-        {
-          key: "title",
-          sortable: true,
-          label: "Sorteio",
-        },
-        {
-          key: "price",
-          sortable: true,
-          label: "R$ Valor",
-        },
-        {
-          key: "quantity",
-          sortable: true,
-          label: "Quantidade",
-        },
-        {
-          key: "paid_percentage",
-          sortable: true,
-          label: "% vendido",
-        },
-        {
-          key: "actions",
-          sortable: false,
-          label: "Ações",
-        },
-      ],
-      items: [],
+      filters,
+      contests,
+      columns,
+      loading,
+      pager,
+      handleSearch,
+      handlePaginate,
+      formatDate,
+      formatPrice,
     };
   },
-  computed: {},
-  mounted() {
-    this.getContests();
-  },
-  methods: {
-    async getContests() {
-      try {
-        this.loading = true;
-
-        const result = await listContestsByUser(this.params);
-
-        this.items = result.data;
-        this.pager = {
-          current_page: result.current_page,
-          from: result.from,
-          last_page: result.last_page,
-          per_page: result.per_page,
-          to: result.to,
-          total: result.total,
-        };
-      } catch (error) {
-        this.items = [];
-      } finally {
-        this.loading = false;
-      }
-    },
-    async handlePaginate(page) {
-      this.params.page = page;
-      await this.getContests();
-    },
-    formatMoney(value) {
-      return moneyFormat(value);
-    },
-  },
-};
+});
 </script>
 
 <style>
+.ant-space-item {
+  width: 100%;
+}
 </style>

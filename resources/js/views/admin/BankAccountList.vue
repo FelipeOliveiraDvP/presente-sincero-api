@@ -1,291 +1,326 @@
 <template>
-  <div>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2>Contas bancárias</h2>
-      <b-button variant="primary" @click="showModal()"> Nova conta </b-button>
-    </div>
-
-    <div class="table-responsive">
-      <b-table
-        id="accounts-list"
-        class="text-white"
-        :fields="fields"
-        :items="items"
-        :busy.sync="loading"
+  <a-page-header title="Minhas contas bancárias">
+    <template #extra>
+      <a-button type="primary" @click="toggleAccountModal(undefined)"
+        >Nova conta</a-button
       >
-        <template v-slot:head()="scope">
-          <div style="width: 150px">{{ scope.label }}</div>
-        </template>
+    </template>
+  </a-page-header>
 
-        <template #cell(type)="data">
-          {{ data.item.type === "PIX" ? "PIX" : "Conta bancária" }}
-        </template>
+  <a-row>
+    <a-col
+      :xs="24"
+      :md="{ span: 12, offset: 12 }"
+      :lg="{ span: 6, offset: 18 }"
+    >
+      <a-input-search
+        v-model:value="filters.search"
+        placeholder="Pesquisar contas"
+        enter-button
+        @input="handleSearch"
+      />
+    </a-col>
+  </a-row>
 
-        <template #cell(actions)="data">
-          <b-button variant="primary" @click="showModal(data.item)">
-            <font-awesome-icon :icon="['fas', 'pen']" class="icon alt" />
-          </b-button>
+  <a-table
+    :columns="columns"
+    :row-key="(record) => record.id"
+    :data-source="accounts"
+    :scroll="{ x: 950 }"
+    :loading="loading"
+    :pagination="false"
+  >
+    <template #bodyCell="{ column, record }">
+      <template v-if="column.key === 'type'">
+        {{ formatAccountType(record.type) }}
+      </template>
 
-          <b-button variant="danger" @click="handleRemoveAccount(data.item)">
-            <font-awesome-icon :icon="['fas', 'trash']" class="icon alt" />
-          </b-button>
-        </template>
-      </b-table>
-    </div>
+      <template v-if="column.key === 'main'">
+        <a-tag v-if="record.main" color="green">Sim</a-tag>
+        <a-tag v-else color="red">Não</a-tag>
+      </template>
 
-    <b-pagination
-      :v-model="params.page"
-      :per-page="pager.per_page"
-      :total-rows="pager.total"
-      pills
-      align="end"
-      @change="handlePaginate"
-    ></b-pagination>
+      <template v-if="column.key === 'actions'">
+        <a-space>
+          <a-button type="primary" @click="toggleAccountModal(record)">
+            <template #icon><form-outlined /></template>
+            Editar
+          </a-button>
 
-    <div class="my-4 row">
-      <div class="col-12 col-lg-8">
-        <h3>Mercado Pago</h3>
-        <p>
-          Adicione o seu token do Mercado Pago para receber o pagamento dos
-          números do sorteio. Para conseguir o token, você vai precisar de uma
-          conta verificada e aprovada no Mercado Pago. Na sua conta, você deve
-          acessar
-          <a
-            href="https://www.mercadopago.com.br/settings/account/credentials"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Seu negócio > Configurações > Credenciais > Credenciais de produção.
-          </a>
-          e copiar o "Access Token".
-        </p>
-      </div>
-      <div class="col-12">
-        <b-form @submit.stop.prevent="onSaveMPToken">
-          <b-form-input
-            id="mpAccessToken"
-            v-model="mpAccessToken"
-          ></b-form-input>
-          <b-button
-            type="submit"
-            block
-            variant="primary"
-            class="my-4"
-            :disabled="loading"
-            >Salvar</b-button
-          >
-        </b-form>
-      </div>
-    </div>
+          <a-button type="primary" danger @click="toggleRemoveModal(record)">
+            <template #icon><delete-outlined /></template>
+            Excluir
+          </a-button>
+        </a-space>
+      </template>
+    </template>
+  </a-table>
 
-    <account-modal
-      :account="selectedAccount"
-      :onSubmit="handleSaveAccount"
-      @reset="hideModal"
-    />
-  </div>
+  <pagination :pager="pager" @paginate="handlePaginate" />
+
+  <a-divider />
+
+  <a-typography-title :level="3" class="section-title">
+    Mercado Pago
+    <img src="/img/mercado-pago.png" />
+  </a-typography-title>
+
+  <a-typography-paragraph>
+    Adicione o seu token do Mercado Pago para receber o pagamento dos números do
+    sorteio. Para conseguir o token, você vai precisar de uma conta verificada e
+    aprovada no Mercado Pago. <br />
+    Na sua conta, você deve acessar
+    <a
+      href="https://www.mercadopago.com.br/settings/account/credentials"
+      target="_blank"
+      >Seu negócio > Configurações > Credenciais > Credenciais de produção</a
+    >
+    e copiar o "Access Token". Copie e cole o código no campo abaixo, e depois
+    clique em salvar.
+  </a-typography-paragraph>
+
+  <mercado-pago-form :loading="loading" @onFinish="handleSaveMpToken" />
+
+  <bank-account-modal
+    :account="selectedAccount"
+    :loading="loading"
+    :visible="showAccountModal"
+    @finish="handleFinish"
+    @cancel="toggleAccountModal"
+  />
+
+  <remove-account-modal
+    :account="selectedAccount"
+    :loading="loading"
+    :visible="showRemoveModal"
+    @remove="handleRemove"
+    @cancel="toggleRemoveModal"
+  />
 </template>
 
-<script>
-import BankAccountModal from "@/components/BankAccount/AccountModal.vue";
+<script lang="ts">
+import { defineComponent, onMounted, reactive, ref } from "@vue/runtime-core";
+import { ColumnsType } from "ant-design-vue/lib/vc-table/interface";
+import { ChangeEvent } from "ant-design-vue/lib/_util/EventInterface";
+import { debounce } from "lodash";
+import { FormOutlined, DeleteOutlined } from "@ant-design/icons-vue";
+
 import {
   listBankAccounts,
-  createBankAccount,
-  editBankAccount,
   removeBankAccount,
   saveMPAccessToken,
 } from "@/services/bankAccounts";
-import { getProfile } from "@/services/auth";
+import {
+  ApiResponse,
+  BaseQuery,
+  ErrorResponse,
+  PaginatedResponse,
+} from "@/types/api.types";
+import { BankAccountItem, UpdateMercadoToken } from "@/types/BankAccount.types";
+import Pagination from "@/components/_commons/Pagination.vue";
+import MercadoPagoForm from "@/components/BankAccount/MercadoPagoForm.vue";
+import { notification } from "ant-design-vue";
+import BankAccountModal from "@/components/BankAccount/BankAccountModal.vue";
+import RemoveAccountModal from "@/components/BankAccount/RemoveAccountModal.vue";
+import { getErrorMessage } from "@/utils/handleError";
 
-export default {
+const columns: ColumnsType<BankAccountItem> = [
+  {
+    title: "Nome",
+    dataIndex: "name",
+    key: "name",
+    width: 200,
+  },
+  {
+    title: "Tipo de conta",
+    dataIndex: "type",
+    key: "type",
+    width: 200,
+  },
+  {
+    title: "Principal",
+    dataIndex: "main",
+    key: "main",
+    width: 100,
+  },
+  {
+    title: "N° da conta",
+    dataIndex: "cc",
+    key: "cc",
+    width: 150,
+  },
+  {
+    title: "Agencia",
+    dataIndex: "agency",
+    key: "agency",
+    width: 150,
+  },
+  {
+    title: "DV",
+    dataIndex: "dv",
+    key: "dv",
+    width: 100,
+  },
+  {
+    title: "Chave PIX",
+    dataIndex: "key",
+    key: "key",
+    width: 300,
+  },
+  {
+    title: "Ações",
+    dataIndex: "actions",
+    key: "actions",
+    align: "right",
+    width: 100,
+  },
+];
+
+export default defineComponent({
   name: "AdminBankAccountList",
   components: {
-    "account-modal": BankAccountModal,
+    FormOutlined,
+    DeleteOutlined,
+    Pagination,
+    MercadoPagoForm,
+    BankAccountModal,
+    RemoveAccountModal,
   },
-  data() {
+  setup() {
+    const loading = ref<boolean>(false);
+    const accounts = ref<BankAccountItem[]>();
+    const selectedAccount = ref<BankAccountItem>();
+    const showAccountModal = ref<boolean>(false);
+    const showRemoveModal = ref<boolean>(false);
+
+    const pager = ref<PaginatedResponse<BankAccountItem>>({
+      current_page: 1,
+      total: 1,
+      per_page: 1,
+    });
+
+    const filters = reactive<BaseQuery>({
+      search: "",
+      page: 1,
+    });
+
+    const handleSearch = debounce(async (e: ChangeEvent) => {
+      filters.search = e.target.value;
+
+      await getAccounts(filters);
+    }, 500);
+
+    async function getAccounts(params: BaseQuery) {
+      loading.value = true;
+      const response: PaginatedResponse<BankAccountItem> =
+        await listBankAccounts(params);
+
+      accounts.value = response.data;
+      pager.value.current_page = response.current_page || 1;
+      pager.value.total = response.total || 1;
+      pager.value.per_page = response.per_page || 1;
+      loading.value = false;
+    }
+
+    async function handlePaginate(page: number) {
+      filters.page = page;
+
+      await getAccounts(filters);
+    }
+
+    async function handleSaveMpToken(values: UpdateMercadoToken) {
+      try {
+        loading.value = true;
+
+        const result: ApiResponse = await saveMPAccessToken(values);
+
+        notification.success({
+          message: result.message,
+        });
+      } catch (error: unknown) {
+        notification.error({
+          message: getErrorMessage(error),
+        });
+      } finally {
+        loading.value = false;
+      }
+    }
+
+    async function handleFinish() {
+      toggleAccountModal(undefined);
+      await getAccounts(filters);
+    }
+
+    async function handleRemove(account?: BankAccountItem) {
+      try {
+        if (account === undefined) return;
+        loading.value = true;
+
+        const result: ApiResponse = await removeBankAccount(account.id);
+
+        notification.success({
+          message: result.message,
+        });
+        toggleRemoveModal(undefined);
+        await getAccounts(filters);
+      } catch (error: unknown) {
+        notification.error({
+          message: getErrorMessage(error),
+        });
+      } finally {
+        loading.value = false;
+      }
+    }
+
+    function toggleAccountModal(account?: BankAccountItem) {
+      selectedAccount.value = account;
+      showAccountModal.value = !showAccountModal.value;
+    }
+
+    function toggleRemoveModal(account?: BankAccountItem) {
+      selectedAccount.value = account;
+      showRemoveModal.value = !showRemoveModal.value;
+    }
+
+    function formatAccountType(type: string) {
+      const accountTypes = {
+        BANK: "Conta bancária",
+        PIX: "PIX",
+      };
+
+      return accountTypes[type];
+    }
+
+    onMounted(async () => {
+      await getAccounts(filters);
+    });
+
     return {
-      loading: false,
-      selectedAccount: null,
-      params: {
-        limit: 10,
-        page: 1,
-      },
-      pager: {
-        current_page: 1,
-        first_page: 1,
-        last_page: 1,
-        per_page: 10,
-        from: 1,
-        to: 10,
-        total: 10,
-      },
-      fields: [
-        {
-          key: "type",
-          sortable: true,
-          label: "Tipo",
-        },
-        {
-          key: "name",
-          sortable: true,
-          label: "Nome",
-        },
-        {
-          key: "cc",
-          sortable: false,
-          label: "Conta corrente",
-        },
-        {
-          key: "agency",
-          sortable: false,
-          label: "Agência",
-        },
-        {
-          key: "dv",
-          sortable: false,
-          label: "Dígito verificador",
-        },
-        {
-          key: "key",
-          sortable: false,
-          label: "Chave PIX",
-        },
-        {
-          key: "actions",
-          sortable: false,
-          label: "Ações",
-        },
-      ],
-      items: [],
-      mpAccessToken: null,
+      columns,
+      loading,
+      accounts,
+      pager,
+      filters,
+      selectedAccount,
+      showAccountModal,
+      showRemoveModal,
+
+      handleSearch,
+      handlePaginate,
+      formatAccountType,
+      handleSaveMpToken,
+      toggleAccountModal,
+      toggleRemoveModal,
+      handleFinish,
+      handleRemove,
     };
   },
-  async mounted() {
-    this.loading = true;
-
-    const result = await getProfile();
-    const { mp_access_token } = result.user;
-
-    this.mpAccessToken = mp_access_token;
-    this.getContestsData();
-    this.loading = false;
-  },
-  methods: {
-    async getContestsData() {
-      try {
-        this.loading = true;
-
-        const result = await listBankAccounts(this.params);
-
-        this.items = result.data;
-        this.pager = {
-          current_page: result.current_page,
-          from: result.from,
-          last_page: result.last_page,
-          per_page: result.per_page,
-          to: result.to,
-          total: result.total,
-        };
-      } catch (error) {
-        this.items = [];
-      } finally {
-        this.loading = false;
-      }
-    },
-    async handleSaveAccount(account) {
-      try {
-        let result;
-        this.loading = true;
-
-        if (this.selectedAccount === null) {
-          result = await createBankAccount(account);
-        } else {
-          result = await editBankAccount(account.id, account);
-        }
-
-        this.$toasted.show(result.message, {
-          type: "success",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
-      } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
-      } finally {
-        this.loading = false;
-        this.selectedAccount = null;
-        this.getContestsData();
-
-        this.$bvModal.hide("bank-account-modal");
-      }
-    },
-    async handleRemoveAccount(account) {
-      try {
-        this.loading = true;
-
-        const result = await removeBankAccount(account.id);
-
-        this.$toasted.show(result.message, {
-          type: "success",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
-      } catch (error) {
-        this.$toasted.show(error.message, {
-          type: "error",
-          theme: "toasted-primary",
-          position: "top-right",
-          duration: 3000,
-        });
-      } finally {
-        this.loading = false;
-        this.selectedAccount = null;
-        this.getContestsData();
-
-        this.$bvModal.hide("bank-account-modal");
-      }
-    },
-    async handlePaginate(page) {
-      this.params.page = page;
-      await this.getContestsData();
-    },
-    async onSaveMPToken() {
-      this.loading = true;
-
-      const result = await saveMPAccessToken({
-        mp_access_token: this.mpAccessToken,
-      });
-
-      this.$toasted.show(result.message, {
-        type: "success",
-        theme: "toasted-primary",
-        position: "top-right",
-        duration: 3000,
-      });
-
-      this.loading = false;
-    },
-    showModal(account = null) {
-      if (account !== null) {
-        this.selectedAccount = account;
-      }
-
-      this.$bvModal.show("bank-account-modal");
-    },
-    hideModal() {
-      this.selectedAccount = null;
-
-      this.$bvModal.hide("bank-account-modal");
-    },
-  },
-};
+});
 </script>
 
 <style>
+.section-title img {
+  max-width: 100px;
+  margin-left: 5px;
+}
 </style>

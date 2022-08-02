@@ -42,7 +42,9 @@ class NumberController extends Controller
         $customer = User::find($customer_id);
 
         if (empty($customer)) {
-            return response()->json(['customer' => $customer], 200);
+            return response()->json([
+                'message' => 'O cliente informado não existe',
+            ], 400);
         }
 
         $orders = Order::where('contest_id', '=', $contest_id)
