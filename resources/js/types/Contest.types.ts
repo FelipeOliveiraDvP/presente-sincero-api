@@ -38,6 +38,17 @@ export interface ContestRequest {
   gallery: Array<string>;
 }
 
+export interface ContestEditRequest {
+  contest_date?: string | Dayjs;
+  max_reserve_days?: number;
+  short_description?: string;
+  whatsapp_number?: string;
+  whatsapp_group?: string;
+  sales?: Array<ContestSale>;
+  bank_accounts?: Array<number>;
+  gallery?: Array<string>;
+}
+
 export interface ContestDetail {
   id: number;
   user_id: number;

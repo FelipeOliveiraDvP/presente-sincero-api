@@ -39,12 +39,12 @@
 
 <script lang="ts">
 import { listBankAccounts } from "@/services/bankAccounts";
-import { ContestRequest } from "@/types/Contest.types";
 import {
   defineComponent,
   onMounted,
   PropType,
   ref,
+  toRaw,
   toRefs,
   watch,
 } from "@vue/runtime-core";
@@ -55,14 +55,13 @@ export default defineComponent({
   components: { BankAccountModal },
   name: "ContestBankAccountForm",
   props: {
-    formState: {
-      type: Object as PropType<ContestRequest>,
-      required: true,
+    bankAccounts: {
+      type: Array as PropType<Array<number>>,
     },
   },
   emits: ["select"],
   setup(props, { emit }) {
-    const { formState } = toRefs(props);
+    const { bankAccounts } = toRefs(props);
     const loading = ref<boolean>(false);
     const showAccountsModal = ref<boolean>(false);
     const selectedAccounts = ref<Array<number>>([]);
@@ -97,18 +96,8 @@ export default defineComponent({
       emit("select", accounts);
     }
 
-    watch(options, (_) => {
-      const { bank_accounts } = formState.value;
-
-      if (options && bank_accounts && bank_accounts.length > 0) {
-        bank_accounts.forEach((acc) => {
-          const selected = options.value.find((opt) => opt.value === acc);
-
-          if (selected) {
-            selectedAccounts.value.push(selected.value);
-          }
-        });
-      }
+    watch(bankAccounts, (newVal) => {
+      selectedAccounts.value = toRaw(newVal);
     });
 
     onMounted(async () => {
@@ -117,7 +106,6 @@ export default defineComponent({
 
     return {
       loading,
-      formState,
       options,
       selectedAccounts,
       showAccountsModal,

@@ -27,7 +27,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "@vue/runtime-core";
+import {
+  defineComponent,
+  PropType,
+  ref,
+  toRaw,
+  toRefs,
+  watch,
+} from "@vue/runtime-core";
 import { UploadOutlined } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import type { UploadProps } from "ant-design-vue";
@@ -45,11 +52,17 @@ function getBase64(file: File) {
 
 export default defineComponent({
   name: "ContestGalleryForm",
+  props: {
+    images: {
+      type: Array as PropType<Array<string>>,
+    },
+  },
   components: {
     UploadOutlined,
   },
   emits: ["change"],
-  setup(_, { emit }) {
+  setup(props, { emit }) {
+    const { images } = toRefs(props);
     const previewVisible = ref(false);
     const previewImage = ref("");
     const previewTitle = ref("");
@@ -108,6 +121,20 @@ export default defineComponent({
         imageList.value.map((img) => img.path)
       );
     };
+
+    watch(images, (newVal) => {
+      fileList.value = newVal.map((img) => ({
+        uid: String(img),
+        name: img,
+        url: img,
+        status: "done",
+      }));
+
+      imageList.value = newVal.map((img) => ({
+        uid: String(img),
+        path: img,
+      }));
+    });
 
     return {
       previewTitle,

@@ -1,16 +1,13 @@
 import api from "@/api";
-import {
-  ApiResponse,
-  BaseQuery,
-  PaginatedResponse,
-} from "../../types/api.types";
+import { ApiResponse, BaseQuery, PaginatedResponse } from "@/types/api.types";
 import {
   ContestDetail,
+  ContestEditRequest,
   ContestItem,
   ContestOrderItem,
   ContestRequest,
   ListContestsQuery,
-} from "../../types/Contest.types";
+} from "@/types/Contest.types";
 
 export async function listContests(params: ListContestsQuery) {
   const result = (await api.get("contests", params)) as unknown;
@@ -60,7 +57,7 @@ export async function createContest(contest: ContestRequest) {
   return result as ApiResponse;
 }
 
-export async function editContest(id: number, contest: ContestRequest) {
+export async function editContest(id: number, contest: ContestEditRequest) {
   const result = (await api.update(
     `contests/manage/${id}`,
     contest

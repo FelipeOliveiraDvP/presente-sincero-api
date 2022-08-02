@@ -52,7 +52,7 @@
           label="R$ Valor"
           name="price"
           :validateFirst="true"
-          :rules="[{ validator: moneyValidator, trigger: ['change', 'blur'] }]"
+          :rules="[{ validator: priceValidator, trigger: ['change', 'blur'] }]"
         >
           <input-money v-model="formState.price" />
         </a-form-item>
@@ -124,10 +124,7 @@
         <a-form-item
           label="Grupo do sorteio"
           name="whatsapp_group"
-          :rules="[
-            { required: true, message: 'Informe o grupo para o sorteio' },
-            { type: 'url', message: 'Informe uma URL válida' },
-          ]"
+          :rules="[{ type: 'url', message: 'Informe uma URL válida' }]"
         >
           <a-input v-model:value="formState.whatsapp_group" />
           <a-popover title="Grupo do sorteio">
@@ -172,7 +169,9 @@
       <a-form-item
         :name="['sales', index, 'price']"
         :validateFirst="true"
-        :rules="[{ validator: moneyValidator, trigger: ['change', 'blur'] }]"
+        :rules="[
+          { validator: salePriceValidator, trigger: ['change', 'blur'] },
+        ]"
       >
         <input-money v-model="sale.price" />
       </a-form-item>
@@ -327,13 +326,27 @@ export default defineComponent({
       }
     }
 
-    const moneyValidator = async (_rule: Rule, value: string) => {
+    const priceValidator = async (_rule: Rule, value: string) => {
       if (value === "") {
         return Promise.reject("Campo obrigatório!");
       } else {
         if (formState.price < 0.1 || formState.price === null) {
           return Promise.reject("O preço deve ser maior que R$ 0,10");
         }
+        return Promise.resolve();
+      }
+    };
+
+    const salePriceValidator = async (_rule: Rule, value: string) => {
+      if (value === "") {
+        return Promise.reject("Campo obrigatório!");
+      } else {
+        formState.sales.forEach((sale) => {
+          if (sale.price < 0.1 || sale.price === null) {
+            return Promise.reject("O preço deve ser maior que R$ 0,10");
+          }
+        });
+
         return Promise.resolve();
       }
     };
@@ -370,7 +383,8 @@ export default defineComponent({
       handleSubmit,
       handleSelectAccount,
       handleChangeImages,
-      moneyValidator,
+      priceValidator,
+      salePriceValidator,
       addSale,
       removeSale,
       disabledDate,
