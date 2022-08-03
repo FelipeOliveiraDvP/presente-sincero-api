@@ -47,6 +47,9 @@ export interface ContestEditRequest {
   sales?: Array<ContestSale>;
   bank_accounts?: Array<number>;
   gallery?: Array<string>;
+  show_percentage?: boolean;
+  use_custom_percentage?: boolean;
+  custom_percentage?: number;
 }
 
 export interface ContestDetail {
