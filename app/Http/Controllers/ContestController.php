@@ -425,7 +425,7 @@ class ContestController extends Controller
 
         $winner_number = $this->getContestNumberByNumber($id, $request->number);
 
-        if ($winner_number->status != NumberStatus::PAID) {
+        if (empty($winner_number) || $winner_number->status != NumberStatus::PAID) {
             return response()->json([
                 'message' => 'Nenhum cliente comprou o número infomado.'
             ], 400);

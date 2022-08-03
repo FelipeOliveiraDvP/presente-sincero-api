@@ -37,7 +37,7 @@ class AuthController extends Controller
         }
 
         $exists = User::where('whatsapp', '=', $request->user)
-            ->orWhere('email', '=', $request->user)
+            ->orWhere('username', '=', $request->user)
             ->first();
 
         if (empty($exists)) {
@@ -189,7 +189,7 @@ class AuthController extends Controller
         }
 
         $exists = User::where('whatsapp', '=', $request->user)
-            ->orWhere('email', '=', $request->user)
+            ->orWhere('username', '=', $request->user)
             ->first();
 
         if (empty($exists)) {

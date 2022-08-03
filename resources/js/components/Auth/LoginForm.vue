@@ -8,7 +8,7 @@
       @finish="handleFinish"
     >
       <a-form-item
-        label="E-mail ou WhatsApp"
+        label="Nome de usuário ou WhatsApp"
         name="user"
         :rules="[{ required: true, message: 'Campo obrigatório!' }]"
       >
