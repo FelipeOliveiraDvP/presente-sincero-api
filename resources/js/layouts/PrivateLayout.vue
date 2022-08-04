@@ -189,11 +189,6 @@ export default defineComponent({
   background: #141414;
 }
 
-.ant-layout-content {
-  min-height: unset;
-  height: auto;
-}
-
 .ant-page-header {
   padding: 0;
   margin-bottom: 1rem;

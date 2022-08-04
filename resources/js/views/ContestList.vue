@@ -1,16 +1,6 @@
 <template>
   <container>
-    <h1>Lista de sorteios</h1>
-    <!-- <a-skeleton-input
-      v-if="loading"
-      size="large"
-      active
-      block
-      style="height: 40px; width: 100%"
-    />
-    <h1 v-else>
-      {{ seller && seller.name }} - {{ seller && seller.username }}
-    </h1>
+    <h1>Sorteios do vendedor "{{ username }}"</h1>
 
     <a-spin :spinning="loading" style="min-height: 400px">
       <a-row :gutter="[16, 16]">
@@ -18,81 +8,61 @@
           v-for="contest in contests"
           :key="contest.id"
           :xs="24"
-          :sm="12"
-          :md="8"
-          :lg="6"
+          :lg="12"
+          :xl="8"
         >
           <contest-card :contest="contest" />
         </a-col>
       </a-row>
-      <pagination :pager="pager" />
-    </a-spin> -->
+    </a-spin>
   </container>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, reactive, ref } from "vue";
-import { notification } from "ant-design-vue";
-import { useRoute } from "vue-router";
+import { defineComponent, onMounted, ref } from "vue";
 
 import Container from "@/components/_commons/Container.vue";
-import Pagination from "@/components/_commons/Pagination.vue";
 import ContestCard from "@/components/Contests/ContestCard.vue";
 
+import { ContestItem } from "@/types/Contest.types";
+import { useRoute } from "vue-router";
 import { listContestsBySeller } from "@/services/contests";
+import { notification } from "ant-design-vue";
+import { getErrorMessage } from "@/utils/handleError";
 
 export default defineComponent({
-  components: { Container, ContestCard, Pagination },
   name: "ContestList",
-  // setup() {
-  //   const loading = ref(false);
-  //   const contests = ref([]);
-  //   const seller = ref(null);
+  components: { Container, ContestCard },
+  setup() {
+    const loading = ref<boolean>(false);
+    const contests = ref<ContestItem[]>();
+    const route = useRoute();
+    const { username } = route.params;
 
-  //   const params = reactive({
-  //     limit: 12,
-  //   });
+    async function getContests() {
+      try {
+        loading.value = true;
+        const result = await listContestsBySeller(username as string, {});
 
-  //   const pager = reactive({
-  //     current_page: 1,
-  //     total: 1,
-  //   });
+        contests.value = result.data;
+      } catch (error) {
+        notification.error({
+          message: getErrorMessage(error),
+        });
+      } finally {
+        loading.value = false;
+      }
+    }
 
-  //   const route = useRoute();
-  //   const { username } = route.params;
+    onMounted(async () => {
+      await getContests();
+    });
 
-  //   async function getSellerContests() {
-  //     try {
-  //       loading.value = true;
-
-  //       const result = await listContestsBySeller(username, params);
-
-  //       contests.value = result.data;
-  //       seller.value = result.data[0].seller;
-  //       pager.current_page = result.current_page;
-  //       pager.total = result.total;
-  //     } catch (error) {
-  //       notification.warning({
-  //         message: error.message,
-  //       });
-  //     } finally {
-  //       loading.value = false;
-  //     }
-  //   }
-
-  //   onMounted(async () => {
-  //     await getSellerContests();
-  //   });
-
-  //   return {
-  //     loading,
-  //     contests,
-  //     pager,
-  //     seller,
-  //   };
-  // },
+    return {
+      loading,
+      username,
+      contests,
+    };
+  },
 });
 </script>
-
-<style>
-</style>

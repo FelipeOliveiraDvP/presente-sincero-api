@@ -40,10 +40,13 @@ export default defineComponent({
 </script>
 
 <style>
+.ant-layout-content {
+  min-height: unset;
+  height: auto;
+}
 .ant-input-number {
   width: 100%;
 }
-
 .ant-btn.ant-btn-primary {
   background: #44853c;
   border-color: #44853c;

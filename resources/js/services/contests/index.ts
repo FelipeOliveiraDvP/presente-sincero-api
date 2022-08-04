@@ -16,7 +16,7 @@ export async function listContests(params: ListContestsQuery) {
 }
 
 export async function listContestsBySeller(
-  username: string,
+  username: string | string[],
   params: ListContestsQuery
 ) {
   const result = (await api.get(`contests/${username}`, params)) as unknown;

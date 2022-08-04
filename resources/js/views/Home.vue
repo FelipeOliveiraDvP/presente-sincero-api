@@ -8,9 +8,8 @@
           v-for="contest in contests"
           :key="contest.id"
           :xs="24"
-          :sm="12"
-          :md="8"
-          :lg="6"
+          :lg="12"
+          :xl="8"
         >
           <contest-card :contest="contest" />
         </a-col>

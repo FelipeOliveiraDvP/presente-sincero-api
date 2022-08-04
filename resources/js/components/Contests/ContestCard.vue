@@ -1,17 +1,28 @@
 <template>
-  <a-card hoverable style="min-height: 400px">
-    <template #cover>
-      <img :alt="contest.title" :src="thumbnail" />
-    </template>
-    <template #actions>
-      <router-link :to="contestLink">
-        <a-button type="primary"> Compre agora por {{ price }} </a-button>
-      </router-link>
-    </template>
-    <a-card-meta
-      :title="contest.title"
-      :description="contest.short_description"
-    />
+  <a-card hoverable class="contest-card">
+    <a-row>
+      <a-col :xs="24" :md="12">
+        <div class="contest-card-img">
+          <img :alt="contest.title" :src="thumbnail" />
+        </div>
+      </a-col>
+      <a-col class="contest-card-info" :xs="24" :md="12">
+        <div>
+          <a-typography-title :level="4">
+            {{ contest && contest.title }}
+          </a-typography-title>
+          <a-typography-paragraph :ellipsis="{ rows: 4 }">
+            {{ contest && contest.short_description }}
+          </a-typography-paragraph>
+        </div>
+
+        <router-link :to="contestLink">
+          <a-button type="primary" block>
+            Compre agora por {{ price }}
+          </a-button>
+        </router-link>
+      </a-col>
+    </a-row>
   </a-card>
 </template>
 
@@ -55,5 +66,25 @@ export default defineComponent({
 });
 </script>
 
-<style>
+<style lang="scss">
+.contest-card,
+.contest-card .ant-card-body {
+  padding: 0;
+}
+.contest-card .contest-card-img {
+  overflow: hidden;
+}
+.contest-card .contest-card-img img {
+  width: 100%;
+  max-width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+.contest-card .contest-card-info {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
 </style>
+
