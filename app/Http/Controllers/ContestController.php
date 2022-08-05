@@ -126,10 +126,7 @@ class ContestController extends Controller
             ->with('bank_accounts:id,name,main')
             ->with('sales')
             ->where('slug', '=', $slug)
-            ->first()
-            ->makeHiddenIf(function ($value) {
-                return $value->quantity >= 10000;
-            }, ['numbers']);
+            ->first();
 
         if (empty($contest)) {
             return response()->json([
@@ -137,7 +134,9 @@ class ContestController extends Controller
             ], 404);
         }
 
-        return response()->json($contest);
+        return response()->json($contest->makeHiddenIf(function ($value) {
+            return $value->quantity >= 10000;
+        }, ['numbers']));
     }
 
     /**

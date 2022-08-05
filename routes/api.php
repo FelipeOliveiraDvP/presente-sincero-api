@@ -90,6 +90,7 @@ Route::controller(NumberController::class)->group(function () {
             });
         });
 
+        Route::get('/{contest_id}/status', 'status');
         Route::post('/{contest_id}/customer-numbers', 'getCustomerNumbers');
         Route::post('/webhook', 'webhook');
     });

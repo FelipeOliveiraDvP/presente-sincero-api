@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 
 import { successInterceptor } from "./interceptors/success.interceptor";
 import { errorInterceptor } from "./interceptors/error.interceptor";

@@ -21,10 +21,7 @@ export async function login(credentials: AuthLoginRequest) {
 }
 
 export async function simpleLogin(credentials: AuthSimpleLoginRequest) {
-  return api.post<AuthResponse | AuthSimpleLoginResponse>(
-    "auth/simple-login",
-    credentials
-  );
+  return api.post<AuthSimpleLoginResponse>("auth/simple-login", credentials);
 
   // const result = (await api.post("auth/simple-login", credentials)) as unknown;
 

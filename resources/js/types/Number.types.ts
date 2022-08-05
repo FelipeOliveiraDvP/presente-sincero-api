@@ -15,6 +15,13 @@ export interface NumberItem {
   };
 }
 
+export interface NumberStatusResponse {
+  total: number;
+  free: number;
+  reserved: number;
+  paid: number;
+}
+
 export interface CustomerNumbersRequest {
   whatsapp: string;
 }

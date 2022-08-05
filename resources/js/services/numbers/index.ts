@@ -1,12 +1,13 @@
 import api from "@/api";
-import { ApiResponse } from "../../types/api.types";
+import { ApiResponse } from "@/types/api.types";
 import {
   AdminPaidNumbersRequest,
   AllCustomerNumbers,
   CustomerNumbersRequest,
+  NumberStatusResponse,
   ReserveNumbersRequest,
   ReserveNumbersResponse,
-} from "../../types/Number.types";
+} from "@/types/Number.types";
 
 export async function listNumbers(contestId: number, customerId: number) {
   const result = (await api.get(
@@ -14,6 +15,10 @@ export async function listNumbers(contestId: number, customerId: number) {
   )) as unknown;
 
   return result as AllCustomerNumbers;
+}
+
+export async function getContestNumbersStatus(contestId?: number) {
+  return api.get<NumberStatusResponse>(`numbers/${contestId}/status`);
 }
 
 export async function getCustomerNumbers(

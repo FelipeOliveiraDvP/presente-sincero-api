@@ -1,105 +1,139 @@
 <template>
-  <div>Login simplificado</div>
-  <!-- <b-modal id="simple-register" title="Finalizar compra" :ok-title="newAccount ? 'Criar conta' : 'Acessar minha conta'"
-    :ok-disabled="loading" ok-only hide-header-close @ok="handleOk" @hidden="handleClose">
-    <p v-if="newAccount">
-      Caso você já tenha uma conta, informe seu WhatsApp abaixo para continuar
-    </p>
-    <div v-else>
-      <p>
-        Por favor, nos informe seu nome e WhatsApp abaixo para finalizar a
-        compra.
-      </p>
-    </div>
+  <a-modal
+    v-model:visible="show"
+    title="Finalizar compra"
+    :ok-text="formState.new_account ? 'Criar conta' : 'Acessar minha conta'"
+    cancel-text="Cancelar"
+    destroyOnClose
+    :confirmLoading="loading"
+    :cancelButtonProps="{ loading: loading }"
+    @ok="handleValidate"
+    @cancel="handleCancel"
+  >
+    <a-typography-paragraph v-if="formState.new_account">
+      Informe seu nome e Whatsapp para a finalizar a compra.
+    </a-typography-paragraph>
+    <a-typography-paragraph v-else>
+      Informe seu Whatsapp para a finalizar a compra.
+    </a-typography-paragraph>
 
-    <b-form ref="form" class="mb-3" @submit.stop.prevent="handleSubmit">
-      <b-form-group v-if="newAccount" class="mb-4">
-        <b-form-input id="name" v-model="$v.form.name.$model" :state="!newAccount && form.name === ''"
-          placeholder="Nome completo" />
+    <a-form
+      ref="formRef"
+      :model="formState"
+      layout="vertical"
+      name="simple_login_form"
+    >
+      <a-form-item
+        label="WhatsApp"
+        name="whatsapp"
+        :rules="[
+          { required: true, message: 'Campo obrigatório!' },
+          { pattern: /^[0-9]{11}$/, message: 'Informe um número válido' },
+        ]"
+      >
+        <a-input v-model:value="formState.whatsapp" />
+      </a-form-item>
+      <a-form-item
+        v-if="formState.new_account"
+        label="Nome"
+        name="name"
+        :rules="[{ required: true, message: 'Campo obrigatório!' }]"
+      >
+        <a-input v-model:value="formState.name" />
+      </a-form-item>
+    </a-form>
 
-        <b-form-invalid-feedback v-if="!newAccount && form.name === ''">Campo obrigatório</b-form-invalid-feedback>
-      </b-form-group>
-      <b-form-group>
-        <b-form-input id="whatsapp" v-model="$v.form.whatsapp.$model" :state="validateState('whatsapp')"
-          placeholder="Informe seu WhatsApp" />
-
-        <b-form-invalid-feedback v-if="!$v.form.whatsapp.required">Campo obrigatório</b-form-invalid-feedback>
-        <b-form-invalid-feedback v-if="!$v.form.whatsapp.minLength">WhatsApp inválido</b-form-invalid-feedback>
-        <b-form-invalid-feedback v-if="!$v.form.whatsapp.numeric">Informe apenas números</b-form-invalid-feedback>
-      </b-form-group>
-    </b-form>
-    <p>
-      <strong>IMPORTANTE:</strong> Tenha certeza de nos informar o WhatsApp
+    <a-typography-paragraph>
+      <strong>Importante:</strong> Tenha certeza de nos informar o WhatsApp
       correto, pois é através dele que enviaremos seu comprovante.
-    </p>
-  </b-modal> -->
+    </a-typography-paragraph>
+  </a-modal>
 </template>
 
-<script>
-// import { mapActions } from "vuex";
+<script lang="ts">
+import { simpleLogin } from "@/services/auth";
+import { useAuthStore } from "@/store/auth";
+import { AuthSimpleLoginRequest } from "@/types/Auth.types";
+import { getErrorMessage } from "@/utils/handleError";
 
-// import { simpleLogin } from "@/services/auth";
+import {
+  defineComponent,
+  reactive,
+  ref,
+  toRefs,
+  watch,
+} from "@vue/runtime-core";
+import { FormInstance, notification } from "ant-design-vue";
 
-// export default {
-//   name: "SimpleRegisterModal",
-//   data() {
-//     return {
-//       loading: false,
-//       newAccount: false,
-//       form: {
-//         name: "",
-//         whatsapp: "",
-//       },
-//     };
-//   },
-//   methods: {
-//     ...mapActions({
-//       signIn: "auth/simpleLogin",
-//     }),
-//     async handleSubmit() {
-//       try {
-//         this.loading = true;
+export default defineComponent({
+  name: "SimpleRegisterModal",
+  props: {
+    visible: {
+      type: Boolean,
+    },
+  },
+  emits: ["success", "cancel"],
+  setup(props, { emit }) {
+    const { visible } = toRefs(props);
+    const { simpleLogin: signIn } = useAuthStore();
+    const formRef = ref<FormInstance>();
+    const show = ref<boolean>(false);
+    const loading = ref<boolean>(false);
+    const formState = reactive<AuthSimpleLoginRequest>({
+      whatsapp: "",
+      name: "",
+      new_account: false,
+    });
 
-//         const result = await simpleLogin({
-//           ...this.form,
-//           new_account: this.newAccount,
-//         });
+    async function handleValidate() {
+      try {
+        const values =
+          (await formRef.value.validateFields()) as AuthSimpleLoginRequest;
+        await handleSubmit(values);
+      } catch (error) {}
+    }
 
-//         if (result.new_account === true) {
-//           this.newAccount = true;
+    async function handleSubmit(values: AuthSimpleLoginRequest) {
+      try {
+        if (formRef === undefined) return;
+        loading.value = true;
 
-//           // this.$toasted.show(result.message, {
-//           //   type: "success",
-//           //   theme: "toasted-primary",
-//           //   position: "top-right",
-//           //   duration: 3000,
-//           // });
+        const result = await simpleLogin({ ...values, ...formState });
 
-//           this.loading = false;
-//         } else {
-//           this.signIn(result);
+        if ("new_account" in result && result.new_account === true) {
+          formState.new_account = true;
+        } else {
+          signIn(result);
+          emit("success");
+        }
+      } catch (error) {
+        notification.error({
+          message: getErrorMessage(error),
+        });
+      } finally {
+        loading.value = false;
+      }
+    }
 
-//           // this.$bvModal.hide("simple-register");
+    function handleCancel() {
+      formRef.value.resetFields();
+      emit("cancel");
+    }
 
-//           this.$emit("onsuccess");
-//         }
-//       } catch (error) {
-//         console.error(error);
-//       } finally {
-//         this.loading = false;
-//       }
-//     },
-//     handleOk(e) {
-//       e.preventDefault();
+    watch(visible, (newVal) => {
+      show.value = newVal;
+    });
 
-//       this.handleSubmit();
-//     },
-//     handleClose() {
-//       this.form = { name: "", whatsapp: "" };
-//     },
-
-//   },
-// };
+    return {
+      show,
+      loading,
+      formRef,
+      formState,
+      handleValidate,
+      handleCancel,
+    };
+  },
+});
 </script>
 
 <style>

@@ -61,6 +61,35 @@ class NumberController extends Controller
     }
 
     /**
+     * Retorna a quantidade de cada número no sorteio.
+     * 
+     * @param int $contest_id           
+     * 
+     * @return JsonResponse
+     */
+    public function status(int $contest_id)
+    {
+        $contest = Contest::find($contest_id);
+
+        if (empty($contest)) {
+            return response()->json([
+                'message' => 'O sorteio informado não existe',
+            ], 404);
+        }
+
+        $free_numbers = $this->getContestNumbersByStatus($contest_id, NumberStatus::FREE);
+        $reserved_numbers = $this->getContestNumbersByStatus($contest_id, NumberStatus::RESERVED);
+        $paid_numbers = $this->getContestNumbersByStatus($contest_id, NumberStatus::PAID);
+
+        return response()->json([
+            'total'     => $contest->quantity,
+            'free'      => count($free_numbers),
+            'reserved'  => count($reserved_numbers),
+            'paid'      => count($paid_numbers),
+        ], 200);
+    }
+
+    /**
      * Marca os números como RESERVED
      * 
      * @param int $contest_id

@@ -62,7 +62,7 @@ export interface AuthSimpleLoginRequest {
   new_account?: boolean;
 }
 
-export interface AuthSimpleLoginResponse {
+export interface AuthSimpleLoginResponse extends AuthResponse {
   message: string;
   new_account: boolean;
 }
