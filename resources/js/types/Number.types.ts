@@ -26,7 +26,7 @@ export interface CustomerNumbersRequest {
   whatsapp: string;
 }
 
-export type ContestCustomerNumbers = Array<{ id: number; numners: string }>;
+export type ContestCustomerNumbers = Array<{ id: number; numbers: string }>;
 
 export interface ReserveNumbersRequest {
   random?: number;
@@ -43,9 +43,4 @@ export interface ReserveNumbersResponse {
     qr_code: string;
     ticket_url: string;
   };
-}
-
-export interface AdminPaidNumbersRequest {
-  customer_id: number;
-  numbers: Array<string>;
 }

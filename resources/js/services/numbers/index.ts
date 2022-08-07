@@ -1,7 +1,6 @@
 import api from "@/api";
 import { ApiResponse } from "@/types/api.types";
 import {
-  AdminPaidNumbersRequest,
   AllCustomerNumbers,
   CustomerNumbersRequest,
   NumberStatusResponse,
@@ -10,11 +9,9 @@ import {
 } from "@/types/Number.types";
 
 export async function listNumbers(contestId: number, customerId: number) {
-  const result = (await api.get(
+  return api.get<AllCustomerNumbers>(
     `numbers/${contestId}/customer/${customerId}`
-  )) as unknown;
-
-  return result as AllCustomerNumbers;
+  );
 }
 
 export async function getContestNumbersStatus(contestId?: number) {
@@ -32,45 +29,25 @@ export async function reserveNumbers(
   contestId: number,
   order: ReserveNumbersRequest
 ) {
-  const result = (await api.post(
+  return api.post<ReserveNumbersResponse>(
     `numbers/${contestId}/reserve`,
     order
-  )) as unknown;
-
-  return result as ReserveNumbersResponse;
+  );
 }
 
 export async function freeNumbers(contestId: number) {
-  const result = (await api.post(`numbers/${contestId}/free`, {})) as unknown;
-
-  return result as ApiResponse;
+  return api.remove<ApiResponse>(`numbers/${contestId}/free`);
 }
 
-export async function adminPaidNumbers(
-  contestId: number,
-  order: AdminPaidNumbersRequest
-) {
-  const result = (await api.post(
-    `numbers/manage/${contestId}/paid`,
-    order
-  )) as unknown;
-
-  return result as ApiResponse;
-}
-
-export async function adminFreeNumbers(contestId: number) {
-  const result = (await api.post(
-    `numbers/manage/${contestId}/free`,
+export async function adminPaidOrder(contestId: number, orderId: number) {
+  return api.update<ApiResponse>(
+    `numbers/manage/${contestId}/orders/${orderId}/paid`,
     {}
-  )) as unknown;
-
-  return result as ApiResponse;
+  );
 }
 
 export async function adminCancelOrder(contestId: number, orderId: number) {
-  const result = (await api.remove(
-    `numbers/manage/${contestId}/cancel-order/${orderId}`
-  )) as unknown;
-
-  return result as ApiResponse;
+  return api.remove<ApiResponse>(
+    `numbers/manage/${contestId}/orders/${orderId}/cancel`
+  );
 }

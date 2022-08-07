@@ -219,9 +219,12 @@ export default defineComponent({
       slug: contest.value?.slug || "",
       username: username as string,
       description: contest.value?.short_description || "",
+      whatsappNumber: contest.value?.whatsapp_number || "",
+      whatsappGroup: contest.value?.whatsapp_group || "",
       price: contest.value?.price || 0,
       quantity: 0,
       sale: null,
+      bankAccounts: [],
       total: 0,
     });
 
@@ -347,6 +350,9 @@ export default defineComponent({
       order.slug = newVal.slug;
       order.description = newVal.short_description;
       order.price = newVal.price;
+      order.bankAccounts = newVal.bank_accounts;
+      order.whatsappNumber = newVal.whatsapp_number;
+      order.whatsappGroup = newVal.whatsapp_group;
     });
 
     watch(order, (newVal) => {

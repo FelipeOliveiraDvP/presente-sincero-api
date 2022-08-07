@@ -24,7 +24,10 @@ export async function listContestsBySeller(
   return result as PaginatedResponse<ContestItem>;
 }
 
-export async function getContestBySlug(username: string, slug: string) {
+export async function getContestBySlug(
+  username: string | string[],
+  slug: string | string[]
+) {
   const result = (await api.get(`contests/${username}/${slug}`)) as unknown;
 
   return result as ContestDetail;

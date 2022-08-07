@@ -11,8 +11,10 @@
           <a-typography-title :level="4">
             {{ contest && contest.title }}
           </a-typography-title>
-          <a-typography-paragraph :ellipsis="{ rows: 4 }">
-            {{ contest && contest.short_description }}
+          <a-typography-paragraph
+            :ellipsis="{ rows: 4 }"
+            v-model:content="contest.short_description"
+          >
           </a-typography-paragraph>
         </div>
 

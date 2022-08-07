@@ -46,30 +46,80 @@ trait NumbersHelper
   }
 
   /**
+   * Set the contest numbers as RESERVED.
+   * 
+   * @param int $contest_id
+   * @param int $random
+   * @param array<string> $numbers
+   * @param Order $order
+   * @param User $customer   
+   * 
+   * @return array
+   */
+  protected function setContestNumbersAsReserved(int $contest_id, int $random = 0, array $numbers = [], Order $order, User $customer)
+  {
+    $contest_numbers = $this->getContestNumbers($contest_id);
+    $reserved_numbers = [];
+    $updated_numbers = [];
+    $max_reserve_numbers = 0;
+
+    if ($random > 0) {
+      shuffle($contest_numbers);
+    }
+
+    foreach ($contest_numbers as $number) {
+      $is_random = $random > 0;
+      $number_exists = $is_random ? $max_reserve_numbers < $random : in_array($number->number, $numbers);
+      $is_free = $number->status == NumberStatus::FREE;
+
+      $can_reserve_number = $number_exists && $is_free;
+
+      if ($can_reserve_number) {
+        $number->status = NumberStatus::RESERVED;
+        $number->order_id = $order->id;
+        $number->reserved_at = Carbon::now();
+        $number->customer->id = $customer->id;
+        $number->customer->name = $customer->name;
+        $number->customer->whatsapp = $customer->whatsapp;
+
+        if ($max_reserve_numbers < $random) {
+          $reserved_numbers[] = $number->number;
+          $max_reserve_numbers++;
+        }
+      }
+
+      $updated_numbers[] = json_encode($number);
+    }
+
+    return [
+      'reserved_numbers' => $reserved_numbers,
+      'updated_numbers'  => $updated_numbers,
+    ];
+  }
+
+  /**
    * Set the contest numbers as FREE.
    * 
    * @param int $contest_id
-   * @param array $numbers   
+   * @param Order $order
    * @param User $customer   
    * 
-   * @return string|boolean
+   * @return array<string, array>
    */
-  protected function setContestNumbersAsFree(int $contest_id, array $numbers, User $customer)
+  protected function setContestNumbersAsFree(int $contest_id, Order $order, User $customer)
   {
     // $contest = Contest::find($contest_id);
     $contest_numbers = $this->getContestNumbers($contest_id);
+    $order_numbers = json_decode($order->numbers);
+    $free_numbers = [];
     $updated_numbers = [];
-    $free_count = 0;
-    $max_free_numbers = count($numbers);
 
     foreach ($contest_numbers as $number) {
-      $number_exists = in_array($number->number, $numbers);
+      $number_exists = in_array($number->number, $order_numbers);
       $is_reserved = $number->status == NumberStatus::RESERVED;
       // $out_reserve_interval = $is_reserved ? Carbon::make($number->reserved_at)->diff(Carbon::now())->d > $contest->max_reserve_days : false;
       $is_owner = $customer->id == $number->customer->id;
-      $is_admin = $customer->role == $this->getAdminRole();
-
-      $can_free_number = $number_exists && $is_reserved && ($is_owner || $is_admin);
+      $can_free_number = $number_exists && $is_reserved && $is_owner;
 
       if ($can_free_number) {
         $number->status = NumberStatus::FREE;
@@ -80,87 +130,36 @@ trait NumbersHelper
         $number->customer->name = null;
         $number->customer->whatsapp = null;
 
-        $free_count++;
+        $free_numbers[] = $number->number;
       }
 
       $updated_numbers[] = json_encode($number);
-
-      if ($free_count == $max_free_numbers) {
-        break;
-      }
     }
 
-    return json_encode($updated_numbers);
-  }
-
-  /**
-   * Set the contest numbers as RESERVED.
-   * 
-   * @param int $contest_id
-   * @param array $numbers      
-   * @param Order $order
-   * @param User $customer
-   * @param int $random
-   * 
-   * @return string|boolean
-   */
-  protected function setContestNumbersAsReserved(int $contest_id, array $numbers = [], Order $order, User $customer, int $random = 0)
-  {
-    $contest_numbers = $this->getContestNumbers($contest_id);
-    $updated_numbers = [];
-    $reserve_count = 0;
-    $max_reserve_numbers = $random > 0 ? $random : count($numbers);
-
-    if ($random > 0) {
-      shuffle($contest_numbers);
-    }
-
-    foreach ($contest_numbers as $number) {
-      $is_random = $random > 0;
-      $number_exists = in_array($number->number, $numbers);
-      $is_free = $number->status == NumberStatus::FREE;
-
-      $can_reserve_number = !$is_random ? $number_exists && $is_free : $is_free;
-
-      if ($can_reserve_number) {
-        $number->status = NumberStatus::RESERVED;
-        $number->order_id = $order->id;
-        $number->reserved_at = Carbon::now();
-        $number->customer->id = $customer->id;
-        $number->customer->name = $customer->name;
-        $number->customer->whatsapp = $customer->whatsapp;
-
-        $reserve_count++;
-      }
-
-      $updated_numbers[] = json_encode($number);
-
-      if ($reserve_count == $max_reserve_numbers) {
-        break;
-      }
-    }
-
-    return json_encode($updated_numbers);
+    return [
+      'free_numbers'    => $free_numbers,
+      'updated_numbers' => json_encode($updated_numbers)
+    ];
   }
 
   /**
    * Set the contest numbers as PAID.
    * 
    * @param int $contest_id
-   * @param array $numbers   
+   * @param Order $order   
    * @param User $customer
    * 
-   * @return string|boolean
+   * @return array
    */
-  protected function setContestNumbersAsPaid(int $contest_id, array $numbers, User $customer)
+  protected function setContestNumbersAsPaid(int $contest_id, Order $order, User $customer)
   {
     $contest_numbers = $this->getContestNumbers($contest_id);
+    $order_numbers = json_decode($order->numbers);
+    $paid_numbers = [];
     $updated_numbers = [];
-    $paid_numbers = 0;
-    $max_paid_numbers = count($numbers);
 
     foreach ($contest_numbers as $number) {
-      $number_exists = in_array($number->number, $numbers);
+      $number_exists = in_array($number->number, $order_numbers);
       $is_reserved = $number->status == NumberStatus::RESERVED;
       $is_owner = $customer->id == $number->customer->id;
 
@@ -168,23 +167,21 @@ trait NumbersHelper
 
       if ($can_pay_number) {
         $number->status = NumberStatus::PAID;
-        $number->reserved_at = null;
         $number->payment_at = Carbon::now();
         $number->customer->id = $customer->id;
         $number->customer->name = $customer->name;
         $number->customer->whatsapp = $customer->whatsapp;
 
-        $paid_numbers++;
+        $paid_numbers[] = $number->number;
       }
 
       $updated_numbers[] = json_encode($number);
-
-      if ($paid_numbers == $max_paid_numbers) {
-        break;
-      }
     }
 
-    return json_encode($updated_numbers);
+    return [
+      'paid_numbers'    => $paid_numbers,
+      'updated_numbers' => json_encode($updated_numbers),
+    ];
   }
 
   /**
@@ -233,7 +230,7 @@ trait NumbersHelper
   }
 
   /**
-   * Get contest number by customer.
+   * Get contest numbers by customer.
    * 
    * @param int $contest_id
    * @param User $customer
@@ -265,15 +262,15 @@ trait NumbersHelper
   protected function getContestNumbersByOrder(int $contest_id, Order $order)
   {
     $numbers = $this->getContestNumbers($contest_id);
-    $customer_numbers = [];
+    $order_numbers = [];
 
     foreach ($numbers as $value) {
       if ($value->order_id == $order->id) {
-        $customer_numbers[] = $value;
+        $order_numbers[] = $value;
       }
     }
 
-    return $customer_numbers;
+    return $order_numbers;
   }
 
   /**

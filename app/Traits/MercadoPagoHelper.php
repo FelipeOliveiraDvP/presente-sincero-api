@@ -36,7 +36,7 @@ trait MercadoPagoHelper
 
       $expiration = date('Y-m-d\TH:i:s.vP', strtotime("+{$contest->max_reserve_days} days"));
 
-      $payment->transaction_amount = $order->total;
+      $payment->transaction_amount = round($order->total, 2);
       $payment->description = $contest->title;
       $payment->external_reference = $order->id;
       $payment->payment_method_id = "pix";
@@ -83,9 +83,9 @@ trait MercadoPagoHelper
       if (empty($order)) return false;
 
       $contest = Contest::find($order->contest_id);
-      $user = User::find($contest->user_id);
+      $seller = User::find($contest->user_id);
 
-      MercadoPago\SDK::setAccessToken($user->mp_access_token);
+      MercadoPago\SDK::setAccessToken($seller->mp_access_token);
 
       $payment = MercadoPago\Payment::find_by_id($order->transaction_code);
 

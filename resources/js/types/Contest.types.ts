@@ -1,4 +1,5 @@
 import { Dayjs } from "dayjs";
+import { BankAccountItem } from "./BankAccount.types";
 
 export interface ListContestsQuery {
   title?: string;
@@ -80,11 +81,7 @@ export interface ContestDetail {
   sales: Array<ContestSale>;
 }
 
-export interface ContestBankAccount {
-  id: number;
-  name?: string;
-  main: boolean;
-}
+export interface ContestBankAccount extends BankAccountItem {}
 
 export interface ContestImage {
   id?: number;
