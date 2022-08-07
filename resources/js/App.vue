@@ -41,7 +41,7 @@ export default defineComponent({
 
 <style>
 .ant-layout-content {
-  min-height: unset;
+  min-height: unset !important;
   height: auto;
 }
 .ant-input-number {

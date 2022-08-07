@@ -6,7 +6,7 @@
       <a-col
         :xs="24"
         :md="{ span: 12, offset: 12 }"
-        :lg="{ span: 6, offset: 18 }"
+        :lg="{ span: 8, offset: 16 }"
       >
         <a-input-search
           v-model:value="filters.search"
@@ -115,13 +115,7 @@
 </template>
 
 <script lang="ts">
-import {
-  defineComponent,
-  handleError,
-  onMounted,
-  reactive,
-  ref,
-} from "@vue/runtime-core";
+import { defineComponent, onMounted, reactive, ref } from "@vue/runtime-core";
 import { ChangeEvent } from "ant-design-vue/lib/_util/EventInterface";
 import { ColumnsType } from "ant-design-vue/lib/vc-table/interface";
 import * as moment from "moment";

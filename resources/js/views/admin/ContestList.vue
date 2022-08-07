@@ -49,7 +49,7 @@
       </template>
 
       <template v-if="column.key === 'paid_percentage'">
-        <a-progress :percent="record.paid_percentage" />
+        <a-progress :percent="record.paid_percentage * 100" />
       </template>
 
       <template v-if="column.key === 'actions'">

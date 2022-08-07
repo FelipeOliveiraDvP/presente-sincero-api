@@ -2,9 +2,10 @@ import { ContestBankAccount, ContestSale } from "@/types/Contest.types";
 import { defineStore } from "pinia";
 
 export interface CartState {
+  contestId: number;
   title: string;
   slug: string;
-  username: string;
+  username: string | string[];
   description: string;
   whatsappNumber: string;
   whatsappGroup?: string;
@@ -16,6 +17,7 @@ export interface CartState {
 }
 
 const state: CartState = {
+  contestId: 0,
   title: "",
   slug: "",
   username: "",

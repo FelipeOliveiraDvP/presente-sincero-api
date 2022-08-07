@@ -37,147 +37,159 @@
         </a-card>
       </a-col>
       <a-col :xs="24" :md="12" :lg="16">
-        <a-card title="Formas de pagamento">
-          <a-row :gutter="[16, 16]">
-            <a-col v-if="true" :xs="24" :lg="12">
-              <h3 style="display: flex; justify-content: space-between">
-                Pagar com Mercado Pago
-                <img
-                  style="max-width: 96px"
-                  src="/img/mercado-pago.png"
-                  alt="Mercado Pago"
-                />
-              </h3>
+        <a-spin :spinning="loading" size="large">
+          <a-card title="Formas de pagamento">
+            <a-row :gutter="[16, 16]">
+              <a-col v-if="payment && payment.mercado_pago" :xs="24" :lg="12">
+                <h3 style="display: flex; justify-content: space-between">
+                  Pagar com Mercado Pago
+                  <img
+                    style="max-width: 96px"
+                    src="/img/mercado-pago.png"
+                    alt="Mercado Pago"
+                  />
+                </h3>
 
-              <a-typography-text type="secondary">
-                Escaneie o QR Code abaixo ou copie o código para realizar o
-                pagamento. <br />
-                Após o pagamento, permaneça na página para visualizar o seu
-                comprovante.
-              </a-typography-text>
+                <a-typography-text type="secondary">
+                  Escaneie o QR Code abaixo ou copie o código para realizar o
+                  pagamento. <br />
+                  Após o pagamento, permaneça na página para visualizar o seu
+                  comprovante.
+                </a-typography-text>
 
-              <a-card v-if="false" style="max-width: 490px; margin: 10px auto">
-                <a-space direction="vertical" size="large">
-                  <img style="max-width: 100%" src="/img/placeholder.jpg" />
-
-                  <a-input-group compact>
-                    <a-input
-                      v-model:value="payment"
-                      style="width: calc(100% - 31px)"
+                <a-result
+                  v-if="confirmed"
+                  status="success"
+                  title="Seu pagamento foi confirmado com sucesso!"
+                  sub-title="N° do pedido: #123 Agora você precisa participar do grupo do sorteio do WhatsApp clicando no botão abaixo"
+                >
+                  <template #extra>
+                    <a :href="whatsappGroup" target="_blank">
+                      <a-button key="group" type="primary">
+                        <WhatsAppOutlined />
+                        Participar do grupo</a-button
+                      >
+                    </a>
+                    <a-button key="myNumbers">Ver meus números</a-button>
+                  </template>
+                </a-result>
+                <a-card v-else style="max-width: 490px; margin: 10px auto">
+                  <a-space
+                    direction="vertical"
+                    size="large"
+                    style="max-width: 100%"
+                  >
+                    <img
+                      style="max-width: 100%"
+                      :src="`data:image/png;base64, ${
+                        payment && payment.payment.qrcode_base64
+                      }`"
                     />
-                    <a-tooltip title="Copiar o código de pagamento">
-                      <a-button type="primary">
-                        <template #icon><CopyOutlined /></template>
-                      </a-button>
-                    </a-tooltip>
-                  </a-input-group>
-                </a-space>
-              </a-card>
-              <a-result
-                v-else
-                status="success"
-                title="Seu pagamento foi confirmado com sucesso!"
-                sub-title="N° do pedido: #123 Agora você precisa participar do grupo do sorteio do WhatsApp clicando no botão abaixo"
-              >
-                <template #extra>
-                  <a :href="whatsappGroup" target="_blank">
-                    <a-button key="group" type="primary">
-                      <WhatsAppOutlined />
-                      Participar do grupo</a-button
+
+                    <a-typography-paragraph
+                      copyable
+                      :v-model:content="
+                        payment ? payment.payment.qr_code : null
+                      "
                     >
-                  </a>
-                  <a-button key="myNumbers">Ver meus números</a-button>
-                </template>
-              </a-result>
-            </a-col>
+                      {{ payment ? payment.payment.qr_code : null }}
+                    </a-typography-paragraph>
+                  </a-space>
+                </a-card>
+              </a-col>
 
-            <a-col :xs="24" :lg="12">
-              <h3 style="display: flex; justify-content: space-between">
-                Transferência bancária ou PIX
-              </h3>
+              <a-col :xs="24" :lg="12">
+                <h3 style="display: flex; justify-content: space-between">
+                  Transferência bancária ou PIX
+                </h3>
 
-              <a-typography-text type="secondary">
-                Após realizar a trânsferencia, envie o comprovante do pagamento
-                para participar do sorteio.
-              </a-typography-text>
+                <a-typography-text type="secondary">
+                  Após realizar a trânsferencia, envie o comprovante do
+                  pagamento para participar do sorteio.
+                </a-typography-text>
 
-              <a-row :gutter="[16, 16]" style="margin: 10px auto">
-                <a-col v-for="acc in bankAccounts" :key="acc.id" :xs="24">
-                  <a-card v-if="acc.type === 'PIX'">
-                    <template #title>
-                      <h4 style="display: flex; justify-content: space-between">
-                        {{ acc.name }}
-                        <img
-                          style="max-width: 72px"
-                          src="/img/pix.png"
-                          alt=""
-                          srcset=""
-                        />
-                      </h4>
-                    </template>
-                    <div class="summary-item">
-                      <strong>Chave</strong>
-                      <a-typography-paragraph
-                        copyable
-                        :v-model:content="acc.key"
-                      >
-                        {{ acc.key }}
-                      </a-typography-paragraph>
-                    </div>
-                  </a-card>
-                  <a-card v-else>
-                    <template #title>
-                      <h4 style="display: flex; justify-content: space-between">
-                        {{ acc.name }}
-                        <BankOutlined />
-                      </h4>
-                    </template>
-                    <div class="summary-item">
-                      <strong>Conta corrente</strong>
-                      <a-typography-paragraph
-                        copyable
-                        :v-model:content="acc.cc"
-                      >
-                        {{ acc.cc }}
-                      </a-typography-paragraph>
-                    </div>
-                    <div class="summary-item">
-                      <strong>Agência</strong>
-                      <a-typography-paragraph
-                        copyable
-                        :v-model:content="acc.agency"
-                      >
-                        {{ acc.agency }}
-                      </a-typography-paragraph>
-                    </div>
-                    <div class="summary-item">
-                      <strong>Dígito verificador</strong>
-                      <a-typography-paragraph
-                        copyable
-                        :v-model:content="acc.dv"
-                      >
-                        {{ acc.dv }}
-                      </a-typography-paragraph>
-                    </div>
-                  </a-card>
-                </a-col>
-              </a-row>
+                <a-row :gutter="[16, 16]" style="margin: 10px auto">
+                  <a-col v-for="acc in bankAccounts" :key="acc.id" :xs="24">
+                    <a-card v-if="acc.type === 'PIX'">
+                      <template #title>
+                        <h4
+                          style="display: flex; justify-content: space-between"
+                        >
+                          {{ acc.name }}
+                          <img
+                            style="max-width: 72px"
+                            src="/img/pix.png"
+                            alt=""
+                            srcset=""
+                          />
+                        </h4>
+                      </template>
+                      <div class="summary-item">
+                        <strong>Chave</strong>
+                        <a-typography-paragraph
+                          copyable
+                          :v-model:content="acc.key"
+                        >
+                          {{ acc.key }}
+                        </a-typography-paragraph>
+                      </div>
+                    </a-card>
+                    <a-card v-else>
+                      <template #title>
+                        <h4
+                          style="display: flex; justify-content: space-between"
+                        >
+                          {{ acc.name }}
+                          <BankOutlined />
+                        </h4>
+                      </template>
+                      <div class="summary-item">
+                        <strong>Conta corrente</strong>
+                        <a-typography-paragraph
+                          copyable
+                          :v-model:content="acc.cc"
+                        >
+                          {{ acc.cc }}
+                        </a-typography-paragraph>
+                      </div>
+                      <div class="summary-item">
+                        <strong>Agência</strong>
+                        <a-typography-paragraph
+                          copyable
+                          :v-model:content="acc.agency"
+                        >
+                          {{ acc.agency }}
+                        </a-typography-paragraph>
+                      </div>
+                      <div class="summary-item">
+                        <strong>Dígito verificador</strong>
+                        <a-typography-paragraph
+                          copyable
+                          :v-model:content="acc.dv"
+                        >
+                          {{ acc.dv }}
+                        </a-typography-paragraph>
+                      </div>
+                    </a-card>
+                  </a-col>
+                </a-row>
 
-              <h3>Informações</h3>
-              <a-typography-paragraph>
-                Em caso de dúvidas ou para enviar o comprovante do pagamento,
-                clique no botão abaixo para enviar a sua mensagem.
-              </a-typography-paragraph>
+                <h3>Informações</h3>
+                <a-typography-paragraph>
+                  Em caso de dúvidas ou para enviar o comprovante do pagamento,
+                  clique no botão abaixo para enviar a sua mensagem.
+                </a-typography-paragraph>
 
-              <a :href="whatsappLink" target="_blank">
-                <a-button type="primary" size="large" block>
-                  <WhatsAppOutlined />
-                  Falar com o vendedor
-                </a-button>
-              </a>
-            </a-col>
-          </a-row>
-        </a-card>
+                <a :href="whatsappLink" target="_blank">
+                  <a-button type="primary" size="large" block>
+                    <WhatsAppOutlined />
+                    Falar com o vendedor
+                  </a-button>
+                </a>
+              </a-col>
+            </a-row>
+          </a-card>
+        </a-spin>
       </a-col>
     </a-row>
 
@@ -218,6 +230,9 @@ import {
   WhatsAppOutlined,
 } from "@ant-design/icons-vue";
 import { useAuthStore } from "@/store/auth";
+import { notification } from "ant-design-vue";
+import { getErrorMessage } from "@/utils/handleError";
+import { freeNumbers, reserveNumbers } from "@/services/numbers";
 
 export default defineComponent({
   components: {
@@ -233,6 +248,7 @@ export default defineComponent({
     const authStore = useAuthStore();
     const router = useRouter();
     const {
+      contestId,
       title,
       description,
       price,
@@ -248,9 +264,10 @@ export default defineComponent({
     } = toRefs(cartStore);
     const { user } = toRefs(authStore);
     const showLeavingModal = ref<boolean>(false);
+    const loading = ref<boolean>(true);
     const leaving = ref<boolean>(true);
-    // const payment = ref<ReserveNumbersResponse>();
-    const payment = ref<string>();
+    const confirmed = ref<boolean>(false);
+    const payment = ref<ReserveNumbersResponse>();
 
     const orderSale = computed(() => {
       return sale.value !== null
@@ -268,9 +285,32 @@ export default defineComponent({
       }&text=${encodeURI(message)}`;
     });
 
-    function handleLeavePage() {
-      leaving.value = false;
-      router.push(`/${username.value}/${slug.value}`);
+    async function getPaymentDetails() {
+      try {
+        loading.value = true;
+        payment.value = await reserveNumbers(contestId.value, {
+          random: quantity.value,
+        });
+      } catch (error) {
+        notification.error({
+          message: getErrorMessage(error),
+        });
+      } finally {
+        loading.value = false;
+      }
+    }
+
+    async function handleLeavePage() {
+      try {
+        await freeNumbers(contestId.value);
+      } catch (error) {
+        notification.error({
+          message: getErrorMessage(error),
+        });
+      } finally {
+        leaving.value = false;
+        router.push(`/${username.value}/${slug.value}`);
+      }
     }
 
     function showCloseWindowMessage(e: BeforeUnloadEvent) {
@@ -284,13 +324,14 @@ export default defineComponent({
       }
     });
 
-    onMounted(() => {
+    onMounted(async () => {
       if (hasOrder.value === false) {
         leaving.value = false;
         router.push("/");
         return;
       }
-      console.log(bankAccounts.value);
+
+      await getPaymentDetails();
       window.addEventListener("beforeunload", showCloseWindowMessage);
     });
 
@@ -317,6 +358,8 @@ export default defineComponent({
       total,
       showLeavingModal,
       payment,
+      loading,
+      confirmed,
       whatsappLink,
       whatsappGroup,
       handleLeavePage,

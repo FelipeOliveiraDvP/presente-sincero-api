@@ -215,13 +215,14 @@ export default defineComponent({
     });
 
     const order = reactive<CartState>({
-      title: contest.value?.title || "",
-      slug: contest.value?.slug || "",
+      contestId: 0,
+      title: "",
+      slug: "",
       username: username as string,
-      description: contest.value?.short_description || "",
-      whatsappNumber: contest.value?.whatsapp_number || "",
-      whatsappGroup: contest.value?.whatsapp_group || "",
-      price: contest.value?.price || 0,
+      description: "",
+      whatsappNumber: "",
+      whatsappGroup: "",
+      price: 0,
       quantity: 0,
       sale: null,
       bankAccounts: [],
@@ -346,6 +347,7 @@ export default defineComponent({
     watch(contest, async (newVal) => {
       await getNumbersStatus(newVal.id);
 
+      order.contestId = newVal.id;
       order.title = newVal.title;
       order.slug = newVal.slug;
       order.description = newVal.short_description;
