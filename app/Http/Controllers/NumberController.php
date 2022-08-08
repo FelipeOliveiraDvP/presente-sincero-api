@@ -21,6 +21,11 @@ class NumberController extends Controller
 {
     use NumbersHelper, WhatsApp, MercadoPagoHelper;
 
+    public function __construct()
+    {
+        ini_set('max_execution_time', 0);
+        ini_set('memory_limit', '2048M');
+    }
     /**
      * Visualizar todos os números de um cliente específico.
      * 
