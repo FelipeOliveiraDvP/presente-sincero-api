@@ -58,14 +58,14 @@ trait NumbersHelper
    */
   protected function setContestNumbersAsReserved(int $contest_id, int $random = 0, array $numbers = [], Order $order, User $customer)
   {
-    $contest_numbers = $this->getContestNumbers($contest_id);
+    $contest_numbers = $this->getContestNumbers($contest_id, $random > 0);
     $reserved_numbers = [];
     $updated_numbers = [];
     $max_reserve_numbers = 0;
 
-    if ($random > 0) {
-      shuffle($contest_numbers);
-    }
+    // if ($random > 0) {
+    //   shuffle($contest_numbers);
+    // }
 
     foreach ($contest_numbers as $number) {
       $is_random = $random > 0;
@@ -302,19 +302,28 @@ trait NumbersHelper
    * 
    * @return array
    */
-  protected function getContestNumbers(int $contest_id)
+  protected function getContestNumbers(int $contest_id, bool $random = false)
   {
     $contest = Contest::find($contest_id);
 
     if (empty($contest)) return [];
 
     $numbers_json = json_decode($contest->numbers);
-    $numbers_decoded = [];
 
-    foreach ($numbers_json as $number) {
-      $numbers_decoded[] = json_decode($number);
+    if ($random == true) {
+      shuffle($numbers_json);
     }
 
-    return $numbers_decoded;
+    foreach ($numbers_json as $number) {
+      yield json_decode($number);
+    }
+
+    // $numbers_decoded = [];
+
+    // foreach ($numbers_json as $number) {
+    //   $numbers_decoded[] = json_decode($number);
+    // }
+
+    // return $numbers_decoded;
   }
 }

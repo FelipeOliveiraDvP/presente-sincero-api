@@ -17,6 +17,7 @@ class CreateUsersTable extends Migration
         Schema::create('users', function (Blueprint $table) {
             if (env('APP_ENV') == 'production') {
                 DB::statement('SET SESSION sql_require_primary_key=0');
+                ini_set('memory_limit', -1);
             }
 
             $table->id();
