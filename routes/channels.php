@@ -1,5 +1,6 @@
 <?php
 
+use App\Broadcasting\OrderChannel;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Broadcast;
 
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Broadcast;
 */
 
 Broadcast::channel('payment.confirmed', function () {
-    info("Payment confirmed at " . Carbon::now());
-
     return true;
 });
+
+Broadcast::channel('test.connection', OrderChannel::class);

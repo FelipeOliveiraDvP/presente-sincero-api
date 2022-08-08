@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\NumberStatus;
 use App\Enums\OrderStatus;
 use App\Events\PaymentConfirmed;
+use App\Events\TestConnection;
 use App\Models\Contest;
 use App\Models\Order;
 use App\Models\Sale;
@@ -387,7 +388,6 @@ class NumberController extends Controller
             $order->update();
 
             broadcast(new PaymentConfirmed($customer->id, $order->id));
-            event(new PaymentConfirmed($customer->id, $order->id));
 
             $this->sendConfirmationMessage($customer, $contest, $order);
 

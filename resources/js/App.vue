@@ -7,31 +7,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted } from "vue";
+import { defineComponent } from "vue";
 import ptBR from "ant-design-vue/es/locale/pt_BR";
-
-import { usePaymentStore } from "./store/payment";
 
 export default defineComponent({
   name: "App",
   setup() {
-    const { confirmPayment } = usePaymentStore();
-
-    onMounted(() => {
-      window.Echo.channel("payment.confirmed").listen(
-        "PaymentConfirmed",
-        (e) => {
-          const payment = {
-            userId: e.user_id,
-            orderId: e.order_id,
-            confirmed: e.confirmed,
-          };
-
-          confirmPayment(payment);
-        }
-      );
-    });
-
     return {
       ptBR,
     };
