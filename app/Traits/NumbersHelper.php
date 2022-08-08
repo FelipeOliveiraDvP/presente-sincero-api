@@ -7,6 +7,7 @@ use App\Models\Contest;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Traversable;
 
 trait NumbersHelper
 {
@@ -62,13 +63,9 @@ trait NumbersHelper
     $reserved_numbers = [];
     $updated_numbers = [];
     $max_reserve_numbers = 0;
-
-    // if ($random > 0) {
-    //   shuffle($contest_numbers);
-    // }
+    $is_random = $random > 0;
 
     foreach ($contest_numbers as $number) {
-      $is_random = $random > 0;
       $number_exists = $is_random ? $max_reserve_numbers < $random : in_array($number->number, $numbers);
       $is_free = $number->status == NumberStatus::FREE;
 
@@ -108,7 +105,6 @@ trait NumbersHelper
    */
   protected function setContestNumbersAsFree(int $contest_id, Order $order, User $customer)
   {
-    // $contest = Contest::find($contest_id);
     $contest_numbers = $this->getContestNumbers($contest_id);
     $order_numbers = json_decode($order->numbers);
     $free_numbers = [];
@@ -117,7 +113,6 @@ trait NumbersHelper
     foreach ($contest_numbers as $number) {
       $number_exists = in_array($number->number, $order_numbers);
       $is_reserved = $number->status == NumberStatus::RESERVED;
-      // $out_reserve_interval = $is_reserved ? Carbon::make($number->reserved_at)->diff(Carbon::now())->d > $contest->max_reserve_days : false;
       $is_owner = $customer->id == $number->customer->id;
       $can_free_number = $number_exists && $is_reserved && $is_owner;
 
@@ -213,20 +208,20 @@ trait NumbersHelper
    * 
    * @return array
    */
-  protected function getContestNumbersByNumbers(int $contest_id, array $numbers)
+  protected function getContestNumbersByNumbers(int $contest_id, array $numbers): Traversable
   {
     $contest_numbers = $this->getContestNumbers($contest_id);
-    $filtered_numbers = [];
+    // $filtered_numbers = [];
 
     foreach ($contest_numbers as $number) {
       $number_exists = in_array($number->number, $numbers);
 
       if ($number_exists) {
-        $filtered_numbers[] = $number;
+        yield $number;
       }
     }
 
-    return $filtered_numbers;
+    // return $filtered_numbers;
   }
 
   /**
@@ -237,18 +232,18 @@ trait NumbersHelper
    * 
    * @return array
    */
-  protected function getContestNumbersByCustomer(int $contest_id, User $customer)
+  protected function getContestNumbersByCustomer(int $contest_id, User $customer): Traversable
   {
     $numbers = $this->getContestNumbers($contest_id);
-    $customer_numbers = [];
+    // $customer_numbers = [];
 
     foreach ($numbers as $value) {
       if ($value->customer->id == $customer->id) {
-        $customer_numbers[] = $value;
+        yield $value;
       }
     }
 
-    return $customer_numbers;
+    // return $customer_numbers;
   }
 
   /**
@@ -259,18 +254,18 @@ trait NumbersHelper
    * 
    * @return array
    */
-  protected function getContestNumbersByOrder(int $contest_id, Order $order)
+  protected function getContestNumbersByOrder(int $contest_id, Order $order): Traversable
   {
     $numbers = $this->getContestNumbers($contest_id);
-    $order_numbers = [];
+    // $order_numbers = [];
 
     foreach ($numbers as $value) {
       if ($value->order_id == $order->id) {
-        $order_numbers[] = $value;
+        yield $value;
       }
     }
 
-    return $order_numbers;
+    // return $order_numbers;
   }
 
   /**
@@ -279,20 +274,20 @@ trait NumbersHelper
    * @param int $contest_id
    * @param string $status
    * 
-   * @return array
+   * @return Traversable
    */
-  protected function getContestNumbersByStatus(int $contest_id, string $status)
+  protected function getContestNumbersByStatus(int $contest_id, string $status): Traversable
   {
     $numbers = $this->getContestNumbers($contest_id);
-    $filtered_numbers = [];
+    // $filtered_numbers = [];
 
     foreach ($numbers as $value) {
       if ($value->status == $status) {
-        $filtered_numbers[] = $value;
+        yield $value;
       }
     }
 
-    return $filtered_numbers;
+    // return $filtered_numbers;
   }
 
   /**
@@ -302,7 +297,7 @@ trait NumbersHelper
    * 
    * @return array
    */
-  protected function getContestNumbers(int $contest_id, bool $random = false)
+  protected function getContestNumbers(int $contest_id, bool $random = false): Traversable
   {
     $contest = Contest::find($contest_id);
 

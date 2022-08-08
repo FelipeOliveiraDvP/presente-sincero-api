@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Enums\NumberStatus;
 use App\Enums\OrderStatus;
 use App\Events\PaymentConfirmed;
-use App\Events\TestConnection;
 use App\Models\Contest;
 use App\Models\Order;
 use App\Models\Sale;
@@ -55,12 +54,16 @@ class NumberController extends Controller
             ->get();
 
         $numbers = [];
-
         foreach ($orders as $order) {
             $numbers[] = json_decode($order->numbers);
         }
 
-        return response()->json($this->getContestNumbersByNumbers($contest_id, array_merge_recursive(...$numbers)));
+        $customer_numbers = [];
+        foreach ($this->getContestNumbersByNumbers($contest_id, array_merge_recursive(...$numbers)) as $customer_number) {
+            $customer_numbers[] = $customer_number;
+        }
+
+        return response()->json($customer_numbers);
     }
 
     /**
@@ -86,9 +89,9 @@ class NumberController extends Controller
 
         return response()->json([
             'total'     => $contest->quantity,
-            'free'      => count($free_numbers),
-            'reserved'  => count($reserved_numbers),
-            'paid'      => count($paid_numbers),
+            'free'      => count(iterator_to_array($free_numbers)),
+            'reserved'  => count(iterator_to_array($reserved_numbers)),
+            'paid'      => count(iterator_to_array($paid_numbers)),
         ], 200);
     }
 
