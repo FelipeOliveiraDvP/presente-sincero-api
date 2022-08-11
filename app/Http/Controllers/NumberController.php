@@ -21,11 +21,11 @@ class NumberController extends Controller
 {
     use NumbersHelper, WhatsApp, MercadoPagoHelper;
 
-    public function __construct()
-    {
-        ini_set('max_execution_time', 0);
-        ini_set('memory_limit', '2048M');
-    }
+    // public function __construct()
+    // {
+    //     ini_set('max_execution_time', 0);
+    //     ini_set('memory_limit', '2048M');
+    // }
     /**
      * Visualizar todos os números de um cliente específico.
      * 
@@ -88,15 +88,15 @@ class NumberController extends Controller
             ], 404);
         }
 
-        $free_numbers = $this->getContestNumbersByStatus($contest_id, NumberStatus::FREE);
-        $reserved_numbers = $this->getContestNumbersByStatus($contest_id, NumberStatus::RESERVED);
-        $paid_numbers = $this->getContestNumbersByStatus($contest_id, NumberStatus::PAID);
+        $free_numbers = $this->countNumbersByStatus($contest_id, NumberStatus::FREE);
+        $reserved_numbers = $this->countNumbersByStatus($contest_id, NumberStatus::RESERVED);
+        $paid_numbers = $this->countNumbersByStatus($contest_id, NumberStatus::PAID);
 
         return response()->json([
             'total'     => $contest->quantity,
-            'free'      => count(iterator_to_array($free_numbers)),
-            'reserved'  => count(iterator_to_array($reserved_numbers)),
-            'paid'      => count(iterator_to_array($paid_numbers)),
+            'free'      => $free_numbers,
+            'reserved'  => $reserved_numbers,
+            'paid'      => $paid_numbers,
         ], 200);
     }
 
@@ -184,11 +184,13 @@ class NumberController extends Controller
             ->first();
 
         if (!empty($old_order)) {
-            $free_numbers = $this->setContestNumbersAsFree($contest_id, $old_order, $user);
+            $free_numbers = $this->setContestNumbersAsFree($contest, $old_order, $user);
 
             $contest->numbers = $free_numbers['updated_numbers'];
             $contest->update();
             $old_order->delete();
+
+            $free_numbers = null;
         }
 
         // Cria um novo pedido.
@@ -202,14 +204,16 @@ class NumberController extends Controller
         $request_random = $request->random ?? 0;
         $request_numbers = $request->numbers ?? [];
         $numbers = $this->setContestNumbersAsReserved($contest_id, $request_random, $request_numbers, $order, $user);
-        $order_total = $this->calcSaleDiscount(count($numbers['reserved_numbers']), $contest_id, $contest);
+        $order_total = $this->calcSaleDiscount(count(json_decode($numbers['reserved_numbers'])), $contest_id, $contest);
 
         $order->total = $order_total;
-        $order->numbers = json_encode($numbers['reserved_numbers']);
+        $order->numbers = $numbers['reserved_numbers'];
         $order->update();
 
         $contest->numbers = $numbers['updated_numbers'];
         $contest->update();
+
+        $numbers = null;
 
         // Cria um novo pagamento no Mercado Pago.
         $payment = $this->createPayment($order, $user, $contest);
@@ -266,11 +270,13 @@ class NumberController extends Controller
             ], 200);
         }
 
-        $numbers = $this->setContestNumbersAsFree($contest_id, $order, $user);
+        $numbers = $this->setContestNumbersAsFree($contest, $order, $user);
 
         $contest->numbers = $numbers['updated_numbers'];
         $contest->update();
         $order->delete();
+
+        $numbers = null;
 
         return response()->json(['message' => 'Números liberados com sucesso'], 200);
     }
@@ -303,11 +309,13 @@ class NumberController extends Controller
 
         $customer = User::find($order->user_id);
         $numbers = $this->setContestNumbersAsPaid($contest->id, $order, $customer);
-        $paid_percentage = count($numbers['paid_numbers']) / $contest->quantity;
+        $paid_percentage = count(json_decode($numbers['paid_numbers'])) / $contest->quantity;
 
         $contest->numbers = $numbers['updated_numbers'];
         $contest->paid_percentage += round($paid_percentage, 2);
         $contest->update();
+
+        $numbers = null;
 
         $order->status = OrderStatus::CONFIRMED;
         $order->confirmed_at = Carbon::now();
@@ -345,10 +353,12 @@ class NumberController extends Controller
         }
 
         $customer = User::find($order->user_id);
-        $numbers = $this->setContestNumbersAsFree($contest_id, $order, $customer);
+        $numbers = $this->setContestNumbersAsFree($contest, $order, $customer);
 
         $contest->numbers = $numbers['updated_numbers'];
         $contest->update();
+
+        $numbers = null;
 
         $order->status = OrderStatus::CANCELED;
         $order->update();
@@ -385,11 +395,13 @@ class NumberController extends Controller
             }
 
             $numbers = $this->setContestNumbersAsPaid($contest->id, $order, $customer);
-            $paid_percentage = count($numbers['paid_numbers']) / $contest->quantity;
+            $paid_percentage = count(json_decode($numbers['paid_numbers'])) / $contest->quantity;
 
             $contest->numbers = $numbers['updated_numbers'];
             $contest->paid_percentage += round($paid_percentage, 2);
             $contest->update();
+
+            $numbers = null;
 
             $order->status = OrderStatus::CONFIRMED;
             $order->confirmed_at = Carbon::now();

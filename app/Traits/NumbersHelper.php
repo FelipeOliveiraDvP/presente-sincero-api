@@ -3,10 +3,12 @@
 namespace App\Traits;
 
 use App\Enums\NumberStatus;
+use App\Enums\OrderStatus;
 use App\Models\Contest;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use SplFixedArray;
 use Traversable;
 
 trait NumbersHelper
@@ -18,11 +20,11 @@ trait NumbersHelper
    *      
    * @param int $quantity
    * 
-   * @return string|boolean
+   * @return string|bool
    */
   protected function generateContestNumbers(int $quantity)
   {
-    $numbers = [];
+    $numbers = new SplFixedArray($quantity);
 
     for ($i = 0; $i < $quantity; $i++) {
       $number_length = strlen((string) $quantity);
@@ -43,27 +45,27 @@ trait NumbersHelper
       $numbers[] = $number;
     }
 
-    return json_encode($numbers);
+    return json_encode($numbers->toArray());
   }
 
   /**
    * Set the contest numbers as RESERVED.
-   * 
-   * @param int $contest_id
+   *
    * @param int $random
    * @param array<string> $numbers
+   * @param Contest $contest
    * @param Order $order
    * @param User $customer   
    * 
-   * @return array
+   * @return array<string, string|bool>
    */
-  protected function setContestNumbersAsReserved(int $contest_id, int $random = 0, array $numbers = [], Order $order, User $customer)
+  protected function setContestNumbersAsReserved(int $random = 0, array $numbers = [], Contest $contest, Order $order, User $customer)
   {
-    $contest_numbers = $this->getContestNumbers($contest_id, $random > 0);
-    $reserved_numbers = [];
-    $updated_numbers = [];
-    $max_reserve_numbers = 0;
     $is_random = $random > 0;
+    $contest_numbers = $this->getContestNumbers($$contest->id, $is_random);
+    $reserved_numbers = new SplFixedArray($is_random ? $random : count($numbers));
+    $updated_numbers = new SplFixedArray($contest->quantity);
+    $max_reserve_numbers = 0;
 
     foreach ($contest_numbers as $number) {
       $number_exists = $is_random ? $max_reserve_numbers < $random : in_array($number->number, $numbers);
@@ -89,26 +91,26 @@ trait NumbersHelper
     }
 
     return [
-      'reserved_numbers' => $reserved_numbers,
-      'updated_numbers'  => $updated_numbers,
+      'reserved_numbers' => json_encode($reserved_numbers->toArray()),
+      'updated_numbers'  => json_encode($updated_numbers->toArray()),
     ];
   }
 
   /**
    * Set the contest numbers as FREE.
    * 
-   * @param int $contest_id
+   * @param Contest $contest
    * @param Order $order
    * @param User $customer   
    * 
-   * @return array<string, array>
+   * @return array<string, string|bool>
    */
-  protected function setContestNumbersAsFree(int $contest_id, Order $order, User $customer)
+  protected function setContestNumbersAsFree(Contest $contest, Order $order, User $customer)
   {
-    $contest_numbers = $this->getContestNumbers($contest_id);
+    $contest_numbers = $this->getContestNumbers($contest->id);
     $order_numbers = json_decode($order->numbers);
-    $free_numbers = [];
-    $updated_numbers = [];
+    $free_numbers = new SplFixedArray(count(json_decode($order->numbers)));
+    $updated_numbers = new SplFixedArray($contest->quantity);
 
     foreach ($contest_numbers as $number) {
       $number_exists = in_array($number->number, $order_numbers);
@@ -132,26 +134,26 @@ trait NumbersHelper
     }
 
     return [
-      'free_numbers'    => $free_numbers,
-      'updated_numbers' => json_encode($updated_numbers)
+      'free_numbers'    => json_encode($free_numbers->toArray()),
+      'updated_numbers' => json_encode($updated_numbers->toArray())
     ];
   }
 
   /**
    * Set the contest numbers as PAID.
    * 
-   * @param int $contest_id
+   * @param Contest $contest
    * @param Order $order   
    * @param User $customer
    * 
-   * @return array
+   * @return array<string, string|bool>
    */
-  protected function setContestNumbersAsPaid(int $contest_id, Order $order, User $customer)
+  protected function setContestNumbersAsPaid(Contest $contest, Order $order, User $customer)
   {
-    $contest_numbers = $this->getContestNumbers($contest_id);
+    $contest_numbers = $this->getContestNumbers($contest->id);
     $order_numbers = json_decode($order->numbers);
-    $paid_numbers = [];
-    $updated_numbers = [];
+    $paid_numbers = new SplFixedArray(count(json_decode($order->numbers)));
+    $updated_numbers = new SplFixedArray($contest->quantity);
 
     foreach ($contest_numbers as $number) {
       $number_exists = in_array($number->number, $order_numbers);
@@ -174,9 +176,31 @@ trait NumbersHelper
     }
 
     return [
-      'paid_numbers'    => $paid_numbers,
-      'updated_numbers' => json_encode($updated_numbers),
+      'paid_numbers'    => json_encode($paid_numbers->toArray()),
+      'updated_numbers' => json_encode($updated_numbers->toArray()),
     ];
+  }
+
+  /**
+   * Count total numbers by status.
+   * 
+   * @param int $contest_id
+   * @param OrderStatus $status
+   * 
+   * @return int
+   */
+  protected function countNumbersByStatus(int $contest_id, string $status)
+  {
+    $total = 0;
+    $contest_numbers = $this->getContestNumbers($contest_id);
+
+    foreach ($contest_numbers as $value) {
+      if ($value->status == $status) {
+        $total++;
+      }
+    }
+
+    return $total;
   }
 
   /**
@@ -211,7 +235,6 @@ trait NumbersHelper
   protected function getContestNumbersByNumbers(int $contest_id, array $numbers): Traversable
   {
     $contest_numbers = $this->getContestNumbers($contest_id);
-    // $filtered_numbers = [];
 
     foreach ($contest_numbers as $number) {
       $number_exists = in_array($number->number, $numbers);
@@ -220,8 +243,6 @@ trait NumbersHelper
         yield $number;
       }
     }
-
-    // return $filtered_numbers;
   }
 
   /**
@@ -235,15 +256,12 @@ trait NumbersHelper
   protected function getContestNumbersByCustomer(int $contest_id, User $customer): Traversable
   {
     $numbers = $this->getContestNumbers($contest_id);
-    // $customer_numbers = [];
 
     foreach ($numbers as $value) {
       if ($value->customer->id == $customer->id) {
         yield $value;
       }
     }
-
-    // return $customer_numbers;
   }
 
   /**
@@ -257,15 +275,12 @@ trait NumbersHelper
   protected function getContestNumbersByOrder(int $contest_id, Order $order): Traversable
   {
     $numbers = $this->getContestNumbers($contest_id);
-    // $order_numbers = [];
 
     foreach ($numbers as $value) {
       if ($value->order_id == $order->id) {
         yield $value;
       }
     }
-
-    // return $order_numbers;
   }
 
   /**
@@ -279,15 +294,12 @@ trait NumbersHelper
   protected function getContestNumbersByStatus(int $contest_id, string $status): Traversable
   {
     $numbers = $this->getContestNumbers($contest_id);
-    // $filtered_numbers = [];
 
     foreach ($numbers as $value) {
       if ($value->status == $status) {
         yield $value;
       }
     }
-
-    // return $filtered_numbers;
   }
 
   /**
@@ -312,13 +324,5 @@ trait NumbersHelper
     foreach ($numbers_json as $number) {
       yield json_decode($number);
     }
-
-    // $numbers_decoded = [];
-
-    // foreach ($numbers_json as $number) {
-    //   $numbers_decoded[] = json_decode($number);
-    // }
-
-    // return $numbers_decoded;
   }
 }
