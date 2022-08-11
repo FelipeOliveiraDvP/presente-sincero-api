@@ -109,7 +109,7 @@ trait NumbersHelper
   {
     $contest_numbers = $this->getContestNumbers($contest->id);
     $order_numbers = json_decode($order->numbers);
-    $free_numbers = new SplFixedArray(count(json_decode($order->numbers)));
+    $free_numbers = [];
     $updated_numbers = new SplFixedArray($contest->quantity);
 
     foreach ($contest_numbers as $number) {
@@ -134,7 +134,7 @@ trait NumbersHelper
     }
 
     return [
-      'free_numbers'    => json_encode($free_numbers->toArray()),
+      'free_numbers'    => json_encode($free_numbers),
       'updated_numbers' => json_encode($updated_numbers->toArray())
     ];
   }
