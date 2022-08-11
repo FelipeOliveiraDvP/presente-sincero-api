@@ -67,27 +67,27 @@ trait NumbersHelper
     $updated_numbers = new SplFixedArray($contest->quantity);
     $max_reserve_numbers = 0;
 
-    foreach ($contest_numbers as $number) {
-      $number_exists = $is_random ? $max_reserve_numbers < $random : in_array($number->number, $numbers);
-      $is_free = $number->status == NumberStatus::FREE;
+    for ($i = 0; $i < $contest->quantity; $i++) {
+      $number_exists = $is_random ? $max_reserve_numbers < $random : in_array($contest_numbers[$i]->number, $numbers);
+      $is_free = $contest_numbers[$i]->status == NumberStatus::FREE;
 
       $can_reserve_number = $number_exists && $is_free;
 
       if ($can_reserve_number) {
-        $number->status = NumberStatus::RESERVED;
-        $number->order_id = $order->id;
-        $number->reserved_at = Carbon::now();
-        $number->customer->id = $customer->id;
-        $number->customer->name = $customer->name;
-        $number->customer->whatsapp = $customer->whatsapp;
+        $contest_numbers[$i]->status = NumberStatus::RESERVED;
+        $contest_numbers[$i]->order_id = $order->id;
+        $contest_numbers[$i]->reserved_at = Carbon::now();
+        $contest_numbers[$i]->customer->id = $customer->id;
+        $contest_numbers[$i]->customer->name = $customer->name;
+        $contest_numbers[$i]->customer->whatsapp = $customer->whatsapp;
 
         if ($max_reserve_numbers < $random) {
-          $reserved_numbers[] = $number->number;
+          $reserved_numbers[$i] = $contest_numbers[$i]->number;
           $max_reserve_numbers++;
         }
       }
 
-      $updated_numbers[] = json_encode($number);
+      $updated_numbers[$i] = json_encode($contest_numbers[$i]);
     }
 
     return [
@@ -109,32 +109,32 @@ trait NumbersHelper
   {
     $contest_numbers = $this->getContestNumbers($contest->id);
     $order_numbers = json_decode($order->numbers);
-    $free_numbers = [];
+    $free_numbers = new SplFixedArray(count(json_decode($order->numbers)));
     $updated_numbers = new SplFixedArray($contest->quantity);
 
-    foreach ($contest_numbers as $number) {
-      $number_exists = in_array($number->number, $order_numbers);
-      $is_reserved = $number->status == NumberStatus::RESERVED;
-      $is_owner = $customer->id == $number->customer->id;
+    for ($i = 0; $i < $contest->quantity; $i++) {
+      $number_exists = in_array($contest_numbers[$i]->number, $order_numbers);
+      $is_reserved = $contest_numbers[$i]->status == NumberStatus::RESERVED;
+      $is_owner = $customer->id == $contest_numbers[$i]->customer->id;
       $can_free_number = $number_exists && $is_reserved && $is_owner;
 
       if ($can_free_number) {
-        $number->status = NumberStatus::FREE;
-        $number->order_id = null;
-        $number->reserved_at = null;
-        $number->payment_at = null;
-        $number->customer->id = null;
-        $number->customer->name = null;
-        $number->customer->whatsapp = null;
+        $contest_numbers[$i]->status = NumberStatus::FREE;
+        $contest_numbers[$i]->order_id = null;
+        $contest_numbers[$i]->reserved_at = null;
+        $contest_numbers[$i]->payment_at = null;
+        $contest_numbers[$i]->customer->id = null;
+        $contest_numbers[$i]->customer->name = null;
+        $contest_numbers[$i]->customer->whatsapp = null;
 
-        $free_numbers[] = $number->number;
+        $free_numbers[$i] = $contest_numbers[$i]->number;
       }
 
-      $updated_numbers[] = json_encode($number);
+      $updated_numbers[$i] = json_encode($contest_numbers[$i]);
     }
 
     return [
-      'free_numbers'    => json_encode($free_numbers),
+      'free_numbers'    => json_encode($free_numbers->toArray()),
       'updated_numbers' => json_encode($updated_numbers->toArray())
     ];
   }
@@ -155,24 +155,24 @@ trait NumbersHelper
     $paid_numbers = new SplFixedArray(count(json_decode($order->numbers)));
     $updated_numbers = new SplFixedArray($contest->quantity);
 
-    foreach ($contest_numbers as $number) {
-      $number_exists = in_array($number->number, $order_numbers);
-      $is_reserved = $number->status == NumberStatus::RESERVED;
-      $is_owner = $customer->id == $number->customer->id;
+    for ($i = 0; $i < $contest->quantity; $i++) {
+      $number_exists = in_array($contest_numbers[$i]->number, $order_numbers);
+      $is_reserved = $contest_numbers[$i]->status == NumberStatus::RESERVED;
+      $is_owner = $customer->id == $contest_numbers[$i]->customer->id;
 
       $can_pay_number = $number_exists && $is_reserved && $is_owner;
 
       if ($can_pay_number) {
-        $number->status = NumberStatus::PAID;
-        $number->payment_at = Carbon::now();
-        $number->customer->id = $customer->id;
-        $number->customer->name = $customer->name;
-        $number->customer->whatsapp = $customer->whatsapp;
+        $contest_numbers[$i]->status = NumberStatus::PAID;
+        $contest_numbers[$i]->payment_at = Carbon::now();
+        $contest_numbers[$i]->customer->id = $customer->id;
+        $contest_numbers[$i]->customer->name = $customer->name;
+        $contest_numbers[$i]->customer->whatsapp = $customer->whatsapp;
 
-        $paid_numbers[] = $number->number;
+        $paid_numbers[$i] = $contest_numbers[$i]->number;
       }
 
-      $updated_numbers[] = json_encode($number);
+      $updated_numbers[$i] = json_encode($contest_numbers[$i]);
     }
 
     return [
