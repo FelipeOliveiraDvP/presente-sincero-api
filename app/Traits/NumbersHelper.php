@@ -62,7 +62,7 @@ trait NumbersHelper
   protected function setContestNumbersAsReserved(int $random = 0, array $numbers = [], Contest $contest, Order $order, User $customer)
   {
     $is_random = $random > 0;
-    $contest_numbers = $this->getContestNumbers($$contest->id, $is_random);
+    $contest_numbers = iterator_to_array($this->getContestNumbers($$contest->id, $is_random), false);
     $reserved_numbers = new SplFixedArray($is_random ? $random : count($numbers));
     $updated_numbers = new SplFixedArray($contest->quantity);
     $max_reserve_numbers = 0;
@@ -107,7 +107,7 @@ trait NumbersHelper
    */
   protected function setContestNumbersAsFree(Contest $contest, Order $order, User $customer)
   {
-    $contest_numbers = $this->getContestNumbers($contest->id);
+    $contest_numbers = iterator_to_array($this->getContestNumbers($contest->id), false);
     $order_numbers = json_decode($order->numbers);
     $free_numbers = new SplFixedArray(count(json_decode($order->numbers)));
     $updated_numbers = new SplFixedArray($contest->quantity);
@@ -150,7 +150,7 @@ trait NumbersHelper
    */
   protected function setContestNumbersAsPaid(Contest $contest, Order $order, User $customer)
   {
-    $contest_numbers = $this->getContestNumbers($contest->id);
+    $contest_numbers = iterator_to_array($this->getContestNumbers($contest->id), false);
     $order_numbers = json_decode($order->numbers);
     $paid_numbers = new SplFixedArray(count(json_decode($order->numbers)));
     $updated_numbers = new SplFixedArray($contest->quantity);
@@ -307,7 +307,7 @@ trait NumbersHelper
    * 
    * @param int $contest_id
    * 
-   * @return array
+   * @return Traversable
    */
   protected function getContestNumbers(int $contest_id, bool $random = false): Traversable
   {
