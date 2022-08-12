@@ -62,7 +62,7 @@ trait NumbersHelper
   protected function setContestNumbersAsReserved(int $random = 0, array $numbers = [], Contest $contest, Order $order, User $customer)
   {
     $is_random = $random > 0;
-    $contest_numbers = iterator_to_array($this->getContestNumbers($$contest->id, $is_random), false);
+    $contest_numbers = iterator_to_array($this->getContestNumbers($contest->id, $is_random), false);
     $reserved_numbers = new SplFixedArray($is_random ? $random : count($numbers));
     $updated_numbers = new SplFixedArray($contest->quantity);
     $max_reserve_numbers = 0;

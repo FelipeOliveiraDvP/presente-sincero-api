@@ -230,7 +230,7 @@ class ContestController extends Controller
             'contest_date'      => 'nullable|date|after:now',
             'max_reserve_days'  => 'gte:1|lte:30',
             'price'             => 'required|gte:0.1',
-            'quantity'          => 'required|gte:1',
+            'quantity'          => 'required|gte:1:lte:100000',
             'short_description' => 'required|string',
             'whatsapp_number'   => 'required|string',
             'whatsapp_group'    => 'url',
@@ -344,7 +344,7 @@ class ContestController extends Controller
             'whatsapp_group'        => $request->whatsapp_group ?? $contest->whatsapp_group,
         ];
 
-        $can_change_price = count($this->getContestNumbersByStatus($id, NumberStatus::PAID)) <= 0;
+        $can_change_price = $this->countNumbersByStatus($id, NumberStatus::PAID) == 0;
 
         if ($can_change_price) {
             $update['price'] = $request->price ?? $contest->price;

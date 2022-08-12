@@ -203,7 +203,7 @@ class NumberController extends Controller
 
         $request_random = $request->random ?? 0;
         $request_numbers = $request->numbers ?? [];
-        $numbers = $this->setContestNumbersAsReserved($contest_id, $request_random, $request_numbers, $order, $user);
+        $numbers = $this->setContestNumbersAsReserved($request_random, $request_numbers, $contest, $order, $user);
         $order_total = $this->calcSaleDiscount(count(json_decode($numbers['reserved_numbers'])), $contest_id, $contest);
 
         $order->total = $order_total;
