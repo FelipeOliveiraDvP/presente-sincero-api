@@ -230,7 +230,7 @@ class ContestController extends Controller
             'contest_date'      => 'nullable|date|after:now',
             'max_reserve_days'  => 'gte:1|lte:30',
             'price'             => 'required|gte:0.1',
-            'quantity'          => 'required|gte:1:lte:100000',
+            'quantity'          => 'required|gte:1|lte:100000',
             'short_description' => 'required|string',
             'whatsapp_number'   => 'required|string',
             'whatsapp_group'    => 'url',

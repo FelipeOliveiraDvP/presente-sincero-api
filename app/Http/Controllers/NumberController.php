@@ -4,28 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Enums\NumberStatus;
 use App\Enums\OrderStatus;
-use App\Events\PaymentConfirmed;
+use App\Jobs\JobFreeNumbers;
+use App\Jobs\JobPaidNumbers;
+use App\Jobs\JobReserveNumbers;
 use App\Models\Contest;
 use App\Models\Order;
-use App\Models\Sale;
 use App\Models\User;
 use App\Traits\MercadoPagoHelper;
 use App\Traits\NumbersHelper;
 use App\Traits\WhatsApp;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 
 class NumberController extends Controller
 {
     use NumbersHelper, WhatsApp, MercadoPagoHelper;
 
-    // public function __construct()
-    // {
-    //     ini_set('max_execution_time', 0);
-    //     ini_set('memory_limit', '2048M');
-    // }
     /**
      * Visualizar todos os números de um cliente específico.
      * 
@@ -175,68 +169,33 @@ class NumberController extends Controller
             ], 400);
         }
 
-        $user = auth('sanctum')->user();
+        $customer = auth('sanctum')->user();
 
-        // Excluir o sorteio aberto do usuário e liberar os números reservados
-        $old_order = Order::where('user_id', '=', $user->id)
+        $old_order = Order::where('user_id', '=', $customer->id)
             ->where('contest_id', '=', $contest_id)
             ->where('status', '=', OrderStatus::PENDING)
             ->first();
 
         if (!empty($old_order)) {
-            $free_numbers = $this->setContestNumbersAsFree($contest, $old_order, $user);
-
-            $contest->numbers = $free_numbers['updated_numbers'];
-            $contest->update();
-            $old_order->delete();
-
-            $free_numbers = null;
+            $this->dispatch(new JobFreeNumbers($contest, $old_order, $customer));
         }
 
-        // Cria um novo pedido.
+        $request_random = $request->random ?? 0;
+        $request_numbers = $request->numbers ?? [];
+
         $order = Order::create([
-            'contest_id' => $contest_id,
-            'user_id'    => $user->id,
+            'contest_id' => $contest->id,
+            'user_id'    => $customer->id,
             'total'      => 0,
             'numbers'    => json_encode([])
         ]);
 
-        $request_random = $request->random ?? 0;
-        $request_numbers = $request->numbers ?? [];
-        $numbers = $this->setContestNumbersAsReserved($request_random, $request_numbers, $contest, $order, $user);
-        $order_total = $this->calcSaleDiscount(count(json_decode($numbers['reserved_numbers'])), $contest_id, $contest);
-
-        $order->total = $order_total;
-        $order->numbers = $numbers['reserved_numbers'];
-        $order->update();
-
-        $contest->numbers = $numbers['updated_numbers'];
-        $contest->update();
-
-        $numbers = null;
-
-        // Cria um novo pagamento no Mercado Pago.
-        $payment = $this->createPayment($order, $user, $contest);
-
-        // Caso aconteça algum erro no Mercado Pago, o checkout deve ser manual.
-        if ($payment == false) {
-            return response()->json([
-                'message'       => 'Números reservados com sucesso',
-                'mercado_pago'  => false,
-            ], 200);
-        }
-
-        if (env('APP_ENV') != 'local') {
-            $this->sendReservationMessage($user, $contest, $order, $payment);
-        }
-
-        $order->transaction_code = $payment['payment_id'];
-        $order->update();
+        $this->dispatch(new JobReserveNumbers($request_random, $request_numbers, $contest, $order, $customer));
 
         return response()->json([
-            'message'       => 'Números reservados com sucesso',
-            'mercado_pago'  => true,
-            'payment'       => $payment
+            'message'    => 'Estamos processando o seu pedido.',
+            'order_id'  => $order->id,
+            'processing' => true,
         ], 200);
     }
 
@@ -270,13 +229,7 @@ class NumberController extends Controller
             ], 200);
         }
 
-        $numbers = $this->setContestNumbersAsFree($contest, $order, $user);
-
-        $contest->numbers = $numbers['updated_numbers'];
-        $contest->update();
-        $order->delete();
-
-        $numbers = null;
+        $this->dispatch(new JobFreeNumbers($contest, $order, $user));
 
         return response()->json(['message' => 'Números liberados com sucesso'], 200);
     }
@@ -308,20 +261,8 @@ class NumberController extends Controller
         }
 
         $customer = User::find($order->user_id);
-        $numbers = $this->setContestNumbersAsPaid($contest->id, $order, $customer);
-        $paid_percentage = count(json_decode($numbers['paid_numbers'])) / $contest->quantity;
 
-        $contest->numbers = $numbers['updated_numbers'];
-        $contest->paid_percentage += round($paid_percentage, 2);
-        $contest->update();
-
-        $numbers = null;
-
-        $order->status = OrderStatus::CONFIRMED;
-        $order->confirmed_at = Carbon::now();
-        $order->update();
-
-        $this->sendConfirmationMessage($customer, $contest, $order);
+        $this->dispatch(new JobPaidNumbers($contest, $order, $customer));
 
         return response()->json(['message' => 'O pedido foi confirmado com sucesso'], 200);
     }
@@ -353,15 +294,8 @@ class NumberController extends Controller
         }
 
         $customer = User::find($order->user_id);
-        $numbers = $this->setContestNumbersAsFree($contest, $order, $customer);
 
-        $contest->numbers = $numbers['updated_numbers'];
-        $contest->update();
-
-        $numbers = null;
-
-        $order->status = OrderStatus::CANCELED;
-        $order->update();
+        $this->dispatch(new JobFreeNumbers($contest, $order, $customer, true));
 
         return response()->json(['message' => 'O pedido foi cancelado com sucesso'], 200);
     }
@@ -394,55 +328,11 @@ class NumberController extends Controller
                 ], 400);
             }
 
-            $numbers = $this->setContestNumbersAsPaid($contest->id, $order, $customer);
-            $paid_percentage = count(json_decode($numbers['paid_numbers'])) / $contest->quantity;
-
-            $contest->numbers = $numbers['updated_numbers'];
-            $contest->paid_percentage += round($paid_percentage, 2);
-            $contest->update();
-
-            $numbers = null;
-
-            $order->status = OrderStatus::CONFIRMED;
-            $order->confirmed_at = Carbon::now();
-            $order->update();
-
-            broadcast(new PaymentConfirmed($customer->id, $order->id));
-
-            $this->sendConfirmationMessage($customer, $contest, $order);
+            $this->dispatch(new JobPaidNumbers($contest, $order, $customer));
 
             return response()->json(['message' => 'Pagamento do pedido confirmado com sucesso'], 200);
         }
 
         return response()->json(['message' => 'Aguardando confirmação do pagamento'], 200);
-    }
-
-    /**
-     * Calcula o valor total com base na promoção correspondente do pedido.
-     * 
-     * @param int $quantity
-     * @param int $contest_id
-     * @param Contest $contest
-     * 
-     * @return float $partial
-     */
-    private function calcSaleDiscount(int $quantity, int $contest_id, Contest $contest)
-    {
-        $partial = 0;
-        $length = $quantity;
-        $sales = Sale::where('contest_id', $contest_id)->get();
-        $current_sale = Arr::first($sales, function ($value) use ($length) {
-            return $length >= $value->quantity;
-        });
-
-        for ($i = 0; $i < $length; $i++) {
-            if (!empty($current_sale)) {
-                $partial += $current_sale->price;
-            } else {
-                $partial += $contest->price;
-            }
-        }
-
-        return $partial;
     }
 }

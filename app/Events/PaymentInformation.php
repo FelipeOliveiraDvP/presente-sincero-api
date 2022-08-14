@@ -10,7 +10,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class PaymentConfirmed implements ShouldBroadcast
+class PaymentInformation implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -21,18 +21,22 @@ class PaymentConfirmed implements ShouldBroadcast
     public $order_id;
 
     /** @var bool */
-    public $confirmed;
+    public $mercado_pago;
+
+    /** @var array */
+    public $payment;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(int $user_id, int $order_id)
+    public function __construct(int $user_id, int $order_id, array $payment)
     {
         $this->user_id = $user_id;
         $this->order_id = $order_id;
-        $this->confirmed = true;
+        $this->mercado_pago = true;
+        $this->payment = $payment;
     }
 
     /**
@@ -42,6 +46,6 @@ class PaymentConfirmed implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new Channel('payment.confirmed');
+        return new Channel('payment.information');
     }
 }

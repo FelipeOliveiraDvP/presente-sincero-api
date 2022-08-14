@@ -19,4 +19,12 @@ Broadcast::channel('payment.confirmed', function () {
     return true;
 });
 
+Broadcast::channel('payment.manual', function () {
+    return true;
+});
+
+Broadcast::channel('payment.information', function () {
+    return true;
+});
+
 Broadcast::channel('test.connection', OrderChannel::class);

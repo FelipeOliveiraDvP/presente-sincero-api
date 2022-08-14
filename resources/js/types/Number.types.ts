@@ -35,12 +35,31 @@ export interface ReserveNumbersRequest {
 
 export interface ReserveNumbersResponse {
   message: string;
+  order_id: number;
+  processing: boolean;
+}
+
+export interface PaymentManual {
+  user_id: number;
+  order_id: number;
   mercado_pago: boolean;
-  payment?: {
-    payment_id: number;
+}
+
+export interface PaymentInformation {
+  user_id: number;
+  order_id: number;
+  mercado_pago: boolean;
+  payment: {
+    payment_id: string;
     order_id: number;
     qrcode_base64: string;
-    qr_code: string;
     ticket_url: string;
+    qr_code: string;
   };
+}
+
+export interface PaymentConfirmed {
+  user_id: number;
+  order_id: number;
+  confirmed: boolean;
 }

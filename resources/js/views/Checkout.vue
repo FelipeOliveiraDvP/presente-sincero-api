@@ -1,6 +1,7 @@
 <template>
   <container>
     <a-row :gutter="[16, 16]">
+      <!-- Resumo do pedido -->
       <a-col :xs="24" :md="12" :lg="8">
         <a-card title="Resumo do pedido">
           <div class="summary-item">
@@ -36,11 +37,13 @@
           </div>
         </a-card>
       </a-col>
+      <!-- Formas de pagamento -->
       <a-col :xs="24" :md="12" :lg="16">
         <a-spin :spinning="loading" size="large">
           <a-card title="Formas de pagamento">
             <a-row :gutter="[16, 16]">
-              <a-col v-if="payment && payment.mercado_pago" :xs="24" :lg="12">
+              <!-- Pagamento automático -->
+              <a-col v-if="mercadoPago" :xs="24" :lg="12">
                 <h3 style="display: flex; justify-content: space-between">
                   Pagar com Mercado Pago
                   <img
@@ -62,7 +65,7 @@
                   status="success"
                   title="Seu pagamento foi confirmado com sucesso!"
                   :sub-title="`N° do pedido: #${
-                    payment && payment.payment?.order_id
+                    information && information.payment?.order_id
                   } Agora você precisa participar do grupo do sorteio do WhatsApp clicando no botão abaixo`"
                 >
                   <template #extra>
@@ -84,22 +87,23 @@
                     <img
                       style="max-width: 100%"
                       :src="`data:image/png;base64, ${
-                        payment && payment.payment.qrcode_base64
+                        information && information.payment.qrcode_base64
                       }`"
                     />
 
                     <a-typography-paragraph
                       copyable
                       :v-model:content="
-                        payment ? payment.payment.qr_code : null
+                        information ? information.payment.qr_code : null
                       "
                     >
-                      {{ payment ? payment.payment.qr_code : null }}
+                      {{ information ? information.payment.qr_code : null }}
                     </a-typography-paragraph>
                   </a-space>
                 </a-card>
               </a-col>
 
+              <!-- Pagamento manual -->
               <a-col :xs="24" :lg="12">
                 <h3 style="display: flex; justify-content: space-between">
                   Transferência bancária ou PIX
@@ -213,7 +217,12 @@
 <script lang="ts">
 import Container from "@/components/_commons/Container.vue";
 import { useCartStore } from "@/store/cart";
-import { ReserveNumbersResponse } from "@/types/Number.types";
+import {
+  PaymentConfirmed,
+  PaymentInformation,
+  PaymentManual,
+  ReserveNumbersResponse,
+} from "@/types/Number.types";
 import { moneyFormat } from "@/utils/moneyFormat";
 import {
   computed,
@@ -269,7 +278,9 @@ export default defineComponent({
     const loading = ref<boolean>(true);
     const leaving = ref<boolean>(true);
     const confirmed = ref<boolean>(false);
+    const mercadoPago = ref<boolean>(false);
     const payment = ref<ReserveNumbersResponse>();
+    const information = ref<PaymentInformation>();
 
     const orderSale = computed(() => {
       return sale.value !== null
@@ -287,6 +298,7 @@ export default defineComponent({
       }&text=${encodeURI(message)}`;
     });
 
+    // TODO: Implementar seleção de números
     async function getPaymentDetails() {
       try {
         loading.value = true;
@@ -297,8 +309,6 @@ export default defineComponent({
         notification.error({
           message: getErrorMessage(error),
         });
-      } finally {
-        loading.value = false;
       }
     }
 
@@ -335,13 +345,45 @@ export default defineComponent({
 
       await getPaymentDetails();
 
+      window.Echo.channel("payment.manual").listen(
+        "PaymentManual",
+        (e: PaymentManual) => {
+          // console.log("Manual: ", e);
+          const { id: userId } = user.value;
+          const { order_id } = payment.value;
+
+          if (userId === e.user_id && order_id === e.order_id) {
+            loading.value = false;
+            mercadoPago.value = false;
+          }
+        }
+      );
+
+      window.Echo.channel("payment.information").listen(
+        "PaymentInformation",
+        (e: PaymentInformation) => {
+          // console.log("Information: ", e);
+          const { id: userId } = user.value;
+          const { order_id } = payment.value;
+
+          if (userId === e.user_id && order_id === e.order_id) {
+            loading.value = false;
+            mercadoPago.value = true;
+            information.value = { ...e };
+          }
+        }
+      );
+
       window.Echo.channel("payment.confirmed").listen(
         "PaymentConfirmed",
-        (e) => {
-          confirmed.value =
-            e.user_id === user.value.id &&
-            e.order_id === payment.value.payment.order_id &&
-            e.confirmed;
+        (e: PaymentConfirmed) => {
+          // console.log("Confirmed: ", e);
+          const { id: userId } = user.value;
+          const { order_id } = payment.value;
+
+          if (userId === e.user_id && order_id === e.order_id) {
+            confirmed.value = e.confirmed;
+          }
         }
       );
 
@@ -370,8 +412,10 @@ export default defineComponent({
       bankAccounts,
       total,
       showLeavingModal,
-      payment,
       loading,
+      mercadoPago,
+      payment,
+      information,
       confirmed,
       whatsappLink,
       whatsappGroup,
