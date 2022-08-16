@@ -19,7 +19,7 @@ class CreateOrdersTable extends Migration
             $table->bigInteger('user_id')->unsigned();
             $table->decimal('total', 5, 2)->unsigned();
             $table->json('numbers');
-            $table->enum('status', ['PENDING', 'CANCELED', 'CONFIRMED'])->default('PENDING');
+            $table->enum('status', ['PROCESSING', 'PENDING', 'CANCELED', 'CONFIRMED'])->default('PROCESSING');
             $table->string('transaction_code')->nullable();
             $table->date('confirmed_at')->nullable();
             $table->timestamps();
