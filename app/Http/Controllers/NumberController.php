@@ -82,16 +82,7 @@ class NumberController extends Controller
             ], 404);
         }
 
-        $free_numbers = $this->countNumbersByStatus($contest_id, NumberStatus::FREE);
-        $reserved_numbers = $this->countNumbersByStatus($contest_id, NumberStatus::RESERVED);
-        $paid_numbers = $this->countNumbersByStatus($contest_id, NumberStatus::PAID);
-
-        return response()->json([
-            'total'     => $contest->quantity,
-            'free'      => $free_numbers,
-            'reserved'  => $reserved_numbers,
-            'paid'      => $paid_numbers,
-        ], 200);
+        return response()->json($this->getContestNumbersStatus($contest_id), 200);
     }
 
     /**
@@ -169,6 +160,17 @@ class NumberController extends Controller
             ], 400);
         }
 
+        $request_random = $request->random ?? 0;
+        $request_numbers = $request->numbers ?? [];
+        $free_numbers = $this->countNumbersByStatus($contest_id, NumberStatus::FREE);
+        $valid_random_numbers = $request_random <= $free_numbers;
+
+        if ($valid_random_numbers == false) {
+            return response()->json([
+                'message' => 'A quantidade de números informada é maior que a quantidade de números disponíveis',
+            ], 400);
+        }
+
         $customer = auth('sanctum')->user();
 
         $old_order = Order::where('user_id', '=', $customer->id)
@@ -179,9 +181,6 @@ class NumberController extends Controller
         if (!empty($old_order)) {
             $this->dispatch(new JobFreeNumbers($contest, $old_order, $customer));
         }
-
-        $request_random = $request->random ?? 0;
-        $request_numbers = $request->numbers ?? [];
 
         $order = Order::create([
             'contest_id' => $contest->id,
@@ -198,7 +197,6 @@ class NumberController extends Controller
             'processing' => true,
         ], 200);
     }
-
 
     /**
      * Marca os números como FREE
@@ -297,7 +295,7 @@ class NumberController extends Controller
 
         $this->dispatch(new JobFreeNumbers($contest, $order, $customer, true));
 
-        return response()->json(['message' => 'O pedido foi cancelado com sucesso'], 200);
+        return response()->json(['message' => 'O pedido está sendo cancelado!'], 200);
     }
 
     /**
@@ -324,13 +322,13 @@ class NumberController extends Controller
 
             if ($order->status != OrderStatus::PENDING) {
                 return response()->json([
-                    'message' => 'O pagamento já foi realizado',
+                    'message' => 'O pedido informado não está mais disponível',
                 ], 400);
             }
 
             $this->dispatch(new JobPaidNumbers($contest, $order, $customer));
 
-            return response()->json(['message' => 'Pagamento do pedido confirmado com sucesso'], 200);
+            return response()->json(['message' => 'Estamos confirmando o pagamento do pedido'], 200);
         }
 
         return response()->json(['message' => 'Aguardando confirmação do pagamento'], 200);

@@ -73,6 +73,8 @@ class JobFreeNumbers implements ShouldQueue, ShouldBeUnique
         $order_numbers = json_decode($this->order->numbers);
         $updated_numbers = [];
 
+        $this->order->update(['status' => OrderStatus::PROCESSING]);
+
         foreach ($contest_numbers as $number) {
             $number_exist = in_array($number->number, $order_numbers);
             $is_reserved = $number->status == NumberStatus::RESERVED;

@@ -124,7 +124,7 @@ class ContestController extends Controller
         }
 
         return response()->json($contest->makeHiddenIf(function ($value) {
-            return $value->quantity >= 10000;
+            return $value->quantity >= 5000;
         }, ['numbers']));
     }
 
@@ -165,7 +165,7 @@ class ContestController extends Controller
         $orders = Order::with('user:id,name,whatsapp')
             ->with('contest:id,title,price')
             ->where('contest_id', '=', $id)
-            ->where('status', '=', OrderStatus::PENDING)
+            ->whereIn('status', [OrderStatus::PENDING, OrderStatus::PROCESSING])
             ->whereIn('user_id', function ($query) use ($search) {
                 $query->select('id')
                     ->from('users')

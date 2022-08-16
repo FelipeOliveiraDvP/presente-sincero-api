@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Enums\NumberStatus;
+use App\Enums\OrderStatus;
 use App\Events\PaymentInformation;
 use App\Events\PaymentManual;
 use App\Models\Contest;
@@ -116,6 +117,7 @@ class JobReserveNumbers implements ShouldQueue, ShouldBeUnique
             $order_total = $this->calcSaleDiscount(count($reserved_numbers), $this->contest);
 
             $this->order->total = $order_total;
+            $this->order->status = OrderStatus::PENDING;
             $this->order->numbers = json_encode($reserved_numbers);
             $this->order->update();
 

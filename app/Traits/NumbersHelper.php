@@ -70,6 +70,46 @@ trait NumbersHelper
   }
 
   /**
+   * Get contest numbers status.
+   * 
+   * @param int $contest_id   
+   * 
+   * @return array
+   */
+  protected function getContestNumbersStatus(int $contest_id)
+  {
+    $total = 0;
+    $free = 0;
+    $reserved = 0;
+    $paid = 0;
+
+    $contest_numbers = $this->getContestNumbers($contest_id);
+
+    foreach ($contest_numbers as $value) {
+      if ($value->status == NumberStatus::FREE) {
+        $free++;
+      }
+
+      if ($value->status == NumberStatus::RESERVED) {
+        $reserved++;
+      }
+
+      if ($value->status == NumberStatus::PAID) {
+        $paid++;
+      }
+
+      $total++;
+    }
+
+    return [
+      'total' => $total,
+      'free' => $free,
+      'reserved' => $reserved,
+      'paid' => $paid,
+    ];
+  }
+
+  /**
    * Get contest number by number.
    * 
    * @param int $contest_id
