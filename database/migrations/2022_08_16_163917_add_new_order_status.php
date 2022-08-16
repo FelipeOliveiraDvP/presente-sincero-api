@@ -14,7 +14,8 @@ class AddNewOrderStatus extends Migration
     public function up()
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->enum('status', ['PROCESSING', 'PENDING', 'CANCELED', 'CONFIRMED'])->default('PROCESSING')->change();
+            $table->dropColumn('status');
+            $table->enum('status', ['PROCESSING', 'PENDING', 'CANCELED', 'CONFIRMED'])->default('PROCESSING');
         });
     }
 
