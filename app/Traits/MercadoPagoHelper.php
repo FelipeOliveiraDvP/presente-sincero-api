@@ -54,7 +54,7 @@ trait MercadoPagoHelper
 
       $payment->save();
 
-      logger("Pedido #{$order->id}: Pagamento:\n\n{$payment}");
+      logger("Pedido #{$order->id}: Pagamento:\n" . print_r($payment, true));
 
       return [
         'payment_id' => $payment->id,
