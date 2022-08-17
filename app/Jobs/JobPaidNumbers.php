@@ -6,6 +6,7 @@ use App\Enums\NumberStatus;
 use App\Enums\OrderStatus;
 use App\Events\PaymentConfirmed;
 use App\Models\Contest;
+use App\Models\FailedOrders;
 use App\Models\Order;
 use App\Models\User;
 use App\Traits\WhatsApp;
@@ -110,8 +111,31 @@ class JobPaidNumbers implements ShouldQueue, ShouldBeUnique
                 $this->sendConfirmationMessage($this->customer, $this->contest, $this->order);
             }
 
+            logger("Pedido #{$this->order->id} - PAGO \nNome: {$this->customer->name}\nWhatsApp: {$this->customer->whatsapp}\nNúmeros: [{$this->order->numbers}]\n");
             event(new PaymentConfirmed($this->customer->id, $this->order->id));
         });
+    }
+
+    /**
+     * Handle a job failure.
+     *
+     * @param  \Throwable  $exception
+     * @return void
+     */
+    public function failed(\Throwable $exception)
+    {
+        logger("Pedido #{$this->order->id} - Erro ao confirmar o pagamento");
+
+        $failed_order = new FailedOrders();
+
+        $failed_order->order_id = $this->order->id;
+        $failed_order->customer_id = $this->customer->id;
+        $failed_order->contest_id = $this->contest->id;
+        $failed_order->cause = $exception->getMessage();
+        $failed_order->current_order_status = $this->order->status;
+        $failed_order->next_order_status = OrderStatus::CONFIRMED;
+
+        $failed_order->update();
     }
 
     /**

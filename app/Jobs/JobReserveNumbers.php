@@ -7,6 +7,7 @@ use App\Enums\OrderStatus;
 use App\Events\PaymentInformation;
 use App\Events\PaymentManual;
 use App\Models\Contest;
+use App\Models\FailedOrders;
 use App\Models\Order;
 use App\Models\Sale;
 use App\Models\User;
@@ -87,8 +88,7 @@ class JobReserveNumbers implements ShouldQueue, ShouldBeUnique
             $updated_numbers = [];
             $max_reserve_numbers = 0;
 
-            $mem_usage =  round(memory_get_usage() / 1024 / 1024);
-            logger("Pedido #{$this->order->id} - Consumo atual de memória: {$mem_usage}M");
+            logger("Pedido #{$this->order->id} - Reservando números");
 
             foreach ($contest_numbers as $number) {
                 $number_exists = $is_random ? $max_reserve_numbers < $this->random : in_array($number->number, $this->numbers);
@@ -146,6 +146,28 @@ class JobReserveNumbers implements ShouldQueue, ShouldBeUnique
             $peak_usage = round(memory_get_peak_usage() / 1024 / 1024);
             logger("Pedido #{$this->order->id} - Consumo máximo de memória: {$peak_usage}M");
         });
+    }
+
+    /**
+     * Handle a job failure.
+     *
+     * @param  \Throwable  $exception
+     * @return void
+     */
+    public function failed(\Throwable $exception)
+    {
+        logger("Pedido #{$this->order->id} - Erro ao reservar os números");
+
+        $failed_order = new FailedOrders();
+
+        $failed_order->order_id = $this->order->id;
+        $failed_order->customer_id = $this->customer->id;
+        $failed_order->contest_id = $this->contest->id;
+        $failed_order->cause = $exception->getMessage();
+        $failed_order->current_order_status = $this->order->status;
+        $failed_order->next_order_status = OrderStatus::PENDING;
+
+        $failed_order->update();
     }
 
     /**

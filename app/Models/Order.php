@@ -56,12 +56,6 @@ class Order extends Model
     'total' => 'double'
   ];
 
-  // protected $guarded = [];
-
-  // protected $dispatchesEvents = [
-  //   'created' => PaymentProcessing::class,
-  // ];
-
   public function contest()
   {
     return $this->belongsTo(Contest::class, 'contest_id', 'id');

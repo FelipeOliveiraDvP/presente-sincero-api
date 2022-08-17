@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Enums\NumberStatus;
 use App\Enums\OrderStatus;
 use App\Models\Contest;
+use App\Models\FailedOrders;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
@@ -75,6 +76,8 @@ class JobFreeNumbers implements ShouldQueue, ShouldBeUnique
 
         $this->order->update(['status' => OrderStatus::PROCESSING]);
 
+        logger("Pedido #{$this->order->id} - Liberando números");
+
         foreach ($contest_numbers as $number) {
             $number_exist = in_array($number->number, $order_numbers);
             $is_reserved = $number->status == NumberStatus::RESERVED;
@@ -104,7 +107,31 @@ class JobFreeNumbers implements ShouldQueue, ShouldBeUnique
             } else {
                 $this->order->delete();
             }
+
+            logger("Pedido #{$this->order->id} - Números liberados");
         });
+    }
+
+    /**
+     * Handle a job failure.
+     *
+     * @param  \Throwable  $exception
+     * @return void
+     */
+    public function failed(\Throwable $exception)
+    {
+        logger("Pedido #{$this->order->id} - Erro ao liberar os números");
+
+        $failed_order = new FailedOrders();
+
+        $failed_order->order_id = $this->order->id;
+        $failed_order->customer_id = $this->customer->id;
+        $failed_order->contest_id = $this->contest->id;
+        $failed_order->cause = $exception->getMessage();
+        $failed_order->current_order_status = $this->order->status;
+        $failed_order->next_order_status = OrderStatus::CANCELED;
+
+        $failed_order->update();
     }
 
     /**

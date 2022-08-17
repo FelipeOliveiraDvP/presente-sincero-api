@@ -85,8 +85,8 @@ return [
     */
 
     'failed' => [
-        'database' => env('DB_CONNECTION', 'mysql'),
-        'table' => 'failed_jobs',
+        'database' => null,
+        'table' => null,
     ],
 
 ];
