@@ -62,6 +62,7 @@ trait MercadoPagoHelper
         'qr_code' => $payment->point_of_interaction->transaction_data->qr_code,
       ];
     } catch (\Throwable $th) {
+      logger("Pedido #{$order->id}: Erro gerar o QR Code:\n\n{$th}");
       return false;
     }
   }

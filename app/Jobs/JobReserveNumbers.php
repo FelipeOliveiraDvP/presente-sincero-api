@@ -141,10 +141,10 @@ class JobReserveNumbers implements ShouldQueue, ShouldBeUnique
                 $this->order->update();
 
                 event(new PaymentInformation($this->customer->id, $this->order->id, $payment));
-
-                $peak_usage = round(memory_get_peak_usage() / 1024 / 1024);
-                logger("Pedido #{$this->order->id} - Consumo máximo de memória: {$peak_usage}M");
             }
+
+            $peak_usage = round(memory_get_peak_usage() / 1024 / 1024);
+            logger("Pedido #{$this->order->id} - Consumo máximo de memória: {$peak_usage}M");
         });
     }
 
