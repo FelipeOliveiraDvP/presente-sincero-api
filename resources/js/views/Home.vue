@@ -45,6 +45,14 @@ export default defineComponent({
 
     onMounted(async () => {
       await getContests();
+
+      // Test Broadcasting
+      // window.Echo.channel("test.connection").listen(
+      //   "TestConnection",
+      //   (e: any) => {
+      //     console.log(e);
+      //   }
+      // );
     });
 
     return {

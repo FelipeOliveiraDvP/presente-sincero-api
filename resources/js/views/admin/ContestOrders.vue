@@ -43,7 +43,13 @@
       </template>
 
       <template v-if="column.key === 'status'">
-        <a-tag color="warning">
+        <a-tag v-if="record.status === 'PROCESSING'" color="blue">
+          <template #icon>
+            <loading-outlined />
+          </template>
+          Processando
+        </a-tag>
+        <a-tag v-else color="warning">
           <template #icon>
             <exclamation-circle-outlined />
           </template>
@@ -57,12 +63,21 @@
 
       <template v-if="column.key === 'actions'">
         <a-space>
-          <a-button type="primary" @click="toggleApproveModal(record)">
+          <a-button
+            type="primary"
+            @click="toggleApproveModal(record)"
+            :disabled="record.status === 'PROCESSING'"
+          >
             <template #icon><check-outlined /></template>
             Aprovar
           </a-button>
 
-          <a-button type="primary" danger @click="toggleCancelModal(record)">
+          <a-button
+            type="primary"
+            danger
+            @click="toggleCancelModal(record)"
+            :disabled="record.status === 'PROCESSING'"
+          >
             <template #icon>
               <stop-outlined />
             </template>
@@ -101,6 +116,7 @@ import {
   StopOutlined,
   CheckOutlined,
   ExclamationCircleOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons-vue";
 import { BaseQuery, PaginatedResponse } from "@/types/api.types";
 import { listContestOrders } from "@/services/contests";
@@ -169,6 +185,7 @@ export default defineComponent({
     StopOutlined,
     CheckOutlined,
     ExclamationCircleOutlined,
+    LoadingOutlined,
     Pagination,
     ApproveOrderModal,
     CancelOrderModal,

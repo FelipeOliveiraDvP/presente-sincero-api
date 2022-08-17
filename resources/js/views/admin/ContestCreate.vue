@@ -59,11 +59,18 @@
       </a-col>
 
       <a-col :xs="24" :md="8">
-        <a-form-item label="Quantidade" name="quantity">
+        <a-form-item
+          label="Quantidade"
+          name="quantity"
+          :rules="[
+            { validator: quantityValidator, trigger: ['change', 'blur'] },
+          ]"
+        >
           <a-input
             v-model:value="formState.quantity"
             type="number"
             :min="100"
+            :max="100000"
           />
         </a-form-item>
       </a-col>
@@ -124,7 +131,10 @@
         <a-form-item
           label="Grupo do sorteio"
           name="whatsapp_group"
-          :rules="[{ type: 'url', message: 'Informe uma URL válida' }]"
+          :rules="[
+            { required: true, message: 'Informe um grupo para o sorteio' },
+            { type: 'url', message: 'Informe uma URL válida' },
+          ]"
         >
           <a-input v-model:value="formState.whatsapp_group" />
           <a-popover title="Grupo do sorteio">
@@ -351,6 +361,20 @@ export default defineComponent({
       }
     };
 
+    const quantityValidator = async (_rule: Rule, value: string) => {
+      if (value === "") {
+        return Promise.reject("Campo obrigatório!");
+      } else {
+        if (formState.quantity < 100 || formState.quantity > 100000) {
+          return Promise.reject(
+            "O sorteio deve ter entre 100 ou 100.000 números"
+          );
+        }
+
+        return Promise.resolve();
+      }
+    };
+
     function handleSelectAccount(accounts: number[]) {
       const values = Object.entries(accounts).map(
         (value) => value[1] as number
@@ -385,6 +409,7 @@ export default defineComponent({
       handleChangeImages,
       priceValidator,
       salePriceValidator,
+      quantityValidator,
       addSale,
       removeSale,
       disabledDate,

@@ -110,7 +110,7 @@ class JobPaidNumbers implements ShouldQueue, ShouldBeUnique
                 $this->sendConfirmationMessage($this->customer, $this->contest, $this->order);
             }
 
-            broadcast(new PaymentConfirmed($this->customer->id, $this->order->id));
+            event(new PaymentConfirmed($this->customer->id, $this->order->id));
         });
     }
 

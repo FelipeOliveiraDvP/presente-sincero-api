@@ -130,7 +130,7 @@ class JobReserveNumbers implements ShouldQueue, ShouldBeUnique
 
             if ($payment == false) {
                 logger("Pedido #{$this->order->id} - Pagamento manual");
-                broadcast(new PaymentManual($this->customer->id, $this->order->id));
+                event(new PaymentManual($this->customer->id, $this->order->id));
             } else {
                 logger("Pedido #{$this->order->id} - Pagamento automático");
                 if (env('APP_ENV') != 'local') {
@@ -140,7 +140,7 @@ class JobReserveNumbers implements ShouldQueue, ShouldBeUnique
                 $this->order->transaction_code = $payment['payment_id'];
                 $this->order->update();
 
-                broadcast(new PaymentInformation($this->customer->id, $this->order->id, $payment));
+                event(new PaymentInformation($this->customer->id, $this->order->id, $payment));
 
                 $peak_usage = round(memory_get_peak_usage() / 1024 / 1024);
                 logger("Pedido #{$this->order->id} - Consumo máximo de memória: {$peak_usage}M");

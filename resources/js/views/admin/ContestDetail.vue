@@ -89,7 +89,10 @@
         <a-form-item
           label="Grupo do sorteio"
           name="whatsapp_group"
-          :rules="[{ type: 'url', message: 'Informe uma URL válida' }]"
+          :rules="[
+            { required: true, message: 'Informe um grupo para o sorteio' },
+            { type: 'url', message: 'Informe uma URL válida' },
+          ]"
         >
           <a-input v-model:value="formState.whatsapp_group" />
           <a-popover title="Grupo do sorteio">

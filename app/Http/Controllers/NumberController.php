@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\NumberStatus;
 use App\Enums\OrderStatus;
+use App\Events\TestConnection;
 use App\Jobs\JobFreeNumbers;
 use App\Jobs\JobPaidNumbers;
 use App\Jobs\JobReserveNumbers;
@@ -292,6 +293,8 @@ class NumberController extends Controller
         }
 
         $customer = User::find($order->user_id);
+
+        $order->update(['status' => OrderStatus::PROCESSING]);
 
         $this->dispatch(new JobFreeNumbers($contest, $order, $customer, true));
 
