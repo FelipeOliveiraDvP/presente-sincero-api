@@ -41,7 +41,7 @@ trait MercadoPagoHelper
       $payment->external_reference = $order->id;
       $payment->payment_method_id = "pix";
       $payment->date_of_expiration = $expiration;
-      $payment->notification_url = env('APP_URL') . '/numbers/webhook';
+      $payment->notification_url = url() . '/numbers/webhook';
       $payment->payer = [
         'first_name' => $customer->name,
         'last_name' => "cliente-{$customer->id}",
