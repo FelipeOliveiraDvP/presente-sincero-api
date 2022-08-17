@@ -88,9 +88,9 @@ return [
         // 'driver' => env('QUEUE_FAILED_DRIVER', 'mysql'),
         // 'database' => env('DB_CONNECTION', 'mysql'),
         // 'table' => 'failed_jobs',
-        'driver' => null,
-        'database' => null,
-        'table' => null,
+        // 'driver' => null,
+        'database' => env('DB_CONNECTION', 'mysql'),
+        'table' => 'failed_jobs',
     ],
 
 ];
