@@ -97,19 +97,18 @@ class JobFreeNumbers implements ShouldQueue, ShouldBeUnique
             $updated_numbers[] = json_encode($number);
         }
 
-        DB::transaction(function () use ($updated_numbers) {
-            $this->contest->numbers = json_encode($updated_numbers);
-            $this->contest->update();
 
-            if ($this->cancel_order == true) {
-                $this->order->status = OrderStatus::CANCELED;
-                $this->order->update();
-            } else {
-                $this->order->delete();
-            }
+        $this->contest->numbers = json_encode($updated_numbers);
+        $this->contest->update();
 
-            logger("Pedido #{$this->order->id} - Números liberados");
-        });
+        if ($this->cancel_order == true) {
+            $this->order->status = OrderStatus::CANCELED;
+            $this->order->update();
+        } else {
+            $this->order->delete();
+        }
+
+        logger("Pedido #{$this->order->id} - Números liberados");
     }
 
     /**

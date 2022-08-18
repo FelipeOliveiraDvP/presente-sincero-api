@@ -96,24 +96,23 @@ class JobPaidNumbers implements ShouldQueue, ShouldBeUnique
             $updated_numbers[] = json_encode($number);
         }
 
-        DB::transaction(function () use ($updated_numbers, $paid_numbers) {
-            $paid_percentage = count($paid_numbers) / $this->contest->quantity;
 
-            $this->contest->numbers = json_encode($updated_numbers);
-            $this->contest->paid_percentage += round($paid_percentage, 2);
-            $this->contest->update();
+        $paid_percentage = count($paid_numbers) / $this->contest->quantity;
 
-            $this->order->status = OrderStatus::CONFIRMED;
-            $this->order->confirmed_at = Carbon::now();
-            $this->order->update();
+        $this->contest->numbers = json_encode($updated_numbers);
+        $this->contest->paid_percentage += round($paid_percentage, 2);
+        $this->contest->update();
 
-            if (env('APP_ENV') != 'local') {
-                $this->sendConfirmationMessage($this->customer, $this->contest, $this->order);
-            }
+        $this->order->status = OrderStatus::CONFIRMED;
+        $this->order->confirmed_at = Carbon::now();
+        $this->order->update();
 
-            logger("Pedido #{$this->order->id} - PAGO \nNome: {$this->customer->name}\nWhatsApp: {$this->customer->whatsapp}\nNúmeros: [{$this->order->numbers}]\n");
-            event(new PaymentConfirmed($this->customer->id, $this->order->id));
-        });
+        if (env('APP_ENV') != 'local') {
+            $this->sendConfirmationMessage($this->customer, $this->contest, $this->order);
+        }
+
+        logger("Pedido #{$this->order->id} - PAGO \nNome: {$this->customer->name}\nWhatsApp: {$this->customer->whatsapp}\nNúmeros: [{$this->order->numbers}]\n");
+        event(new PaymentConfirmed($this->customer->id, $this->order->id));
     }
 
     /**

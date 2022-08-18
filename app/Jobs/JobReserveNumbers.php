@@ -81,71 +81,70 @@ class JobReserveNumbers implements ShouldQueue, ShouldBeUnique
      */
     public function handle()
     {
-        DB::transaction(function () {
-            $is_random = $this->random > 0;
-            $contest_numbers = $this->getContestNumbers($this->contest, $is_random);
-            $reserved_numbers = [];
-            $updated_numbers = [];
-            $max_reserve_numbers = 0;
 
-            logger("Pedido #{$this->order->id} - Reservando números");
+        $is_random = $this->random > 0;
+        $contest_numbers = $this->getContestNumbers($this->contest, $is_random);
+        $reserved_numbers = [];
+        $updated_numbers = [];
+        $max_reserve_numbers = 0;
 
-            foreach ($contest_numbers as $number) {
-                $number_exists = $is_random ? $max_reserve_numbers < $this->random : in_array($number->number, $this->numbers);
-                $is_free = $number->status == NumberStatus::FREE;
+        logger("Pedido #{$this->order->id} - Reservando números");
 
-                $can_reserve_number = $number_exists && $is_free;
+        foreach ($contest_numbers as $number) {
+            $number_exists = $is_random ? $max_reserve_numbers < $this->random : in_array($number->number, $this->numbers);
+            $is_free = $number->status == NumberStatus::FREE;
 
-                if ($can_reserve_number) {
-                    $number->status = NumberStatus::RESERVED;
-                    $number->order_id = $this->order->id;
-                    $number->reserved_at = Carbon::now();
-                    $number->customer->id = $this->customer->id;
-                    $number->customer->name = $this->customer->name;
-                    $number->customer->whatsapp = $this->customer->whatsapp;
+            $can_reserve_number = $number_exists && $is_free;
 
-                    if ($max_reserve_numbers < $this->random) {
-                        $reserved_numbers[] = $number->number;
-                        $max_reserve_numbers++;
-                    }
+            if ($can_reserve_number) {
+                $number->status = NumberStatus::RESERVED;
+                $number->order_id = $this->order->id;
+                $number->reserved_at = Carbon::now();
+                $number->customer->id = $this->customer->id;
+                $number->customer->name = $this->customer->name;
+                $number->customer->whatsapp = $this->customer->whatsapp;
+
+                if ($max_reserve_numbers < $this->random) {
+                    $reserved_numbers[] = $number->number;
+                    $max_reserve_numbers++;
                 }
-
-                $updated_numbers[] = json_encode($number);
             }
 
-            $numbers = json_encode($updated_numbers);
-            $order_total = $this->calcSaleDiscount(count($reserved_numbers), $this->contest);
+            $updated_numbers[] = json_encode($number);
+        }
 
-            $this->order->total = $order_total;
-            $this->order->status = OrderStatus::PENDING;
-            $this->order->numbers = json_encode($reserved_numbers);
+        $numbers = json_encode($updated_numbers);
+        $order_total = $this->calcSaleDiscount(count($reserved_numbers), $this->contest);
+
+        $this->order->total = $order_total;
+        $this->order->status = OrderStatus::PENDING;
+        $this->order->numbers = json_encode($reserved_numbers);
+        $this->order->update();
+
+        $this->contest->numbers = $numbers;
+        $this->contest->update();
+
+        $numbers = null;
+
+        $payment = $this->createPayment($this->order, $this->customer, $this->contest);
+
+        if ($payment == false) {
+            logger("Pedido #{$this->order->id} - Pagamento manual");
+            event(new PaymentManual($this->customer->id, $this->order->id));
+        } else {
+            logger("Pedido #{$this->order->id} - Pagamento automático");
+            if (env('APP_ENV') != 'local') {
+                $this->sendReservationMessage($this->customer, $this->contest, $this->order, $payment);
+            }
+
+            $this->order->transaction_code = $payment['payment_id'];
             $this->order->update();
 
-            $this->contest->numbers = $numbers;
-            $this->contest->update();
+            event(new PaymentInformation($this->customer->id, $this->order->id, $payment));
+        }
 
-            $numbers = null;
-
-            $payment = $this->createPayment($this->order, $this->customer, $this->contest);
-
-            if ($payment == false) {
-                logger("Pedido #{$this->order->id} - Pagamento manual");
-                event(new PaymentManual($this->customer->id, $this->order->id));
-            } else {
-                logger("Pedido #{$this->order->id} - Pagamento automático");
-                if (env('APP_ENV') != 'local') {
-                    $this->sendReservationMessage($this->customer, $this->contest, $this->order, $payment);
-                }
-
-                $this->order->transaction_code = $payment['payment_id'];
-                $this->order->update();
-
-                event(new PaymentInformation($this->customer->id, $this->order->id, $payment));
-            }
-
-            $peak_usage = round(memory_get_peak_usage() / 1024 / 1024);
-            logger("Pedido #{$this->order->id} - Consumo máximo de memória: {$peak_usage}M");
-        });
+        $peak_usage = round(memory_get_peak_usage() / 1024 / 1024);
+        logger("Pedido #{$this->order->id} - Consumo máximo de memória: {$peak_usage}M");
     }
 
     /**

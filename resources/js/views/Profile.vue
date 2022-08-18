@@ -2,82 +2,103 @@
   <container>
     <a-page-header title="Minha conta" />
 
-    <a-form
-      ref="formRef"
-      :model="formState"
-      name="profile_form"
-      layout="vertical"
-      autocomplete="off"
-      @finish="handleFinish"
-    >
-      <a-row :gutter="[16, 16]">
-        <a-col :xs="24" :md="12" :lg="8">
-          <a-form-item
-            label="Nome completo"
-            name="name"
-            :rules="[{ required: true, message: 'Campo obrigatório!' }]"
+    <a-row :gutter="[16, 16]">
+      <a-col :xs="24" :md="12" :lg="8">
+        <a-card title="Informações gerais">
+          <a-form
+            ref="formRef"
+            :model="formState"
+            name="profile_form"
+            layout="vertical"
+            autocomplete="off"
+            @finish="handleFinish"
           >
-            <a-input v-model:value="formState.name" />
-          </a-form-item>
+            <a-row :gutter="[16, 16]">
+              <a-col :xs="24" :md="12">
+                <a-form-item
+                  label="Nome completo"
+                  name="name"
+                  :rules="[{ required: true, message: 'Campo obrigatório!' }]"
+                >
+                  <a-input v-model:value="formState.name" />
+                </a-form-item>
+              </a-col>
 
-          <a-form-item
-            label="WhatsApp"
-            name="whatsapp"
-            :rules="[
-              { required: true, message: 'Campo obrigatório!' },
-              { pattern: /^[0-9]{11}$/, message: 'Informe um número válido' },
-            ]"
-          >
-            <a-input v-model:value="formState.whatsapp" />
-          </a-form-item>
+              <a-col :xs="24" :md="12">
+                <a-form-item
+                  label="WhatsApp"
+                  name="whatsapp"
+                  :rules="[
+                    { required: true, message: 'Campo obrigatório!' },
+                    {
+                      pattern: /^[0-9]{11}$/,
+                      message: 'Informe um número válido',
+                    },
+                  ]"
+                >
+                  <a-input v-model:value="formState.whatsapp" />
+                </a-form-item>
+              </a-col>
 
-          <a-form-item
-            v-if="isAdmin || isSeller"
-            label="Nome de vendedor"
-            name="username"
-            help="Esta vai ser a sua marca no site"
-            :rules="[{ required: true, message: 'Campo obrigatório!' }]"
-          >
-            <a-input v-model:value="formState.username" />
-          </a-form-item>
+              <a-col v-if="isAdmin || isSeller" :xs="24" :md="12">
+                <a-form-item
+                  label="Nome de vendedor"
+                  name="username"
+                  help="Esta vai ser a sua marca no site"
+                  :rules="[{ required: true, message: 'Campo obrigatório!' }]"
+                >
+                  <a-input v-model:value="formState.username" />
+                </a-form-item>
+              </a-col>
 
-          <a-form-item
-            label="E-mail"
-            name="email"
-            :rules="[
-              { required: true, message: 'Campo obrigatório' },
-              { type: 'email', message: 'Informe um e-mail válido' },
-            ]"
-          >
-            <a-input v-model:value="formState.email" />
-          </a-form-item>
-        </a-col>
-        <a-col :xs="24" :md="12" :lg="8">
-          <a-form-item
-            label="Senha"
-            name="password"
-            :rules="[{ validator: password, trigger: 'change' }]"
-          >
-            <a-input-password v-model:value="formState.password" />
-          </a-form-item>
+              <a-col :xs="24" :md="12">
+                <a-form-item
+                  label="E-mail"
+                  name="email"
+                  :rules="[
+                    { required: true, message: 'Campo obrigatório' },
+                    { type: 'email', message: 'Informe um e-mail válido' },
+                  ]"
+                >
+                  <a-input v-model:value="formState.email" />
+                </a-form-item>
+              </a-col>
 
-          <a-form-item
-            label="Confirmar senha"
-            name="password_confirmation"
-            :rules="[{ validator: confirmPassword, trigger: 'change' }]"
-          >
-            <a-input-password v-model:value="formState.password_confirmation" />
-          </a-form-item>
-        </a-col>
-        <a-col :xs="24" :md="12" :lg="8"></a-col>
-      </a-row>
+              <a-col :xs="24" :md="12">
+                <a-form-item
+                  label="Senha"
+                  name="password"
+                  :rules="[{ validator: password, trigger: 'change' }]"
+                >
+                  <a-input-password v-model:value="formState.password" />
+                </a-form-item>
+              </a-col>
 
-      <a-form-item>
-        <a-button :loading="loading" type="primary" html-type="submit"
-          >Salvar alterações</a-button
-        >
-      </a-form-item>
-    </a-form>
+              <a-col :xs="24" :md="12">
+                <a-form-item
+                  label="Confirmar senha"
+                  name="password_confirmation"
+                  :rules="[{ validator: confirmPassword, trigger: 'change' }]"
+                >
+                  <a-input-password
+                    v-model:value="formState.password_confirmation"
+                  />
+                </a-form-item>
+              </a-col>
+              <a-col :xs="24" :md="12" :lg="8"></a-col>
+            </a-row>
+
+            <a-form-item>
+              <a-button :loading="loading" type="primary" html-type="submit"
+                >Salvar alterações</a-button
+              >
+            </a-form-item>
+          </a-form>
+        </a-card>
+      </a-col>
+
+      <a-col :xs="24" :md="12" :lg="16"></a-col>
+    </a-row>
   </container>
 </template>
 
