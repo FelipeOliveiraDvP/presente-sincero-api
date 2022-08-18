@@ -5,7 +5,6 @@ namespace App\Traits;
 use App\Models\Contest;
 use App\Models\Order;
 use App\Models\User;
-use Illuminate\Support\Facades\Config;
 
 use MercadoPago;
 
@@ -41,7 +40,7 @@ trait MercadoPagoHelper
       $payment->external_reference = $order->id;
       $payment->payment_method_id = "pix";
       $payment->date_of_expiration = $expiration;
-      $payment->notification_url = url('') . '/numbers/webhook';
+      $payment->notification_url = url('') . '/api/numbers/webhook';
       $payment->payer = [
         'first_name' => $customer->name,
         'last_name' => "cliente-{$customer->id}",
@@ -54,7 +53,13 @@ trait MercadoPagoHelper
 
       $payment->save();
 
-      logger("Pedido #{$order->id}: Pagamento:\n" . print_r($payment, true));
+      if (env('APP_ENV') === 'local') {
+        logger("Pedido #{$order->id}: Pagamento:\n" . print_r($payment, true));
+      }
+
+      if (empty($payment->point_of_interaction) || empty($payment->point_of_interaction->transaction_data)) {
+        return false;
+      }
 
       return [
         'payment_id' => $payment->id,
