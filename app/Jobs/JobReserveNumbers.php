@@ -158,16 +158,14 @@ class JobReserveNumbers implements ShouldQueue, ShouldBeUnique
     {
         logger("Pedido #{$this->order->id} - Erro ao reservar os números");
 
-        $failed_order = new FailedOrders();
-
-        $failed_order->order_id = $this->order->id;
-        $failed_order->customer_id = $this->customer->id;
-        $failed_order->contest_id = $this->contest->id;
-        $failed_order->cause = $exception->getMessage();
-        $failed_order->current_order_status = $this->order->status;
-        $failed_order->next_order_status = OrderStatus::PENDING;
-
-        $failed_order->update();
+        FailedOrders::create([
+            'order_id' => $this->order->id,
+            'customer_id' => $this->customer->id,
+            'contest_id' => $this->contest->id,
+            'cause' => $exception->getMessage(),
+            'current_order_status' => $this->order->status,
+            'next_order_status' => OrderStatus::PENDING,
+        ]);
     }
 
     /**
@@ -182,7 +180,9 @@ class JobReserveNumbers implements ShouldQueue, ShouldBeUnique
     {
         $partial = 0;
         $length = $quantity;
-        $sales = Sale::where('contest_id', $contest->id)->get();
+        $sales = Sale::where('contest_id', '=', $contest->id)
+            ->orderBy('quantity', 'desc')
+            ->get();
         $current_sale = Arr::first($sales, function ($value) use ($length) {
             return $length >= $value->quantity;
         });

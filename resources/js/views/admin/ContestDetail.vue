@@ -1,4 +1,13 @@
 <template>
+  <a-breadcrumb>
+    <a-breadcrumb-item
+      ><router-link to="/admin/sorteios"
+        >Meus sorteios</router-link
+      ></a-breadcrumb-item
+    >
+    <a-breadcrumb-item>{{ pageTitle }}</a-breadcrumb-item>
+  </a-breadcrumb>
+
   <a-page-header :title="pageTitle" />
 
   <a-form

@@ -1,4 +1,13 @@
 <template>
+  <a-breadcrumb>
+    <a-breadcrumb-item
+      ><router-link to="/admin/sorteios"
+        >Meus sorteios</router-link
+      ></a-breadcrumb-item
+    >
+    <a-breadcrumb-item>{{ pageTitle }}</a-breadcrumb-item>
+  </a-breadcrumb>
+
   <a-page-header title="Gerenciar sorteio" />
 
   <a-spin :spinning="loading" size="large">
@@ -70,7 +79,13 @@ import { getContestNumbersStatus } from "@/services/numbers";
 import { ContestDetail } from "@/types/Contest.types";
 import { NumberStatusResponse } from "@/types/Number.types";
 import { getErrorMessage } from "@/utils/handleError";
-import { defineComponent, onMounted, reactive, ref } from "@vue/runtime-core";
+import {
+  computed,
+  defineComponent,
+  onMounted,
+  reactive,
+  ref,
+} from "@vue/runtime-core";
 import { notification } from "ant-design-vue";
 import { useRoute } from "vue-router";
 
@@ -88,6 +103,14 @@ export default defineComponent({
       free: 0,
       reserved: 0,
       paid: 0,
+    });
+
+    const pageTitle = computed(() => {
+      if (contest.value === undefined) return "Carregando...";
+
+      const { title } = contest.value;
+
+      return loading.value ? "Carregando..." : title;
     });
 
     async function getContestDetails() {
@@ -130,6 +153,7 @@ export default defineComponent({
     return {
       contestId: Number(id),
       contest,
+      pageTitle,
       numbersStatus,
       loading,
     };

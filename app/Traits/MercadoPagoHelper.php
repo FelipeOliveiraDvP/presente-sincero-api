@@ -53,12 +53,13 @@ trait MercadoPagoHelper
 
       $payment->save();
 
-      if (env('APP_ENV') === 'local') {
-        logger("Pedido #{$order->id}: Pagamento:\n" . print_r($payment, true));
+      if (!empty($payment->error)) {
+        logger("Pedido #{$order->id}: Erro ao gerar o pagamento no Mercado Pago:\n" . print_r($payment->error, true));
+        return false;
       }
 
-      if (empty($payment->point_of_interaction) || empty($payment->point_of_interaction->transaction_data)) {
-        return false;
+      if (env('APP_ENV') === 'local') {
+        logger("Pedido #{$order->id}: Pagamento:\n" . print_r($payment, true));
       }
 
       return [

@@ -111,10 +111,12 @@
             </a-button>
           </a-space>
           <a-space style="margin: 10px auto">
+            <a-button type="primary" @click="decrement(100)"> -100 </a-button>
             <a-button type="primary" @click="decrement(50)"> -50 </a-button>
             <a-button type="primary" @click="decrement(10)"> -10 </a-button>
             <a-button type="primary" @click="increment(10)"> +10 </a-button>
             <a-button type="primary" @click="increment(50)"> +50 </a-button>
+            <a-button type="primary" @click="increment(100)"> +100 </a-button>
           </a-space>
         </a-col>
         <a-col
@@ -311,9 +313,12 @@ export default defineComponent({
     function calcDiscount() {
       if (contest.value === undefined) return;
 
-      const { sales, price } = contest.value;
-      const currentSale = sales.find((sale) => order.quantity >= sale.quantity);
       let partial = 0;
+      const { sales, price } = contest.value;
+      const contestSales = [...sales];
+      const currentSale = contestSales
+        .reverse()
+        .find((sale) => order.quantity >= sale.quantity);
 
       for (let i = 0; i < order.quantity; i++) {
         if (currentSale !== undefined) {
@@ -321,6 +326,7 @@ export default defineComponent({
           order.sale = { ...currentSale };
         } else {
           partial += price;
+          order.sale = null;
         }
       }
 

@@ -274,11 +274,9 @@ class AuthController extends Controller
     /**
      * Retorna as informações do usuário atual
      * 
-     * @param Request $request Corpo da requisição.
-     * 
      * @return JsonResponse
      */
-    public function getProfile(Request $request)
+    public function getProfile()
     {
         $user = User::find(auth('sanctum')->id());
 
@@ -318,7 +316,7 @@ class AuthController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Informe todas as informações necessárias',
+                'message' => 'Ocorreu um erro ao atualizar as informações',
                 'errors'  => $validator->errors()
             ], 400);
         }

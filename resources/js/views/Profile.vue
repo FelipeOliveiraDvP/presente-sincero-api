@@ -32,6 +32,7 @@
           </a-form-item>
 
           <a-form-item
+            v-if="isAdmin || isSeller"
             label="Nome de vendedor"
             name="username"
             help="Esta vai ser a sua marca no site"
@@ -84,7 +85,6 @@
 import Container from "@/components/_commons/Container.vue";
 import { editProfile } from "@/services/auth";
 import { useAuthStore } from "@/store/auth";
-import { ErrorResponse } from "@/types/api.types";
 import { AuthProfileRequest, AuthUser } from "@/types/Auth.types";
 import { getErrorMessage } from "@/utils/handleError";
 import { defineComponent, reactive, ref } from "@vue/runtime-core";
@@ -97,10 +97,9 @@ export default defineComponent({
   name: "Profile",
   setup() {
     const store = useAuthStore();
-
+    const { user, isAdmin, isSeller } = storeToRefs(store);
     const loading = ref<boolean>(false);
     const formRef = ref<FormInstance>();
-    const { user } = storeToRefs(store);
 
     const formState = reactive<AuthProfileRequest>({
       name: "",
@@ -161,6 +160,8 @@ export default defineComponent({
       formRef,
       formState,
       loading,
+      isAdmin,
+      isSeller,
       password,
       confirmPassword,
       handleFinish,

@@ -58,13 +58,12 @@ class FailedOrders extends Model
      */
     public $next_order_status;
 
-
     /**
      * The database table.
      * 
      * @var string
      */
-    protected $table = 'orders';
+    protected $table = 'failed_orders';
 
     /**
      * Enable timestamps.
@@ -79,37 +78,26 @@ class FailedOrders extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'order_id',
+        'customer_id',
         'contest_id',
-        'user_id',
-        'total',
-        'numbers',
-        'status',
-        'transaction_code',
-        'confirmed_at',
+        'cause',
+        'current_order_status',
+        'next_order_status',
     ];
-
-    /**
-     * Cast attributes into other types.
-     * 
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'total' => 'double'
-    ];
-
-    // protected $guarded = [];
-
-    // protected $dispatchesEvents = [
-    //   'created' => PaymentProcessing::class,
-    // ];
 
     public function contest()
     {
         return $this->belongsTo(Contest::class, 'contest_id', 'id');
     }
 
-    public function user()
+    public function customer()
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(User::class, 'customer_id', 'id');
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id', 'id');
     }
 }

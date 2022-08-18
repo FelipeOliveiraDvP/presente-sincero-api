@@ -122,16 +122,14 @@ class JobFreeNumbers implements ShouldQueue, ShouldBeUnique
     {
         logger("Pedido #{$this->order->id} - Erro ao liberar os números");
 
-        $failed_order = new FailedOrders();
-
-        $failed_order->order_id = $this->order->id;
-        $failed_order->customer_id = $this->customer->id;
-        $failed_order->contest_id = $this->contest->id;
-        $failed_order->cause = $exception->getMessage();
-        $failed_order->current_order_status = $this->order->status;
-        $failed_order->next_order_status = OrderStatus::CANCELED;
-
-        $failed_order->update();
+        FailedOrders::create([
+            'order_id' => $this->order->id,
+            'customer_id' => $this->customer->id,
+            'contest_id' => $this->contest->id,
+            'cause' => $exception->getMessage(),
+            'current_order_status' => $this->order->status,
+            'next_order_status' => OrderStatus::CANCELED,
+        ]);
     }
 
     /**
